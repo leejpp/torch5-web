@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>달란트 랭킹</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f0f0ff;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            background-color: #2d2d35;
+            border-radius: 25px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .title {
+            background-color: #ffa726;
+            color: #000;
+            text-align: center;
+            padding: 10px;
+            border-radius: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .ranking-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 12px 20px;
+            background-color: #006064;
+            border-radius: 25px;
+            color: white;
+            min-height: 60px;
+            position: relative;
+        }
+
+        .rank {
+            font-size: 24px;
+            font-weight: bold;
+            width: 40px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .name {
+            flex: 1;
+            font-size: 18px;
+            margin: 0 15px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-width: 0;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #2d2d35;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .popup-content {
+            text-align: center;
+        }
+
+        .popup-title {
+            color: #ffa726;
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .history-item {
+            background-color: #006064;
+            color: white;
+            margin: 10px 0;
+            padding: 12px;
+            border-radius: 10px;
+            text-align: left;
+        }
+
+        .history-date {
+            font-size: 12px;
+            color: #ffa726;
+            margin-bottom: 5px;
+        }
+
+        .history-reason {
+            font-size: 14px;
+        }
+
+        .history-amount {
+            font-weight: bold;
+            color: #4CAF50;
+        }
+
+        .close-button {
+            margin-top: 15px;
+            padding: 8px 20px;
+            background-color: #006064;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        .score {
+            background-color: white;
+            color: black;
+            padding: 8px 15px;
+            border-radius: 15px;
+            font-weight: bold;
+            margin: 0 15px;
+            min-width: 100px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .movement {
+            width: 30px;
+            text-align: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .up {
+            color: yellow;
+        }
+
+        .down {
+            color: red;
+        }
+
+        .crown {
+            color: gold;
+            margin-left: 5px;
+            display: inline-block;
+        }
+
+        .timestamp {
+            color: white;
+            text-align: center;
+            font-size: 12px;
+            margin-top: 20px;
+            padding: 0 10px;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+            
+            .rank {
+                font-size: 20px;
+                width: 35px;
+            }
+            
+            .name {
+                font-size: 16px;
+                margin: 0 10px;
+            }
+            
+            .score {
+                padding: 6px 10px;
+                min-width: 80px;
+                margin: 0 10px;
+            }
+            
+            .ranking-item {
+                padding: 10px 15px;
+                min-height: 50px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title">달란트 랭킹</div>
+        <div id="rankingList"></div>
+        <div class="timestamp" id="timestamp"></div>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+    <div class="popup" id="popup">
+        <div class="popup-content">
+            <div class="popup-title" id="popup-text"></div>
+            <div id="history-list"></div>
+            <button class="close-button" onclick="closePopup()">닫기</button>
+        </div>
+    </div>
+
+    <script>
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbyx9WOTbj-QtQpuXLFeORf-Hl4tivR17dYcJT5O__Ejeq8ftSClCQPNiarGxv3mQ2IdDw/exec';
+        let previousRanking = [];
+
+        function createRankingItem(rank, name, score, movement) {
+            return `
+                <div class="ranking-item">
+                    <div class="rank">${rank}</div>
+                    <div class="name" onclick="showPopup('${name}')" style="cursor: pointer;">${name}${rank === 1 ? '<span class="crown">👑</span>' : ''}</div>
+                    <div class="score">${score.toLocaleString()}</div>
+                    <div class="movement">
+                        ${movement === 'up' ? '<span class="up">↑</span>' : 
+                          movement === 'down' ? '<span class="down">↓</span>' : '-'}
+                    </div>
+                </div>
+            `;
+        }
+
+        function determineMovement(currentRank, name) {
+            if (previousRanking.length === 0) return '-';
+            const previousIndex = previousRanking.findIndex(item => item.name === name);
+            if (previousIndex === -1) return '-';
+            
+            const previousRank = previousIndex + 1;
+            if (currentRank < previousRank) return 'up';
+            if (currentRank > previousRank) return 'down';
+            return '-';
+        }
+
+        function updateRanking() {
+            const rankingList = document.getElementById('rankingList');
+            const timestamp = document.getElementById('timestamp');
+            
+            rankingList.innerHTML = '<div style="color: white; text-align: center; padding: 20px;">데이터를 불러오는 중...</div>';
+            
+            fetch(`${scriptURL}?action=getRanking`)
+                .then(response => response.json())
+                .then(data => {
+                    const now = new Date();
+                    timestamp.textContent = `집계 기준일 : ${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} (${['일','월','화','수','목','금','토'][now.getDay()]}) ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+                    if (!data.ranking || !Array.isArray(data.ranking)) {
+                        throw new Error('Invalid data format');
+                    }
+
+                    rankingList.innerHTML = data.ranking
+                        .map((item, index) => {
+                            const movement = determineMovement(index + 1, item.name);
+                            return createRankingItem(index + 1, item.name, item.score, movement);
+                        })
+                        .join('');
+                    
+                    previousRanking = data.ranking;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    rankingList.innerHTML = '<div style="color: white; text-align: center;">데이터를 불러오는데 실패했습니다.<br>잠시 후 다시 시도해주세요.</div>';
+                });
+        }
+
+        async function showPopup(name) {
+            const popup = document.getElementById('popup');
+            const overlay = document.getElementById('overlay');
+            const popupText = document.getElementById('popup-text');
+            const historyList = document.getElementById('history-list');
+            
+            popupText.textContent = `${name}님의 달란트 내역`;
+            popup.style.display = 'block';
+            overlay.style.display = 'block';
+            
+            // 히스토리 로딩 메시지 표시
+            historyList.innerHTML = '<div style="color: white; text-align: center; padding: 20px;">데이터를 불러오는 중...</div>';
+            
+            try {
+                console.log('Fetching history for:', name);
+                const response = await fetch(`${scriptURL}?action=getHistory&name=${encodeURIComponent(name)}&type=ranking`);
+                const data = await response.json();
+                console.log('Received data:', data);
+                
+                if (data.history && Array.isArray(data.history)) {
+                    historyList.innerHTML = data.history
+                        .slice(0, 5)
+                        .map(item => `
+                            <div class="history-item">
+                                <div class="history-date">${item.date}</div>
+                                <div class="history-reason">${item.reason}</div>
+                                <div class="history-amount">+${item.amount} 달란트</div>
+                            </div>
+                        `).join('');
+                } else {
+                    historyList.innerHTML = '<div style="color: white; text-align: center;">내역이 없습니다.</div>';
+                }
+            } catch (error) {
+                console.error('Error fetching history:', error);
+                historyList.innerHTML = '<div style="color: white; text-align: center;">데이터를 불러오는데 실패했습니다.</div>';
+            }
+        }
+
+        function closePopup() {
+            const popup = document.getElementById('popup');
+            const overlay = document.getElementById('overlay');
+            
+            popup.style.display = 'none';
+            overlay.style.display = 'none';
+        }
+
+        // 초기 로딩
+        document.addEventListener('DOMContentLoaded', function() {
+            updateRanking();
+        });
+    </script>
+</body>
+</html>

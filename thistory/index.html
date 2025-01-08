@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>달란트 전체 내역</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        select, input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .history-list {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .history-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            display: grid;
+            grid-template-columns: auto 80px 100px;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .reason {
+            font-weight: 500;
+        }
+
+        .talant {
+            text-align: right;
+            font-weight: bold;
+            color: #4a90e2;
+        }
+
+        .date {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .name-filter {
+            flex: 1;
+        }
+
+        .date-filter {
+            width: 140px;
+        }
+
+        @media (max-width: 600px) {
+            .history-item {
+                grid-template-columns: 1fr auto;
+                grid-template-areas: 
+                    "reason talant"
+                    "date date";
+                gap: 8px;
+            }
+
+            .reason { grid-area: reason; }
+            .talant { grid-area: talant; }
+            .date { grid-area: date; }
+
+            .filters {
+                flex-direction: column;
+            }
+
+            .name-filter, .date-filter {
+                width: 100%;
+            }
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #4a90e2;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-text {
+            position: absolute;
+            margin-top: 80px;
+            color: #333;
+            font-weight: bold;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="filters">
+                <select class="name-filter" id="nameFilter">
+                    <option value="">전체 이름</option>
+                </select>
+                <select class="date-filter" id="dateFilter">
+                    <option value="">전체 기간</option>
+                </select>
+            </div>
+        </div>
+        <div class="history-list" id="historyList">
+            <!-- 내역이 여기에 동적으로 추가됩니다 -->
+        </div>
+    </div>
+
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">데이터를 불러오는 중...</div>
+    </div>
+
+    <script>
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbyx9WOTbj-QtQpuXLFeORf-Hl4tivR17dYcJT5O__Ejeq8ftSClCQPNiarGxv3mQ2IdDw/exec';
+        const people = ['황준구','김예빈' ,'황희', '임동하', '장지민', '김종진', '방시온', '정예담', '방온유', '정예준'];
+        let allHistory = [];
+
+        // 이름 필터 옵션 추가
+        function initializeFilters() {
+            // 이름 필터 초기화
+            const nameFilter = document.getElementById('nameFilter');
+            nameFilter.innerHTML = '<option value="">전체 이름</option>';
+            const uniqueNames = [...new Set(people)];
+            uniqueNames.forEach(person => {
+                const option = document.createElement('option');
+                option.value = person;
+                option.textContent = person;
+                nameFilter.appendChild(option);
+            });
+
+            // 날짜 필터 초기화
+            const dateFilter = document.getElementById('dateFilter');
+            dateFilter.innerHTML = '<option value="">전체 기간</option>';
+            
+            // 현재 날짜 기준으로 최근 12개월 옵션 생성
+            const now = new Date();
+            for (let i = 0; i < 12; i++) {
+                const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                const year = date.getFullYear();
+                const month = date.getMonth() + 1;
+                const value = `${year}-${month.toString().padStart(2, '0')}`;
+                const text = `${year}년 ${month}월`;
+                
+                const option = document.createElement('option');
+                option.value = value;
+                option.textContent = text;
+                dateFilter.appendChild(option);
+            }
+
+            // 현재 월 선택
+            const currentValue = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`;
+            dateFilter.value = currentValue;
+        }
+
+        // 날짜 포맷팅
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return `${date.getMonth() + 1}월 ${date.getDate()}일`;
+        }
+
+        // 내역 표시
+        function displayHistory(history) {
+            console.log('화면 표시 시작, 데이터 수:', history.length);
+            const historyList = document.getElementById('historyList');
+            
+            if (history.length === 0) {
+                historyList.innerHTML = `
+                    <div style="padding: 20px; text-align: center; color: #666;">
+                        표시할 내역이 없습니다.
+                    </div>
+                `;
+                return;
+            }
+
+            historyList.innerHTML = history.map((item, index) => `
+                <div class="history-item" data-index="${index}">
+                    <div class="history-content">
+                        <div class="reason">${item.name} - ${item.reason}</div>
+                        <div class="talant">+${item.talant}</div>
+                        <div class="date">${formatDate(item.timestamp)}</div>
+                    </div>
+                    <button class="delete-btn" onclick="confirmDelete('${item.timestamp}', '${item.name}', '${item.reason}', ${item.talant})">
+                        🗑️
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // 삭제 확인 함수 추가
+        function confirmDelete(timestamp, name, reason, talant) {
+            if (confirm(`정말로 다음 항목을 삭제하시겠습니까?\n\n이름: ${name}\n사유: ${reason}\n달란트: ${talant}`)) {
+                deleteHistoryItem(timestamp, name, reason, talant);
+            }
+        }
+
+        // 삭제 실행 함수 추가
+        async function deleteHistoryItem(timestamp, name, reason, talant) {
+            try {
+                showLoading();
+                const formData = new FormData();
+                formData.append('action', 'deleteHistory');
+                formData.append('timestamp', timestamp);
+                formData.append('name', name);
+                formData.append('reason', reason);
+                formData.append('talant', talant);
+
+                const response = await fetch(scriptURL, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.result === "success") {
+                    alert('삭제되었습니다.');
+                    await loadHistory();
+                } else {
+                    throw new Error(result.message || '삭제 실패');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('삭제 중 오류가 발생했습니다.');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 필터 적용
+        function applyFilters() {
+            const nameFilter = document.getElementById('nameFilter').value;
+            const dateFilter = document.getElementById('dateFilter').value;
+
+            let filtered = [...allHistory];
+
+            if (nameFilter) {
+                filtered = filtered.filter(item => item.name === nameFilter);
+            }
+
+            if (dateFilter) {
+                const [year, month] = dateFilter.split('-');
+                filtered = filtered.filter(item => {
+                    const date = new Date(item.timestamp);
+                    return date.getFullYear() === parseInt(year) && 
+                           date.getMonth() === parseInt(month) - 1;
+                });
+            }
+
+            displayHistory(filtered);
+        }
+
+        // 데이터 로드
+        async function loadHistory() {
+            try {
+                showLoading();
+                console.log('데이터 로딩 시작...');
+                
+                const people = ['황준구','김예빈', '황희', '임동하', '장지민', '김종진', '방시온', '정예담', '방온유', '정예준'];
+                let allData = [];
+                
+                const response = await fetch(`${scriptURL}?action=getHistory`);
+                const data = await response.json();
+                
+                if (data.history && Array.isArray(data.history)) {
+                    allHistory = data.history.map(item => ({
+                        timestamp: item.date,
+                        name: item.name,
+                        talant: item.amount,
+                        reason: item.reason
+                    }));
+                    
+                    allHistory.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                    applyFilters();
+                } else {
+                    throw new Error('데이터가 없습니다.');
+                }
+            } catch (error) {
+                console.error('에러 발생:', error);
+                const historyList = document.getElementById('historyList');
+                historyList.innerHTML = `
+                    <div style="padding: 20px; text-align: center; color: #666;">
+                        데이터를 불러오는데 실패했습니다.<br>
+                        에러 메시지: ${error.message}
+                    </div>
+                `;
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 이벤트 리스너 설정
+        document.getElementById('nameFilter').addEventListener('change', applyFilters);
+        document.getElementById('dateFilter').addEventListener('change', applyFilters);
+
+        // 초기화
+        initializeFilters();
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('페이지 로드됨');
+            initializeFilters();
+            loadHistory();
+        });
+
+        // CSS 스타일 추가
+        const additionalStyle = `
+            .history-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding-right: 10px;
+            }
+
+            .history-content {
+                flex: 1;
+            }
+
+            .delete-btn {
+                background: none;
+                border: none;
+                cursor: pointer;
+                padding: 5px;
+                font-size: 1.2rem;
+                opacity: 0.6;
+                transition: opacity 0.2s;
+            }
+
+            .delete-btn:hover {
+                opacity: 1;
+            }
+        `;
+        document.head.appendChild(document.createElement('style')).textContent += additionalStyle;
+
+        // HTML에 로딩 오버레이 추가 (body 끝부분에)
+        const loadingHTML = `
+            <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+                <div class="loading-spinner"></div>
+                <div class="loading-text">데이터를 불러오는 중...</div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', loadingHTML);
+
+        // 로딩 표시/숨김 함수 추가
+        function showLoading() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

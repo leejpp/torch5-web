@@ -1,10 +1,10 @@
 {
   "files": {
-    "main.js": "/torch5-web/togy-web/static/js/main.fc9ef9bf.js",
+    "main.js": "/torch5-web/togy-web/static/js/main.5b96ec4d.js",
     "index.html": "/torch5-web/togy-web/index.html",
-    "main.fc9ef9bf.js.map": "/torch5-web/togy-web/static/js/main.fc9ef9bf.js.map"
+    "main.5b96ec4d.js.map": "/torch5-web/togy-web/static/js/main.5b96ec4d.js.map"
   },
   "entrypoints": [
-    "static/js/main.fc9ef9bf.js"
+    "static/js/main.5b96ec4d.js"
   ]
 }

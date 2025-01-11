@@ -63,7 +63,7 @@ const Home = () => {
       </ThemeSection>
 
       <QuickLinks>
-        <LinkCard to="/prayers">
+        <LinkCard to="/prayer">
           <LinkIcon>🙏</LinkIcon>
           <LinkText>중보기도</LinkText>
         </LinkCard>

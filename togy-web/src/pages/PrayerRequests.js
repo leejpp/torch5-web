@@ -483,6 +483,10 @@ const Container = styled.div`
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
+  
+  @media (max-width: 768px) {
+    padding: 1rem;
+  }
 `;
 
 const Header = styled.header`
@@ -490,12 +494,23 @@ const Header = styled.header`
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
 `;
 
 const TitleSection = styled.div`
   display: flex;
   align-items: center;
   gap: 1rem;
+  
+  @media (max-width: 768px) {
+    width: 100%;
+    justify-content: center;
+  }
 `;
 
 const HomeButton = styled(Link)`
@@ -504,6 +519,10 @@ const HomeButton = styled(Link)`
   padding: 0.5rem 1rem;
   border-radius: 5px;
   font-size: 1rem;
+  
+  @media (max-width: 768px) {
+    font-size: 0.9rem;
+  }
   
   &:hover {
     background-color: #f0f0f0;
@@ -514,6 +533,20 @@ const HomeButton = styled(Link)`
 const Title = styled.h1`
   font-size: 2rem;
   color: #333;
+  
+  @media (max-width: 768px) {
+    font-size: 1.8rem;
+  }
+`;
+
+const ButtonGroup = styled.div`
+  display: flex;
+  gap: 1rem;
+  
+  @media (max-width: 768px) {
+    width: 100%;
+    justify-content: center;
+  }
 `;
 
 const AddButton = styled.button`
@@ -525,6 +558,11 @@ const AddButton = styled.button`
   cursor: pointer;
   font-size: 1rem;
   
+  @media (max-width: 768px) {
+    width: 45%;
+    padding: 0.7rem;
+  }
+  
   &:hover {
     background-color: #FF69B4;
   }
@@ -533,6 +571,10 @@ const AddButton = styled.button`
 const PrayerList = styled.div`
   display: grid;
   gap: 1.5rem;
+  
+  @media (max-width: 768px) {
+    gap: 1rem;
+  }
 `;
 
 const PrayerCard = styled.div`
@@ -540,6 +582,10 @@ const PrayerCard = styled.div`
   padding: 1.5rem;
   border-radius: 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  
+  @media (max-width: 768px) {
+    padding: 1rem;
+  }
 `;
 
 const PrayerHeader = styled.div`
@@ -548,18 +594,34 @@ const PrayerHeader = styled.div`
   margin-bottom: 1rem;
   padding-bottom: 0.5rem;
   border-bottom: 1px solid #eee;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
 `;
 
 const Name = styled.h2`
   font-size: 1.5rem;
   color: #333;
   margin-right: 1rem;
+  
+  @media (max-width: 768px) {
+    font-size: 1.3rem;
+    margin-right: 0;
+  }
 `;
 
 const UpdatedAt = styled.span`
   color: #888;
   font-size: 0.9rem;
   margin-right: auto;
+  
+  @media (max-width: 768px) {
+    font-size: 0.8rem;
+    margin-right: 0;
+  }
 `;
 
 const PrayerItemContainer = styled.div`
@@ -567,6 +629,10 @@ const PrayerItemContainer = styled.div`
   padding: 1rem;
   background-color: #f9f9f9;
   border-radius: 5px;
+  
+  @media (max-width: 768px) {
+    padding: 0.8rem;
+  }
 `;
 
 const PrayerItem = styled.div`
@@ -574,11 +640,33 @@ const PrayerItem = styled.div`
   justify-content: space-between;
   align-items: flex-start;
   gap: 1rem;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+`;
+
+const PrayerContent = styled.p`
+  flex: 1;
+  color: #666;
+  line-height: 1.6;
+  margin: 0;
+  white-space: pre-wrap;
+  
+  @media (max-width: 768px) {
+    font-size: 0.95rem;
+  }
 `;
 
 const ItemButtons = styled.div`
   display: flex;
   gap: 0.5rem;
+  
+  @media (max-width: 768px) {
+    width: 100%;
+    justify-content: flex-end;
+  }
 `;
 
 const EditButton = styled.button`
@@ -590,16 +678,12 @@ const EditButton = styled.button`
   cursor: pointer;
   font-size: 0.9rem;
   
-  &:hover {
-    background-color: #FF69B4;
+  @media (max-width: 768px) {
+    padding: 0.4rem 0.8rem;
   }
-`;
-
-const DeleteItemButton = styled(EditButton)`
-  background-color: #ff9999;
   
   &:hover {
-    background-color: #ff6666;
+    background-color: #FF69B4;
   }
 `;
 
@@ -610,31 +694,29 @@ const DeleteButton = styled(EditButton)`
   &:hover {
     background-color: #ff4444;
   }
-`;
-
-const EditContainer = styled.div`
-  width: 100%;
-`;
-
-const SaveButton = styled(EditButton)`
-  background-color: #4CAF50;
   
-  &:hover {
-    background-color: #45a049;
+  @media (max-width: 768px) {
+    margin-left: 0;
   }
 `;
 
-const AddItemButton = styled(EditButton)`
-  width: 100%;
-  margin-bottom: 1rem;
-`;
-
-const PrayerContent = styled.p`
-  flex: 1;
-  color: #666;
-  line-height: 1.6;
-  margin: 0;
-  white-space: pre-wrap;
+const EditModeButton = styled.button`
+  background-color: ${props => props.isActive ? '#FF69B4' : '#ddd'};
+  color: ${props => props.isActive ? 'white' : '#666'};
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+  
+  @media (max-width: 768px) {
+    width: 45%;
+    padding: 0.7rem;
+  }
+  
+  &:hover {
+    background-color: ${props => props.isActive ? '#FF1493' : '#ccc'};
+  }
 `;
 
 const FormOverlay = styled.div`
@@ -656,6 +738,12 @@ const FormContainer = styled.form`
   border-radius: 10px;
   width: 90%;
   max-width: 500px;
+  
+  @media (max-width: 768px) {
+    width: 95%;
+    padding: 1.5rem;
+    margin: 1rem;
+  }
 `;
 
 const FormTitle = styled.h2`
@@ -663,6 +751,11 @@ const FormTitle = styled.h2`
   color: #333;
   margin-bottom: 1.5rem;
   text-align: center;
+  
+  @media (max-width: 768px) {
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+  }
 `;
 
 const Input = styled.input`
@@ -672,6 +765,11 @@ const Input = styled.input`
   border: 1px solid #ddd;
   border-radius: 5px;
   font-size: 1rem;
+  
+  @media (max-width: 768px) {
+    padding: 0.6rem;
+    font-size: 0.9rem;
+  }
 `;
 
 const TextArea = styled.textarea`
@@ -683,11 +781,21 @@ const TextArea = styled.textarea`
   border-radius: 5px;
   font-size: 1rem;
   resize: vertical;
+  
+  @media (max-width: 768px) {
+    height: 120px;
+    padding: 0.6rem;
+    font-size: 0.9rem;
+  }
 `;
 
 const ButtonContainer = styled.div`
   display: flex;
   gap: 1rem;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
 `;
 
 const SubmitButton = styled.button`
@@ -701,6 +809,10 @@ const SubmitButton = styled.button`
   
   &:hover {
     background-color: #FF69B4;
+  }
+  
+  @media (max-width: 768px) {
+    padding: 0.6rem;
   }
 `;
 
@@ -716,26 +828,52 @@ const CancelButton = styled.button`
   &:hover {
     background-color: #ccc;
   }
+  
+  @media (max-width: 768px) {
+    padding: 0.6rem;
+  }
 `;
 
-const ButtonGroup = styled.div`
-  display: flex;
-  gap: 1rem;
+const ErrorMessage = styled.p`
+  color: #ff4444;
+  margin: -0.5rem 0 1rem;
+  font-size: 0.9rem;
+  text-align: center;
+  
+  @media (max-width: 768px) {
+    font-size: 0.8rem;
+  }
+`;
+const AddItemButton = styled(EditButton)`
+  width: 100%;
+  margin-bottom: 1rem;
+  
+  @media (max-width: 768px) {
+    padding: 0.6rem;
+  }
 `;
 
-const EditModeButton = styled.button.attrs(props => ({
-  type: 'button'
-}))`
-  background-color: ${props => props.isActive ? '#FF69B4' : '#ddd'};
-  color: ${props => props.isActive ? 'white' : '#666'};
-  border: none;
-  padding: 0.8rem 1.5rem;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 1rem;
+const EditContainer = styled.div`
+  width: 100%;
+`;
+
+const SaveButton = styled(EditButton)`
+  background-color: #4CAF50;
   
   &:hover {
-    background-color: ${props => props.isActive ? '#FF1493' : '#ccc'};
+    background-color: #45a049;
+  }
+  
+  @media (max-width: 768px) {
+    padding: 0.6rem;
+  }
+`;
+
+const DeleteItemButton = styled(EditButton)`
+  background-color: #ff9999;
+  
+  &:hover {
+    background-color: #ff6666;
   }
 `;
 
@@ -749,6 +887,10 @@ const AddPrayerItemButton = styled.button`
   border-radius: 5px;
   cursor: pointer;
   font-size: 1rem;
+  
+  @media (max-width: 768px) {
+    padding: 0.6rem;
+  }
   
   &:hover {
     background-color: #e0e0e0;
@@ -765,24 +907,43 @@ const ConfirmModal = styled.div`
   width: 90%;
   max-width: 400px;
   text-align: center;
+  
+  @media (max-width: 768px) {
+    width: 95%;
+    padding: 1.5rem;
+    margin: 1rem;
+  }
 `;
 
 const ConfirmTitle = styled.h3`
   font-size: 1.5rem;
   color: #333;
   margin-bottom: 1rem;
+  
+  @media (max-width: 768px) {
+    font-size: 1.3rem;
+  }
 `;
 
 const ConfirmMessage = styled.p`
   color: #666;
   margin-bottom: 2rem;
   line-height: 1.5;
+  
+  @media (max-width: 768px) {
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+  }
 `;
 
 const ConfirmButtons = styled.div`
   display: flex;
   gap: 1rem;
   justify-content: center;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
 `;
 
 const ConfirmButton = styled.button`
@@ -794,6 +955,10 @@ const ConfirmButton = styled.button`
   cursor: pointer;
   font-size: 1rem;
   
+  @media (max-width: 768px) {
+    padding: 0.6rem;
+  }
+  
   &:hover {
     background-color: #ff4444;
   }
@@ -803,11 +968,5 @@ const PasswordModal = styled(FormContainer)`
   max-width: 400px;
 `;
 
-const ErrorMessage = styled.p`
-  color: #ff4444;
-  margin: -0.5rem 0 1rem;
-  font-size: 0.9rem;
-  text-align: center;
-`;
 
 export default PrayerRequests;

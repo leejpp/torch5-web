@@ -1,10 +1,10 @@
 {
   "files": {
-    "main.js": "/togy-web/static/js/main.463ef7bb.js",
+    "main.js": "/togy-web/static/js/main.e88ab21a.js",
     "index.html": "/togy-web/index.html",
-    "main.463ef7bb.js.map": "/togy-web/static/js/main.463ef7bb.js.map"
+    "main.e88ab21a.js.map": "/togy-web/static/js/main.e88ab21a.js.map"
   },
   "entrypoints": [
-    "static/js/main.463ef7bb.js"
+    "static/js/main.e88ab21a.js"
   ]
 }

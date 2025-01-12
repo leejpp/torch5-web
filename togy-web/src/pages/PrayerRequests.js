@@ -224,32 +224,43 @@ const PrayerRequests = () => {
 
   const handlePasswordSubmit = async () => {
     try {
-      if (!verifyPassword(passwordCheck.password)) {
+      const hashedInput = CryptoJS.SHA256(passwordCheck.password).toString(CryptoJS.enc.Hex);
+      const adminRef = doc(db, 'admin', 'settings');
+      const adminDoc = await getDoc(adminRef);
+      
+      if (!adminDoc.exists()) {
+        throw new Error('Admin settings not found');
+      }
+
+      const adminData = adminDoc.data();
+      if (!adminData?.passwords || !Array.isArray(adminData.passwords)) {
+        throw new Error('Invalid admin configuration');
+      }
+
+      if (adminData.passwords.includes(hashedInput)) {
+        // 비밀번호가 일치할 때 작업 수행
+        if (passwordCheck.action === 'edit') {
+          setIsEditMode(prev => !prev);
+        } else if (passwordCheck.action === 'add') {
+          setIsAdding(true);
+        }
+
+        // 모달 닫기
+        setPasswordCheck({
+          isOpen: false,
+          password: '',
+          action: null,
+          error: ''
+        });
+      } else {
         throw new Error('비밀번호가 일치하지 않습니다.');
       }
-  
-      // 비밀번호가 일치할 때 작업 수행
-      if (passwordCheck.action === 'edit') {
-        setIsEditMode(prev => !prev);
-      } else if (passwordCheck.action === 'add') {
-        setIsAdding(true);
-      }
-  
-      // 모달 닫기
-      setPasswordCheck({
-        isOpen: false,
-        password: '',
-        action: null,
-        error: ''
-      });
-  
     } catch (error) {
       console.error('Password check error:', error);
       setPasswordCheck(prev => ({
         ...prev,
         error: error.message || '시스템 오류가 발생했습니다.'
       }));
-      return false;
     }
   };
 

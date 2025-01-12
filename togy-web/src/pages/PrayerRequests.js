@@ -227,33 +227,24 @@ const PrayerRequests = () => {
       if (!verifyPassword(passwordCheck.password)) {
         throw new Error('비밀번호가 일치하지 않습니다.');
       }
-
-      // 비밀번호가 일치할 때만 실행
+  
+      // 비밀번호가 일치할 때 작업 수행
       if (passwordCheck.action === 'edit') {
         setIsEditMode(prev => !prev);
-        setPasswordCheck({
-          isOpen: false,
-          password: '',
-          action: null,
-          error: ''
-        });
       } else if (passwordCheck.action === 'add') {
         setIsAdding(true);
-        setPasswordCheck({
-          isOpen: false,
-          password: '',
-          action: null,
-          error: ''
-        });
       }
-
-      return true;
-
+  
+      // 모달 닫기
+      setPasswordCheck({
+        isOpen: false,
+        password: '',
+        action: null,
+        error: ''
+      });
+  
     } catch (error) {
       console.error('Password check error:', error);
-      // 에러 발생 시 모든 상태 초기화
-      setIsEditMode(false);
-      setIsAdding(false);
       setPasswordCheck(prev => ({
         ...prev,
         error: error.message || '시스템 오류가 발생했습니다.'

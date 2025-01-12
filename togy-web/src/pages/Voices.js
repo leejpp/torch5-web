@@ -61,7 +61,7 @@ const Voices = () => {
           password: '',
           error: ''
         });
-        navigate('/voices/admin');
+        navigate('/admin');
       } else {
         setPasswordCheck(prev => ({
           ...prev,
@@ -155,6 +155,10 @@ const Container = styled.div`
   max-width: 800px;
   margin: 0 auto;
   padding: 2rem;
+  
+  @media (max-width: 768px) {
+    padding: 1rem;
+  }
 `;
 
 const Header = styled.header`
@@ -162,12 +166,22 @@ const Header = styled.header`
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 1rem;
+  }
 `;
 
 const TitleSection = styled.div`
   display: flex;
   align-items: center;
   gap: 1rem;
+  
+  @media (max-width: 768px) {
+    width: 100%;
+    justify-content: center;
+  }
 `;
 
 const HomeButton = styled(Link)`
@@ -176,6 +190,10 @@ const HomeButton = styled(Link)`
   padding: 0.5rem 1rem;
   border-radius: 5px;
   font-size: 1rem;
+  
+  @media (max-width: 768px) {
+    font-size: 0.9rem;
+  }
   
   &:hover {
     background-color: #f0f0f0;
@@ -186,6 +204,10 @@ const HomeButton = styled(Link)`
 const Title = styled.h1`
   font-size: 2rem;
   color: #333;
+  
+  @media (max-width: 768px) {
+    font-size: 1.8rem;
+  }
 `;
 
 const AdminButton = styled.button`
@@ -198,6 +220,11 @@ const AdminButton = styled.button`
   font-size: 1rem;
   cursor: pointer;
   
+  @media (max-width: 768px) {
+    width: 100%;
+    padding: 0.7rem;
+  }
+  
   &:hover {
     background-color: #e0e0e0;
   }
@@ -208,6 +235,10 @@ const MessageForm = styled.form`
   padding: 2rem;
   border-radius: 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  
+  @media (max-width: 768px) {
+    padding: 1.5rem;
+  }
 `;
 
 const Description = styled.p`
@@ -215,6 +246,11 @@ const Description = styled.p`
   line-height: 1.6;
   margin-bottom: 1.5rem;
   text-align: center;
+  
+  @media (max-width: 768px) {
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+  }
 `;
 
 const MessageInput = styled.textarea`
@@ -226,6 +262,12 @@ const MessageInput = styled.textarea`
   border-radius: 5px;
   font-size: 1rem;
   resize: vertical;
+  
+  @media (max-width: 768px) {
+    height: 150px;
+    padding: 0.8rem;
+    font-size: 0.95rem;
+  }
   
   &:focus {
     outline: none;
@@ -242,6 +284,10 @@ const SubmitButton = styled.button`
   border-radius: 5px;
   font-size: 1rem;
   cursor: pointer;
+  
+  @media (max-width: 768px) {
+    padding: 0.8rem;
+  }
   
   &:hover {
     background-color: #FF69B4;
@@ -264,6 +310,13 @@ const SuccessMessage = styled.div`
   border-radius: 5px;
   animation: fadeIn 0.3s ease-in;
   
+  @media (max-width: 768px) {
+    width: 90%;
+    padding: 0.8rem;
+    text-align: center;
+    font-size: 0.95rem;
+  }
+  
   @keyframes fadeIn {
     from { opacity: 0; transform: translate(-50%, 1rem); }
     to { opacity: 1; transform: translate(-50%, 0); }
@@ -280,6 +333,7 @@ const FormOverlay = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 1000;
 `;
 
 const PasswordModal = styled.form`
@@ -288,12 +342,23 @@ const PasswordModal = styled.form`
   border-radius: 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   width: 300px;
+  
+  @media (max-width: 768px) {
+    width: 90%;
+    padding: 1.5rem;
+    margin: 1rem;
+  }
 `;
 
 const FormTitle = styled.h2`
   font-size: 1.5rem;
   color: #333;
   margin-bottom: 1.5rem;
+  
+  @media (max-width: 768px) {
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+  }
 `;
 
 const Input = styled.input`
@@ -304,6 +369,11 @@ const Input = styled.input`
   border-radius: 5px;
   font-size: 1rem;
   
+  @media (max-width: 768px) {
+    padding: 0.7rem;
+    font-size: 0.95rem;
+  }
+  
   &:focus {
     outline: none;
     border-color: #FFB6C1;
@@ -313,26 +383,21 @@ const Input = styled.input`
 const ErrorMessage = styled.p`
   color: #FF0000;
   margin-bottom: 1rem;
+  text-align: center;
+  
+  @media (max-width: 768px) {
+    font-size: 0.9rem;
+  }
 `;
 
 const ButtonContainer = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-`;
-
-const CancelButton = styled.button`
-  padding: 0.8rem 1.5rem;
-  background-color: #f0f0f0;
-  color: #666;
-  border: none;
-  border-radius: 5px;
-  text-decoration: none;
-  font-size: 1rem;
-  cursor: pointer;
+  gap: 1rem;
   
-  &:hover {
-    background-color: #e0e0e0;
+  @media (max-width: 768px) {
+    flex-direction: column;
   }
 `;
 
@@ -344,9 +409,36 @@ const ModalSubmitButton = styled.button`
   border-radius: 5px;
   font-size: 1rem;
   cursor: pointer;
+  flex: 1;
+  
+  @media (max-width: 768px) {
+    width: 100%;
+    padding: 0.7rem;
+  }
   
   &:hover {
     background-color: #FF69B4;
+  }
+`;
+
+const CancelButton = styled.button`
+  padding: 0.8rem 1.5rem;
+  background-color: #f0f0f0;
+  color: #666;
+  border: none;
+  border-radius: 5px;
+  text-decoration: none;
+  font-size: 1rem;
+  cursor: pointer;
+  flex: 1;
+  
+  @media (max-width: 768px) {
+    width: 100%;
+    padding: 0.7rem;
+  }
+  
+  &:hover {
+    background-color: #e0e0e0;
   }
 `;
 

@@ -13,38 +13,42 @@ const Contacts = () => {
  }, []);
 
  const fetchMembers = async () => {
-   try {
-     const q = query(collection(db, 'members'), orderBy('role', 'asc'));
-     const querySnapshot = await getDocs(q);
-     const membersList = querySnapshot.docs.map(doc => ({
-       name: doc.id,  // 문서 ID를 이름으로 사용
-       ...doc.data()
-     }));
-     console.log('Fetched members:', membersList);  // 데이터 확인용
-     setMembers(membersList);
-   } catch (error) {
-     console.error("Error fetching members:", error);
-   } finally {
-     setLoading(false);
-   }
- };
+    try {
+      const q = query(collection(db, 'members'), orderBy('role', 'asc'));
+      const querySnapshot = await getDocs(q);
+      const membersList = querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        // 각 문서의 데이터 구조 출력
+        console.log('Document ID (name):', doc.id);
+        console.log('Document data:', data);
+        return {
+          name: doc.id,
+          birthday: data.birthday,
+          role: data.role,
+          phone: data.phone
+        };
+      });
+      console.log('Final members list:', membersList);
+      setMembers(membersList);
+    } catch (error) {
+      console.error("Error fetching members:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
- const formatBirthday = (birthday) => {
-   if (!birthday || typeof birthday.month !== 'number' || typeof birthday.day !== 'number') {
-     return '';
-   }
-   const padZero = (num) => String(num).padStart(2, '0');
-   return `${padZero(birthday.month)}월 ${padZero(birthday.day)}일`;
- };
-
- const formatRole = (role) => {
-   switch(role) {
-     case 'president': return '회장';
-     case 'treasurer': return '총무';
-     case 'staff': return '임원';
-     default: return '';
-   }
- };
+  const formatBirthday = (birthday) => {
+    if (!Array.isArray(birthday) || birthday.length !== 2) return '';
+    
+    const [month, day] = birthday;
+    const padZero = (num) => String(num).padStart(2, '0');
+    return `${padZero(month)}월 ${padZero(day)}일`;
+  };
+  
+  const formatRole = (role) => {
+    // role이 이미 한글로 저장되어 있으므로 그대로 반환
+    return role || '';
+  };
 
  return (
    <Container>

@@ -14,11 +14,14 @@ const Contacts = () => {
 
  const fetchMembers = async () => {
     try {
-      const q = query(collection(db, 'members'), orderBy('role', 'asc'));
+      const q = query(
+        collection(db, 'members'), 
+        orderBy('role', 'desc'),  // role 내림차순
+        orderBy('name', 'asc')    // name 오름차순
+      );
       const querySnapshot = await getDocs(q);
       const membersList = querySnapshot.docs.map(doc => {
         const data = doc.data();
-        // 각 문서의 데이터 구조 출력
         console.log('Document ID (name):', doc.id);
         console.log('Document data:', data);
         return {

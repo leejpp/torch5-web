@@ -5,37 +5,39 @@ import { db } from '../firebase/config';
 import { collection, query, getDocs, orderBy } from 'firebase/firestore';
 
 const Contacts = () => {
- const [members, setMembers] = useState([]);
- const [loading, setLoading] = useState(true);
+    const [members, setMembers] = useState([]);
+    const [loading, setLoading] = useState(true);
+  
+    useEffect(() => {
+      console.log('Contacts component mounted');  // 컴포넌트가 마운트되는지 확인
+      fetchMembers();
+    }, []);
 
- useEffect(() => {
-   fetchMembers();
- }, []);
-
- const fetchMembers = async () => {
-    try {
-      const q = query(
-        collection(db, 'members'), 
-        orderBy('role', 'desc'),
-        orderBy('name', 'asc')
-      );
-      const querySnapshot = await getDocs(q);
-      const membersList = querySnapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-          name: doc.id,
-          birthday: data.birthday,
-          role: data.role,
-          phone: data.phone
-        };
-      });
-      setMembers(membersList);
-    } catch (error) {
-      console.error("Error fetching members:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const fetchMembers = async () => {
+        try {
+          const q = query(
+            collection(db, 'members'), 
+            orderBy('role', 'desc')  // role로만 정렬
+          );
+          
+          const querySnapshot = await getDocs(q);
+          const membersList = querySnapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+              name: doc.id,
+              birthday: data.birthday,
+              role: data.role,
+              phone: data.phone
+            };
+          });
+          
+          setMembers(membersList);
+        } catch (error) {
+          console.error("Error fetching members:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
 
   const formatBirthday = (birthday) => {
     if (!Array.isArray(birthday) || birthday.length !== 2) return '';

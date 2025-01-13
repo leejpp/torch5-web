@@ -528,7 +528,7 @@ const CalendarContainer = styled.div`
     border-radius: 3px;
   }
 
-  // 일요일 날짜 색상 �정
+  // 일요일 날짜 색상 정
   .rbc-row-content {
     .rbc-row {
       .rbc-date-cell:first-child {
@@ -579,6 +579,10 @@ const Form = styled.form`
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  
+  @media (max-width: 768px) {
+    gap: 0.8rem;
+  }
 `;
 
 const InputGroup = styled.div`
@@ -622,6 +626,15 @@ const ButtonGroup = styled.div`
   display: flex;
   gap: 1rem;
   margin-top: 1.5rem;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 0.5rem;
+    
+    button {
+      width: 100%;
+    }
+  }
 `;
 
 const Button = styled.button`

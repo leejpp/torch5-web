@@ -185,9 +185,13 @@ const VoicesAdmin = () => {
 };
 
 const Container = styled.div`
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
+  
+  @media (max-width: 768px) {
+    padding: 1rem;
+  }
 `;
 
 const Header = styled.header`
@@ -222,25 +226,25 @@ const Title = styled.h1`
 `;
 
 const VoicesList = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
 `;
 
 const VoiceCard = styled.div`
   background-color: white;
-  padding: 1.5rem;
+  padding: 2rem;
   border-radius: 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s ease;
-  
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
   
   @media (max-width: 768px) {
-    padding: 1rem;
+    padding: 1.5rem;
   }
 `;
 
@@ -251,16 +255,25 @@ const VoiceHeader = styled.div`
   margin-bottom: 1rem;
 `;
 
-const VoiceDate = styled.span`
-  color: #888;
+const VoiceDate = styled.div`
+  color: #666;
   font-size: 0.9rem;
+  text-align: right;
+  
+  @media (max-width: 768px) {
+    font-size: 0.85rem;
+  }
 `;
 
 const VoiceContent = styled.p`
   color: #333;
-  line-height: 1.6;
-  margin-bottom: 1rem;
+  margin: 1rem 0;
   white-space: pre-wrap;
+  line-height: 1.6;
+  
+  @media (max-width: 768px) {
+    font-size: 0.95rem;
+  }
 `;
 
 const StatusBadge = styled.span`
@@ -311,20 +324,18 @@ const StatusModal = styled.div`
 const ModalContent = styled.div`
   background-color: white;
   padding: 2rem;
-  border-radius: 15px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  width: 300px;
-  animation: slideUp 0.3s ease;
-  
-  @keyframes slideUp {
-    from { transform: translateY(20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-  }
+  border-radius: 10px;
+  text-align: center;
+  width: 90%;
+  max-width: 400px;
   
   @media (max-width: 768px) {
-    width: 90%;
+    width: 95%;
     padding: 1.5rem;
-    margin: 1rem;
+    
+    h3 {
+      font-size: 1.3rem;
+    }
   }
 `;
 

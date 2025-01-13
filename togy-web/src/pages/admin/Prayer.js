@@ -290,6 +290,10 @@ const Form = styled.form`
   flex-direction: column;
   gap: 1rem;
   margin-bottom: 2rem;
+  
+  @media (max-width: 768px) {
+    padding: 1.5rem;
+  }
 `;
 
 const Input = styled.input`
@@ -400,7 +404,15 @@ const SuccessMessage = styled.p`
 `;
 
 const PrayerList = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
   margin-top: 2rem;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
 `;
 
 const ListTitle = styled.h2`
@@ -415,6 +427,10 @@ const PrayerItem = styled.div`
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin-bottom: 1rem;
   overflow: hidden;
+  
+  @media (max-width: 768px) {
+    padding: 1.2rem;
+  }
 `;
 
 const PrayerHeader = styled.div`
@@ -525,6 +541,16 @@ const ModalContent = styled.div`
   h3 {
     margin-top: 0;
   }
+  
+  @media (max-width: 768px) {
+    width: 95%;
+    padding: 1.5rem;
+    margin: 1rem;
+    
+    h3 {
+      font-size: 1.3rem;
+    }
+  }
 `;
 
 const ModalButtons = styled.div`
@@ -532,6 +558,14 @@ const ModalButtons = styled.div`
   justify-content: center;
   gap: 1rem;
   margin-top: 1.5rem;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    
+    button {
+      width: 100%;
+    }
+  }
 `;
 
 const DeleteConfirmButton = styled(Button)`

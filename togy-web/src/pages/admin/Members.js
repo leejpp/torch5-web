@@ -207,32 +207,42 @@ const Members = () => {
         </ButtonContainer>
       </Form>
 
-      <MembersList>
-        <ListTitle>멤버 목록</ListTitle>
-        {members.map(member => (
-          <MemberCard key={member.id}>
-            <MemberInfo>
-              <Name>{member.id}</Name>
-              <Details>
-                <Detail>{formatBirthday(member.birthday)}</Detail>
-                <Detail>{member.phone}</Detail>
-                <RoleBadge>{ROLES[member.role]?.label || '청년'}</RoleBadge>
-              </Details>
-            </MemberInfo>
-            <Actions>
-              <EditButton onClick={() => handleEdit(member)}>
-                수정
-              </EditButton>
-              <DeleteButton onClick={() => setDeleteConfirm({ 
-                isOpen: true, 
-                memberId: member.id 
-              })}>
-                삭제
-              </DeleteButton>
-            </Actions>
-          </MemberCard>
-        ))}
-      </MembersList>
+      <TableContainer>
+        <Table>
+          <thead>
+            <tr>
+              <th>이름</th>
+              <th>생일</th>
+              <th>전화번호</th>
+              <th>역할</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {members.map(member => (
+              <tr key={member.id}>
+                <td>{member.id}</td>
+                <td>{formatBirthday(member.birthday)}</td>
+                <td>{member.phone}</td>
+                <td>{ROLES[member.role]?.label || '청년'}</td>
+                <td>
+                  <ActionButtons>
+                    <EditButton onClick={() => handleEdit(member)}>
+                      수정
+                    </EditButton>
+                    <DeleteButton onClick={() => setDeleteConfirm({ 
+                      isOpen: true, 
+                      memberId: member.id 
+                    })}>
+                      삭제
+                    </DeleteButton>
+                  </ActionButtons>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      </TableContainer>
 
       {message.content && (
         <MessagePopup type={message.type}>
@@ -368,77 +378,53 @@ const CancelButton = styled(Button)`
   }
 `;
 
-const MembersList = styled.div`
-  margin-top: 2rem;
-`;
-
-const ListTitle = styled.h2`
-  font-size: 1.5rem;
-  color: #333;
-  margin-bottom: 1rem;
-`;
-
-const MemberCard = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: white;
-  padding: 1.5rem;
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-bottom: 1rem;
+const TableContainer = styled.div`
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   
   @media (max-width: 768px) {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
+    margin: 0 -1rem;
+    padding: 0 1rem;
   }
 `;
 
-const MemberInfo = styled.div`
-  flex: 1;
+const Table = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 2rem;
+  
+  th, td {
+    padding: 0.75rem;
+    text-align: left;
+  }
+  
+  th {
+    background-color: #f8f9fa;
+  }
+  
+  @media (max-width: 768px) {
+    font-size: 0.9rem;
+    
+    th, td {
+      padding: 0.5rem;
+    }
+  }
 `;
 
-const Name = styled.h3`
-  font-size: 1.2rem;
-  color: #333;
-  margin: 0 0 0.5rem 0;
+const ActionButtons = styled.div`
+  @media (max-width: 768px) {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    
+    button {
+      width: 100%;
+      padding: 0.5rem;
+    }
+  }
 `;
 
-const Details = styled.div`
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-  flex-wrap: wrap;
-`;
-
-const Detail = styled.span`
-  color: #666;
-  font-size: 0.9rem;
-`;
-
-const RoleBadge = styled.span`
-  background-color: #FFB6C1;
-  color: white;
-  padding: 0.2rem 0.5rem;
-  border-radius: 15px;
-  font-size: 0.8rem;
-`;
-
-const Actions = styled.div`
-  display: flex;
-  gap: 0.5rem;
-`;
-
-const ActionButton = styled.button`
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 5px;
-  font-size: 0.9rem;
-  cursor: pointer;
-`;
-
-const EditButton = styled(ActionButton)`
+const EditButton = styled(Button)`
   background-color: #4CAF50;
   color: white;
   
@@ -447,7 +433,7 @@ const EditButton = styled(ActionButton)`
   }
 `;
 
-const DeleteButton = styled(ActionButton)`
+const DeleteButton = styled(Button)`
   background-color: #ff4444;
   color: white;
   

@@ -154,7 +154,7 @@ const Container = styled.div`
   padding: 2rem;
   
   @media (max-width: 768px) {
-    padding: 1rem;
+    padding: 0.5rem;
   }
 `;
 
@@ -238,6 +238,44 @@ const CalendarContainer = styled.div`
       }
     }
   }
+
+  @media (max-width: 768px) {
+    padding: 1rem;
+    
+    .rbc-calendar {
+      font-size: 0.9rem;
+    }
+    
+    .rbc-toolbar {
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    .rbc-toolbar-label {
+      margin: 0.5rem 0;
+    }
+    
+    .rbc-btn-group {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      
+      button {
+        flex: 1;
+        margin: 0 2px !important;
+        padding: 0.5rem 0;
+      }
+    }
+    
+    .rbc-header {
+      padding: 0.5rem;
+    }
+    
+    .rbc-event {
+      padding: 2px 3px;
+    }
+  }
 `;
 
 const LoadingSpinner = styled.div`
@@ -271,6 +309,18 @@ const ModalContent = styled.div`
   max-width: 600px;
   position: relative;
   z-index: 1001;
+
+  @media (max-width: 768px) {
+    width: 95%;
+    padding: 1.5rem;
+    max-height: 90vh;
+    overflow-y: auto;
+    
+    h2 {
+      font-size: 1.3rem;
+      margin-bottom: 1rem;
+    }
+  }
 `;
 
 const EventDetails = styled.div`

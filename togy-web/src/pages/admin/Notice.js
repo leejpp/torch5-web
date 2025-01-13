@@ -156,7 +156,7 @@ const NoticeAdmin = () => {
         />
         {error && <ErrorMessage>{error}</ErrorMessage>}
         {successMessage && <SuccessMessage>{successMessage}</SuccessMessage>}
-        <ButtonContainer>
+        <ButtonGroup>
           <SubmitButton type="submit" disabled={isSubmitting}>
             {isSubmitting ? '처리 중...' : (editingNotice ? '수정하기' : '등록하기')}
           </SubmitButton>
@@ -171,7 +171,7 @@ const NoticeAdmin = () => {
           >
             {editingNotice ? '취소' : '초기화'}
           </ClearButton>
-        </ButtonContainer>
+        </ButtonGroup>
       </Form>
 
       <NoticeList>
@@ -219,9 +219,13 @@ const NoticeAdmin = () => {
 };
 
 const Container = styled.div`
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
+  
+  @media (max-width: 768px) {
+    padding: 1rem;
+  }
 `;
 
 const Header = styled.header`
@@ -256,6 +260,10 @@ const Form = styled.form`
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  
+  @media (max-width: 768px) {
+    padding: 1.5rem;
+  }
 `;
 
 const AuthForm = styled(Form)`
@@ -293,9 +301,18 @@ const TextArea = styled.textarea`
   }
 `;
 
-const ButtonContainer = styled.div`
+const ButtonGroup = styled.div`
   display: flex;
   gap: 1rem;
+  margin-top: 1.5rem;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    
+    button {
+      width: 100%;
+    }
+  }
 `;
 
 const Button = styled.button`
@@ -353,6 +370,10 @@ const SuccessMessage = styled.p`
 
 const NoticeList = styled.div`
   margin-top: 2rem;
+  
+  @media (max-width: 768px) {
+    margin-top: 1.5rem;
+  }
 `;
 
 const ListTitle = styled.h2`
@@ -367,6 +388,11 @@ const NoticeItem = styled.div`
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin-bottom: 1rem;
   overflow: hidden;
+  
+  @media (max-width: 768px) {
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
 `;
 
 const NoticeHeader = styled.div`
@@ -381,7 +407,9 @@ const NoticeHeader = styled.div`
   }
   
   @media (max-width: 768px) {
-    padding: 1rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
   }
 `;
 
@@ -436,7 +464,15 @@ const NoticeContent = styled.p`
 const ActionButtons = styled.div`
   display: flex;
   gap: 0.5rem;
-  margin-right: 1rem;
+  
+  @media (max-width: 768px) {
+    width: 100%;
+    
+    button {
+      flex: 1;
+      padding: 0.8rem;
+    }
+  }
 `;
 
 const ActionButton = styled.button`

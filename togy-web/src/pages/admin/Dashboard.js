@@ -37,34 +37,52 @@ const Dashboard = () => {
 };
 
 const Container = styled.div`
+  max-width: 1200px;
+  margin: 0 auto;
   padding: 2rem;
+  
+  @media (max-width: 768px) {
+    padding: 1rem;
+  }
 `;
 
 const Title = styled.h1`
   font-size: 2rem;
   color: #333;
-  margin-bottom: 2rem;
+  margin: 0;
+  
+  @media (max-width: 768px) {
+    font-size: 1.8rem;
+  }
 `;
 
 const MenuGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 2rem;
+  margin-top: 2rem;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
 `;
 
 const MenuItem = styled(Link)`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 2rem;
   background-color: white;
+  padding: 2rem;
   border-radius: 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   text-decoration: none;
-  transition: transform 0.2s;
+  color: inherit;
+  transition: transform 0.2s ease;
   
   &:hover {
     transform: translateY(-5px);
+  }
+  
+  @media (max-width: 768px) {
+    padding: 1.5rem;
   }
 `;
 
@@ -73,9 +91,55 @@ const MenuIcon = styled.span`
   margin-bottom: 1rem;
 `;
 
-const MenuTitle = styled.span`
+const MenuTitle = styled.h2`
+  font-size: 1.5rem;
   color: #333;
-  font-size: 1.1rem;
+  margin: 0;
+  
+  @media (max-width: 768px) {
+    font-size: 1.3rem;
+  }
+`;
+
+const MenuDescription = styled.p`
+  color: #666;
+  margin: 0.5rem 0 0 0;
+  
+  @media (max-width: 768px) {
+    font-size: 0.9rem;
+  }
+`;
+
+const Header = styled.header`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+`;
+
+const LogoutButton = styled.button`
+  padding: 0.8rem 1.5rem;
+  background-color: #f0f0f0;
+  border: none;
+  border-radius: 5px;
+  color: #666;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background-color: #e0e0e0;
+  }
+  
+  @media (max-width: 768px) {
+    width: 100%;
+  }
 `;
 
 export default Dashboard;

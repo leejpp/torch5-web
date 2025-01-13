@@ -4,7 +4,9 @@ import Home from './pages/Home';
 import PrayerRequests from './pages/PrayerRequests';
 import Voices from './pages/Voices';
 import VoicesAdmin from './pages/VoicesAdmin';
-import Contacts from './pages/Contacts';  // 추가
+import Contacts from './pages/Contacts';  
+import Notice from './pages/Notice';
+import NoticeAdmin from './pages/NoticeAdmin';// 추가
 
 function App() {
   return (
@@ -14,7 +16,9 @@ function App() {
         <Route path="/prayer" element={<PrayerRequests />} />
         <Route path="/voices" element={<Voices />} />
         <Route path="/admin" element={<VoicesAdmin />} />
-        <Route path="/contacts" element={<Contacts />} />  {/* 추가 */}
+        <Route path="/contacts" element={<Contacts />} />  
+        <Route path="/notice" element={<Notice />} /> 
+        <Route path="/noticeadmin" element={<NoticeAdmin />} />{/* 추가 */}
       </Routes>
     </Router>
   );

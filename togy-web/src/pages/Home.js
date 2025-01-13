@@ -67,13 +67,19 @@ const Home = () => {
           <LinkIcon>🙏</LinkIcon>
           <LinkText>중보기도</LinkText>
         </LinkCard>
+        {/*
         <LinkCard to="/contacts">
           <LinkIcon>📞</LinkIcon>
           <LinkText>비상연락망</LinkText>
         </LinkCard>
+        */}
         <LinkCard to="/voices">
           <LinkIcon>💌</LinkIcon>
           <LinkText>마음의 소리</LinkText>
+        </LinkCard>
+        <LinkCard to="/notice">
+          <LinkIcon>📢</LinkIcon>
+          <LinkText>공지사항</LinkText>
         </LinkCard>
       </QuickLinks>
     </Container>

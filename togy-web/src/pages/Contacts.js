@@ -16,14 +16,12 @@ const Contacts = () => {
     try {
       const q = query(
         collection(db, 'members'), 
-        orderBy('role', 'desc'),  // role 내림차순
-        orderBy('name', 'asc')    // name 오름차순
+        orderBy('role', 'desc'),
+        orderBy('name', 'asc')
       );
       const querySnapshot = await getDocs(q);
       const membersList = querySnapshot.docs.map(doc => {
         const data = doc.data();
-        console.log('Document ID (name):', doc.id);
-        console.log('Document data:', data);
         return {
           name: doc.id,
           birthday: data.birthday,
@@ -31,7 +29,6 @@ const Contacts = () => {
           phone: data.phone
         };
       });
-      console.log('Final members list:', membersList);
       setMembers(membersList);
     } catch (error) {
       console.error("Error fetching members:", error);

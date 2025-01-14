@@ -389,10 +389,7 @@ const AdminCalendar = () => {
               }}
               date={date}
               onNavigate={newDate => setDate(newDate)}
-              longPressThreshold={10}
-              components={{
-                toolbar: CustomToolbar
-              }}
+              draggableAccessor={() => false}  // 드래그 비활성화
             />
           )}
         </CalendarContainer>
@@ -832,6 +829,7 @@ const Modal = styled.div`
   align-items: center;
   z-index: 1000;
   padding: 20px;
+  box-sizing: border-box;  // 패딩을 너비에 포함
 `;
 
 const ModalContent = styled.div`
@@ -844,10 +842,33 @@ const ModalContent = styled.div`
   overflow-y: auto;
   margin: auto;
   position: relative;
+  box-sizing: border-box;  // 패딩을 너비에 포함
 
   @media (max-width: 768px) {
     width: 95%;
-    padding: 1.5rem;
+    padding: 1rem;
+    margin: 10px;
+  }
+
+  // 스크롤바 스타일링
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #FFB6C1;
+    border-radius: 3px;
+  }
+
+  // 폼 요소들의 너비 조정
+  input, textarea, select {
+    width: 100%;
+    box-sizing: border-box;
   }
 `;
 
@@ -855,13 +876,19 @@ const Form = styled.form`
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  padding-bottom: 1rem;
+  width: 100%;
+  box-sizing: border-box;
+
+  @media (max-width: 768px) {
+    gap: 0.8rem;
+  }
 `;
 
 const InputGroup = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  width: 100%;
 `;
 
 const Label = styled.label`

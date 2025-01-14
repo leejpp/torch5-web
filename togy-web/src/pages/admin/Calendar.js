@@ -390,6 +390,17 @@ const AdminCalendar = () => {
               date={date}
               onNavigate={newDate => setDate(newDate)}
               draggableAccessor={() => false}  // 드래그 비활성화
+              longPressThreshold={20}  // 터치 감지 시간을 매우 짧게 설정
+              components={{
+                dateCellWrapper: props => (
+                  <div
+                    onClick={() => handleSelect({ start: props.value })}
+                    style={{ height: '100%' }}
+                  >
+                    {props.children}
+                  </div>
+                )
+              }}
             />
           )}
         </CalendarContainer>

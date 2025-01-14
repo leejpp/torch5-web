@@ -28,6 +28,16 @@ const REPEAT_TYPES = {
   YEARLY: 'YEARLY'      // 매년 반복만 남김
 };
 
+// 상수 추가
+const EVENT_TYPES = {
+  DEFAULT: { label: '기본', bgColor: '#FFB6C1', color: 'white' },
+  BIRTHDAY: { label: '생일', bgColor: '#E6E6FA', color: '#6A5ACD' },  // 보라색
+  MEETING: { label: '모임', bgColor: '#E0F4FF', color: '#0066FF' },   // 파란색
+  ACTIVITY: { label: '활동', bgColor: '#E8F5E9', color: '#2E7D32' },  // 초록색 (기존 행사)
+  EVENT: { label: '행사', bgColor: '#FFF3CD', color: '#856404' },     // 노란색 (새로 추가)
+  HOLIDAY: { label: '공휴일', bgColor: '#FFEBEE', color: '#D32F2F' }  // 빨간색
+};
+
 const AdminCalendar = () => {
   const [events, setEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -39,6 +49,7 @@ const AdminCalendar = () => {
     end: '',
     description: '',
     location: '',
+    type: 'DEFAULT',  // 기본 타입 추가
     repeat: {
       type: REPEAT_TYPES.NONE
     }
@@ -48,10 +59,15 @@ const AdminCalendar = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [showMoreEvents, setShowMoreEvents] = useState({ isOpen: false, date: null, events: [] });
   const [deleteOption, setDeleteOption] = useState('single'); // 'single' or 'all'
+  const [date, setDate] = useState(new Date());
+  const [touchStart, setTouchStart] = useState(null);
 
   useEffect(() => {
     fetchEvents();
   }, []);
+
+  useEffect(() => {
+  }, [isModalOpen]);
 
   const fetchEvents = async () => {
     try {
@@ -71,21 +87,25 @@ const AdminCalendar = () => {
     }
   };
 
-  const handleSelect = ({ start, end }) => {
-    setSelectedEvent(null);
-    const selectedDate = format(start, "yyyy-MM-dd");
-    
-    setFormData({
-      title: '',
-      start: selectedDate,  // 선택한 날짜로 설정
-      end: selectedDate,    // 시작 날짜와 동일하게 설정
-      description: '',
-      location: '',
-      repeat: {
-        type: REPEAT_TYPES.NONE
-      }
-    });
+  const handleSelect = ({ start }) => {
+    // 즉시 모달 열기
     setIsModalOpen(true);
+    
+    // 폼 데이터는 비동기로 설정
+    setTimeout(() => {
+      setSelectedEvent(null);
+      setFormData({
+        title: '',
+        start: format(new Date(start), "yyyy-MM-dd"),
+        end: format(new Date(start), "yyyy-MM-dd"),
+        description: '',
+        location: '',
+        type: 'DEFAULT',
+        repeat: {
+          type: REPEAT_TYPES.NONE
+        }
+      });
+    }, 0);
   };
 
   const handleEventSelect = (event) => {
@@ -96,6 +116,7 @@ const AdminCalendar = () => {
       end: format(event.end, "yyyy-MM-dd"),
       description: event.description || '',
       location: event.location || '',
+      type: event.type || 'DEFAULT',
       repeat: event.repeat || { type: REPEAT_TYPES.NONE }
     });
     setIsModalOpen(true);
@@ -144,6 +165,7 @@ const AdminCalendar = () => {
         allDay: true,
         description: formData.description,
         location: formData.location,
+        type: formData.type,  // 타입 추가
         repeat: formData.repeat
       };
 
@@ -235,16 +257,48 @@ const AdminCalendar = () => {
     });
   };
 
+  const handleTitleClick = () => {
+    setDate(new Date());
+  };
+
+  const handleTouchStart = (e) => {
+    setTouchStart(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = (e) => {
+    if (!touchStart) return;
+
+    const touchEnd = e.changedTouches[0].clientX;
+    const diff = touchStart - touchEnd;
+
+    if (Math.abs(diff) > 50) {
+      const newDate = new Date(date);
+      if (diff > 0) {
+        newDate.setMonth(date.getMonth() + 1);
+      } else {
+        newDate.setMonth(date.getMonth() - 1);
+      }
+      setDate(newDate);
+    }
+    setTouchStart(null);
+  };
+
   return (
     <AdminLayout>
       <Container>
         <Header>
           <TitleSection>
             <HomeButton to="/admin">← 홈으로</HomeButton>
-            <Title>일정 관리</Title>
+            <TitleWrapper>
+              <Title onClick={handleTitleClick}>일정 관리</Title>
+              <CurrentDate>{format(date, 'yyyy년 M월')}</CurrentDate>
+            </TitleWrapper>
           </TitleSection>
         </Header>
-        <CalendarContainer>
+        <CalendarContainer
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
           {isLoading ? (
             <LoadingSpinner>일정을 불러오는 중...</LoadingSpinner>
           ) : (
@@ -253,41 +307,59 @@ const AdminCalendar = () => {
               events={events}
               startAccessor="start"
               endAccessor="end"
-              style={{ height: 600 }}
+              style={{ height: '100%' }}
               culture='ko'
-              selectable
+              selectable={true}
               onSelectSlot={handleSelect}
               onSelectEvent={handleEventSelect}
               views={['month']}
               defaultView="month"
+              toolbar={false}
               formats={{
-                dateFormat: 'dd',
-                monthHeaderFormat: 'yyyy년 MM월'
+                monthHeaderFormat: 'yyyy년 MM월',
+                dayHeaderFormat: 'eee',
+                dayRangeHeaderFormat: ({ start, end }) =>
+                  `${format(start, 'MM월 dd일')} - ${format(end, 'MM월 dd일')}`,
               }}
               messages={{
-                next: "다음",
-                previous: "이전",
-                today: "오늘",
-                month: "월",
                 showMore: total => `+${total}개 더보기`
               }}
-              onShowMore={handleShowMore}
-              dayPropGetter={date => {
-                const isSunday = date.getDay() === 0;
-                if (isSunday) {
-                  return {
-                    style: {
-                      color: '#ff4444'
-                    }
-                  };
-                }
+              eventPropGetter={event => {
+                const eventType = EVENT_TYPES[event.type] || EVENT_TYPES.DEFAULT;
+                return {
+                  style: {
+                    backgroundColor: eventType.bgColor,
+                    color: eventType.color
+                  }
+                };
               }}
+              dayPropGetter={date => {
+                const today = new Date();
+                const isToday = date.getDate() === today.getDate() &&
+                               date.getMonth() === today.getMonth() &&
+                               date.getYear() === today.getYear();
+                const isSunday = date.getDay() === 0;
+                const isSaturday = date.getDay() === 6;
+                
+                return {
+                  style: {
+                    cursor: 'pointer',
+                    backgroundColor: isToday ? '#FFF9F9' : 'white',
+                    color: isSunday ? '#ff4444' : isSaturday ? '#0066ff' : '#333'  // 일요일, 토요일 날짜 색상
+                  }
+                };
+              }}
+              date={date}
+              onNavigate={newDate => setDate(newDate)}
+              longPressThreshold={10}
             />
           )}
         </CalendarContainer>
 
         {isModalOpen && (
-          <Modal>
+          <Modal onClick={(e) => {
+            e.stopPropagation();
+          }}>
             <ModalContent>
               <h2>{selectedEvent ? '일정 수정' : '새 일정'}</h2>
               <Form onSubmit={handleSubmit}>
@@ -332,6 +404,17 @@ const AdminCalendar = () => {
                     value={formData.location}
                     onChange={(e) => setFormData({...formData, location: e.target.value})}
                   />
+                </InputGroup>
+                <InputGroup>
+                  <Label>일정 타입</Label>
+                  <Select
+                    value={formData.type}
+                    onChange={(e) => setFormData({...formData, type: e.target.value})}
+                  >
+                    {Object.entries(EVENT_TYPES).map(([key, value]) => (
+                      <option key={key} value={key}>{value.label}</option>
+                    ))}
+                  </Select>
                 </InputGroup>
                 <InputGroup>
                   <Label>반복</Label>
@@ -463,20 +546,24 @@ const AdminCalendar = () => {
 };
 
 const Container = styled.div`
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: white;
   
   @media (max-width: 768px) {
-    padding: 1rem;
+    padding: 0;
   }
 `;
 
 const Header = styled.header`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
+  padding: 1rem;
+  border-bottom: 1px solid #eee;
+  
+  @media (max-width: 768px) {
+    padding: 0.8rem 1rem;
+  }
 `;
 
 const TitleSection = styled.div`
@@ -498,43 +585,188 @@ const HomeButton = styled(Link)`
   }
 `;
 
+const TitleWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex: 1;
+`;
+
 const Title = styled.h1`
-  font-size: 2rem;
+  font-size: 1.5rem;
   color: #333;
+  margin: 0;
+  cursor: pointer;
+  
+  &:hover {
+    opacity: 0.8;
+  }
+  
+  &:active {
+    opacity: 0.6;
+  }
+`;
+
+const CurrentDate = styled.span`
+  color: #666;
+  font-size: 1.2rem;
 `;
 
 const CalendarContainer = styled.div`
+  flex: 1;
   background-color: white;
-  padding: 2rem;
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   
   .rbc-calendar {
-    font-family: inherit;
+    width: 100%;
+    height: 100% !important;
   }
   
+  .rbc-month-view {
+    border: none;
+    margin: 0;
+    width: 100%;
+  }
+  
+  .rbc-month-row {
+    min-height: 120px;
+  }
+  
+  .rbc-row {
+    margin: 0;
+  }
+
   .rbc-header {
-    padding: 10px;
-    font-weight: bold;
+    padding: 8px 0;
+    text-align: center;
+    font-size: 0.9rem;
+    border: none !important;
     
     &:first-child {
       color: #ff4444;  // 일요일 헤더
     }
+    &:last-child {
+      color: #0066ff;  // 토요일 헤더
+    }
+  }
+  
+  .rbc-date-cell {
+    cursor: pointer;
+    padding: 4px;
+    text-align: center;
+    
+    > a {
+      font-size: 0.9rem;
+      margin: 0;
+      padding-top: 4px;
+      display: inline-block;
+    }
+    
+    &:hover {
+      background-color: rgba(255, 182, 193, 0.1);
+    }
   }
   
   .rbc-event {
-    background-color: #FFB6C1;
+    margin: 0;
+    padding: 2px 4px;
+    width: calc(100% - 2px) !important;
+    font-size: 0.85rem;
     border: none;
-    border-radius: 3px;
+    border-radius: 2px;
+  }
+  
+  .rbc-row-segment {
+    padding: 0;
+  }
+  
+  .rbc-show-more {
+    margin: 0;
+    padding: 2px 4px;
+    background-color: transparent;
+    color: #666;
+    text-align: center;
+  }
+  
+  .rbc-month-view,
+  .rbc-month-row,
+  .rbc-date-cell,
+  .rbc-day-bg {
+    border: none !important;
+  }
+  
+  .rbc-month-row + .rbc-month-row {
+    border-top: 1px solid #eee;
+  }
+  
+  .rbc-toolbar {
+    display: none;
+  }
+  
+  @media (max-width: 768px) {
+    padding: 0;
+    
+    .rbc-calendar {
+      height: calc(100vh - 60px) !important;
+    }
+    
+    .rbc-header {
+      padding: 8px 0;
+      font-size: 0.85rem;
+    }
+    
+    .rbc-date-cell > a {
+      font-size: 0.85rem;
+    }
+    
+    .rbc-event {
+      padding: 1px 2px;
+      margin: 0;
+      font-size: 0.8rem;
+    }
   }
 
-  // 일요일 날짜 색상 정
-  .rbc-row-content {
-    .rbc-row {
-      .rbc-date-cell:first-child {
-        color: #ff4444;
+  .rbc-date-cell {
+    cursor: pointer;
+    
+    &:hover {
+      background-color: #f8f8f8;
+    }
+  }
+
+  .rbc-selectable {
+    .rbc-day-bg {
+      cursor: pointer;
+      transition: background-color 0.2s;
+      
+      &:hover {
+        background-color: rgba(255, 182, 193, 0.1);
+      }
+      
+      &.rbc-selected {
+        background-color: rgba(255, 182, 193, 0.2);
       }
     }
+  }
+
+  .rbc-day-bg {
+    cursor: pointer;
+    transition: background-color 0.2s;
+    
+    &:hover {
+      background-color: rgba(255, 182, 193, 0.1);
+    }
+  }
+
+  .rbc-today {
+    background-color: #FFF9F9;  // 오늘 날짜 배경색
+  }
+
+  .rbc-off-range-bg {
+    background-color: transparent;
+  }
+
+  .rbc-off-range {
+    color: #ccc;
   }
 `;
 
@@ -551,8 +783,8 @@ const Modal = styled.div`
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
+  width: 100%;
+  height: 100%;
   background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
@@ -566,7 +798,6 @@ const ModalContent = styled.div`
   border-radius: 10px;
   width: 90%;
   max-width: 500px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   
   h2 {
     margin-top: 0;
@@ -579,10 +810,6 @@ const Form = styled.form`
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  
-  @media (max-width: 768px) {
-    gap: 0.8rem;
-  }
 `;
 
 const InputGroup = styled.div`

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Calendar as BigCalendar, dateFnsLocalizer } from 'react-big-calendar';
 import format from 'date-fns/format';
 import parse from 'date-fns/parse';
@@ -24,11 +24,23 @@ const localizer = dateFnsLocalizer({
   locales,
 });
 
+const EVENT_TYPES = {
+  DEFAULT: { label: '기본', bgColor: '#FFB6C1', color: 'white' },
+  BIRTHDAY: { label: '생일', bgColor: '#E6E6FA', color: '#6A5ACD' },  // 보라색
+  MEETING: { label: '모임', bgColor: '#E0F4FF', color: '#0066FF' },   // 파란색
+  ACTIVITY: { label: '활동', bgColor: '#E8F5E9', color: '#2E7D32' },  // 초록색
+  EVENT: { label: '행사', bgColor: '#FFF3CD', color: '#856404' },     // 노란색
+  HOLIDAY: { label: '공휴일', bgColor: '#FFEBEE', color: '#D32F2F' }  // 빨간색
+};
+
 const Calendar = () => {
   const [events, setEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const calendarRef = useRef(null);
+  const [touchStart, setTouchStart] = useState(null);
+  const [date, setDate] = useState(new Date());
 
   useEffect(() => {
     fetchEvents();
@@ -57,55 +69,103 @@ const Calendar = () => {
     setIsModalOpen(true);
   };
 
+  const handleTitleClick = () => {
+    setDate(new Date());
+  };
+
+  const handleTouchStart = (e) => {
+    setTouchStart(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = (e) => {
+    if (!touchStart) return;
+
+    const touchEnd = e.changedTouches[0].clientX;
+    const diff = touchStart - touchEnd;
+
+    if (Math.abs(diff) > 50) {
+      const newDate = new Date(date);
+      if (diff > 0) {
+        newDate.setMonth(date.getMonth() + 1);
+      } else {
+        newDate.setMonth(date.getMonth() - 1);
+      }
+      setDate(newDate);
+    }
+    setTouchStart(null);
+  };
+
   return (
     <UserLayout>
       <Container>
         <Header>
           <TitleSection>
             <HomeButton to="/">← 홈으로</HomeButton>
-            <Title>일정</Title>
+            <TitleWrapper>
+              <Title onClick={handleTitleClick}>일정</Title>
+              <CurrentDate>
+                {format(date, 'yyyy년 M월')}
+              </CurrentDate>
+            </TitleWrapper>
           </TitleSection>
         </Header>
-        <CalendarContainer>
+        <CalendarContainer
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
           {isLoading ? (
             <LoadingSpinner>일정을 불러오는 중...</LoadingSpinner>
           ) : (
             <BigCalendar
+              ref={calendarRef}
               localizer={localizer}
               events={events}
               startAccessor="start"
               endAccessor="end"
-              style={{ height: 600 }}
+              style={{ height: '100%' }}
               culture='ko'
               onSelectEvent={handleEventSelect}
               views={['month']}
               defaultView="month"
+              toolbar={false}
               formats={{
-                dateFormat: 'dd',
-                monthHeaderFormat: 'yyyy년 MM월'
+                monthHeaderFormat: 'yyyy년 MM월',
+                dayHeaderFormat: 'eee',
+                dayRangeHeaderFormat: ({ start, end }) =>
+                  `${format(start, 'MM월 dd일')} - ${format(end, 'MM월 dd일')}`,
               }}
               messages={{
                 next: "다음",
                 previous: "이전",
                 today: "오늘",
-                month: "월"
+                month: "월",
+                showMore: total => `+${total}개 더보기`
               }}
-              eventPropGetter={(event) => ({
-                style: {
-                  backgroundColor: '#FFB6C1',
-                  color: 'white'
-                }
-              })}
+              eventPropGetter={event => {
+                const eventType = EVENT_TYPES[event.type] || EVENT_TYPES.DEFAULT;
+                return {
+                  style: {
+                    backgroundColor: eventType.bgColor,
+                    color: eventType.color
+                  }
+                };
+              }}
               dayPropGetter={date => {
+                const today = new Date();
+                const isToday = date.getDate() === today.getDate() &&
+                               date.getMonth() === today.getMonth() &&
+                               date.getYear() === today.getYear();
                 const isSunday = date.getDay() === 0;
-                if (isSunday) {
-                  return {
-                    style: {
-                      color: '#ff4444'
-                    }
-                  };
-                }
+                return {
+                  className: isToday ? 'today' : '',
+                  style: {
+                    backgroundColor: isToday ? '#FFF9F9' : 'white',
+                    color: isSunday ? '#ff4444' : '#333'
+                  }
+                };
               }}
+              date={date}
+              onNavigate={newDate => setDate(newDate)}
             />
           )}
         </CalendarContainer>
@@ -123,6 +183,10 @@ const Calendar = () => {
                       ` ~ ${format(selectedEvent.end, 'yyyy년 MM월 dd일')}`
                     }
                   </Value>
+                </DetailItem>
+                <DetailItem>
+                  <Label>타입</Label>
+                  <Value>{EVENT_TYPES[selectedEvent.type]?.label || EVENT_TYPES.DEFAULT.label}</Value>
                 </DetailItem>
                 {selectedEvent.location && (
                   <DetailItem>
@@ -149,131 +213,184 @@ const Calendar = () => {
 };
 
 const Container = styled.div`
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: white;
   
   @media (max-width: 768px) {
-    padding: 0.5rem;
+    padding: 0;
   }
 `;
 
 const Header = styled.header`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
+  padding: 1rem;
+  border-bottom: 1px solid #eee;
+  
+  @media (max-width: 768px) {
+    padding: 0.8rem 1rem;
+  }
 `;
 
 const TitleSection = styled.div`
   display: flex;
   align-items: center;
   gap: 1rem;
-  
-  @media (max-width: 768px) {
-    width: 100%;
-    justify-content: center;
-  }
+`;
+
+const TitleWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+`;
+
+const CurrentDate = styled.span`
+  color: #666;
+  font-size: 1.1rem;
 `;
 
 const HomeButton = styled(Link)`
   color: #666;
   text-decoration: none;
-  padding: 0.5rem 1rem;
-  border-radius: 5px;
   font-size: 1rem;
+  display: flex;
+  align-items: center;
   
   &:hover {
-    background-color: #f0f0f0;
     color: #333;
   }
 `;
 
 const Title = styled.h1`
-  font-size: 2rem;
+  font-size: 1.5rem;
   color: #333;
+  margin: 0;
+  cursor: pointer;
   
-  @media (max-width: 768px) {
-    font-size: 1.8rem;
+  &:hover {
+    opacity: 0.8;
+  }
+  
+  &:active {
+    opacity: 0.6;
   }
 `;
 
 const CalendarContainer = styled.div`
+  flex: 1;
   background-color: white;
-  padding: 2rem;
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  touch-action: pan-y pinch-zoom;
   
   .rbc-calendar {
-    font-family: inherit;
-    position: relative;
-    z-index: 1;
+    width: 100%;
+    height: 100% !important;
   }
   
+  .rbc-month-view {
+    border: none;
+    margin: 0;
+    width: 100%;
+  }
+  
+  .rbc-month-row {
+    min-height: 120px;
+  }
+  
+  .rbc-row {
+    margin: 0;
+  }
+
   .rbc-header {
-    padding: 10px;
-    font-weight: bold;
+    padding: 8px 0;
+    text-align: center;
+    font-size: 0.9rem;
+    border: none !important;
     
     &:first-child {
       color: #ff4444;
     }
+    &:last-child {
+      color: #0066ff;
+    }
+  }
+  
+  .rbc-date-cell {
+    padding: 4px;
+    text-align: center;
+    
+    > a {
+      font-size: 0.9rem;
+      margin: 0;
+      padding-top: 4px;
+      display: inline-block;
+      color: #333;
+    }
+    
+    &:first-child > a {
+      color: #ff4444;
+    }
+    &:last-child > a {
+      color: #0066ff;
+    }
   }
   
   .rbc-event {
-    background-color: #FFB6C1;
+    margin: 0;
+    padding: 2px 4px;
+    width: calc(100% - 2px) !important;
+    font-size: 0.85rem;
     border: none;
-    border-radius: 3px;
+    border-radius: 2px;
   }
-
-  .rbc-date-cell {
-    &.rbc-sun {
-      color: #ff4444;
-    }
+  
+  .rbc-row-segment {
+    padding: 0;
   }
-
-  .rbc-row-content {
-    .rbc-row {
-      .rbc-date-cell:first-child {
-        color: #ff4444;
-      }
-    }
+  
+  .rbc-show-more {
+    margin: 0;
+    padding: 2px 4px;
+    background-color: transparent;
+    color: #666;
+    text-align: center;
   }
-
+  
+  .rbc-month-view,
+  .rbc-month-row,
+  .rbc-date-cell,
+  .rbc-day-bg {
+    border: none !important;
+  }
+  
+  .rbc-month-row + .rbc-month-row {
+    border-top: 1px solid #eee;
+  }
+  
+  .rbc-toolbar {
+    display: none;
+  }
+  
   @media (max-width: 768px) {
-    padding: 1rem;
+    padding: 0;
     
     .rbc-calendar {
-      font-size: 0.9rem;
-    }
-    
-    .rbc-toolbar {
-      flex-direction: column;
-      gap: 0.5rem;
-      margin-bottom: 1rem;
-    }
-    
-    .rbc-toolbar-label {
-      margin: 0.5rem 0;
-    }
-    
-    .rbc-btn-group {
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-      
-      button {
-        flex: 1;
-        margin: 0 2px !important;
-        padding: 0.5rem 0;
-      }
+      height: calc(100vh - 60px) !important;
     }
     
     .rbc-header {
-      padding: 0.5rem;
+      padding: 8px 0;
+      font-size: 0.85rem;
+    }
+    
+    .rbc-date-cell > a {
+      font-size: 0.85rem;
     }
     
     .rbc-event {
-      padding: 2px 3px;
+      padding: 1px 2px;
+      margin: 0;
+      font-size: 0.8rem;
     }
   }
 `;
@@ -311,14 +428,13 @@ const ModalContent = styled.div`
   z-index: 1001;
 
   @media (max-width: 768px) {
-    width: 95%;
-    padding: 1.5rem;
-    max-height: 90vh;
-    overflow-y: auto;
+    width: 90%;
+    margin: 10px;
+    padding: 1.2rem;
     
     h2 {
-      font-size: 1.3rem;
-      margin-bottom: 1rem;
+      font-size: 1.2rem;
+      margin-bottom: 0.8rem;
     }
   }
 `;
@@ -328,22 +444,39 @@ const EventDetails = styled.div`
   flex-direction: column;
   gap: 1rem;
   margin: 1.5rem 0;
+
+  @media (max-width: 768px) {
+    gap: 0.8rem;
+    margin: 1rem 0;
+  }
 `;
 
 const DetailItem = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
+
+  @media (max-width: 768px) {
+    gap: 0.2rem;
+  }
 `;
 
 const Label = styled.span`
   color: #666;
   font-size: 0.9rem;
+
+  @media (max-width: 768px) {
+    font-size: 0.8rem;
+  }
 `;
 
 const Value = styled.span`
   color: #333;
   font-size: 1rem;
+
+  @media (max-width: 768px) {
+    font-size: 0.95rem;
+  }
 `;
 
 const Description = styled.p`

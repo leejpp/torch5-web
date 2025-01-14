@@ -69,6 +69,23 @@ const AdminCalendar = () => {
   useEffect(() => {
   }, [isModalOpen]);
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'ArrowLeft') {
+        const newDate = new Date(date);
+        newDate.setMonth(date.getMonth() - 1);
+        setDate(newDate);
+      } else if (e.key === 'ArrowRight') {
+        const newDate = new Date(date);
+        newDate.setMonth(date.getMonth() + 1);
+        setDate(newDate);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [date]);
+
   const fetchEvents = async () => {
     try {
       const q = query(collection(db, 'events'), orderBy('start'));
@@ -88,27 +105,28 @@ const AdminCalendar = () => {
   };
 
   const handleSelect = ({ start }) => {
-    // 즉시 모달 열기
-    setIsModalOpen(true);
-    
-    // 폼 데이터는 비동기로 설정
-    setTimeout(() => {
-      setSelectedEvent(null);
-      setFormData({
-        title: '',
-        start: format(new Date(start), "yyyy-MM-dd"),
-        end: format(new Date(start), "yyyy-MM-dd"),
-        description: '',
-        location: '',
-        type: 'DEFAULT',
-        repeat: {
-          type: REPEAT_TYPES.NONE
-        }
-      });
-    }, 0);
+    // 새 일정 추가 시에만 호출되도록 수정
+    if (!selectedEvent) {
+      setIsModalOpen(true);
+      setTimeout(() => {
+        setSelectedEvent(null);
+        setFormData({
+          title: '',
+          start: format(new Date(start), "yyyy-MM-dd"),
+          end: format(new Date(start), "yyyy-MM-dd"),
+          description: '',
+          location: '',
+          type: 'DEFAULT',
+          repeat: {
+            type: REPEAT_TYPES.NONE
+          }
+        });
+      }, 0);
+    }
   };
 
   const handleEventSelect = (event) => {
+    // 기존 일정 클릭 시 수정 모드로 진입
     setSelectedEvent(event);
     setFormData({
       title: event.title,
@@ -170,7 +188,7 @@ const AdminCalendar = () => {
       };
 
       if (formData.repeat.type !== REPEAT_TYPES.NONE) {
-        // 1년치 반복 일정 생성
+        // 1년치 반복복 일정 생성
         const until = new Date();
         until.setFullYear(until.getFullYear() + 1);
         
@@ -283,6 +301,32 @@ const AdminCalendar = () => {
     setTouchStart(null);
   };
 
+  const CustomToolbar = ({ onNavigate }) => (
+    <ToolbarWrapper>
+      <ToolbarButton onClick={() => onNavigate('PREV')}>◀</ToolbarButton>
+      <ToolbarButton onClick={() => onNavigate('NEXT')}>▶</ToolbarButton>
+    </ToolbarWrapper>
+  );
+
+  const ToolbarWrapper = styled.div`
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  `;
+
+  const ToolbarButton = styled.button`
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 5px;
+    background-color: #f0f0f0;
+    cursor: pointer;
+    
+    &:hover {
+      background-color: #e0e0e0;
+    }
+  `;
+
   return (
     <AdminLayout>
       <Container>
@@ -314,7 +358,7 @@ const AdminCalendar = () => {
               onSelectEvent={handleEventSelect}
               views={['month']}
               defaultView="month"
-              toolbar={false}
+              toolbar={true}
               formats={{
                 monthHeaderFormat: 'yyyy년 MM월',
                 dayHeaderFormat: 'eee',
@@ -352,6 +396,9 @@ const AdminCalendar = () => {
               date={date}
               onNavigate={newDate => setDate(newDate)}
               longPressThreshold={10}
+              components={{
+                toolbar: CustomToolbar
+              }}
             />
           )}
         </CalendarContainer>

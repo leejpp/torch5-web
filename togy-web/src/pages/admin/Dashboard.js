@@ -1,10 +1,52 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import { db, verifyPassword } from '../../firebase/config';
 import { Link } from 'react-router-dom'; 
 import AdminLayout from '../../layouts/AdminLayout';
 
 const Dashboard = () => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [password, setPassword] = useState('');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      // 비밀번호 체크 로직
+      await verifyPassword(password);
+      setIsAuthenticated(true);
+    } catch (error) {
+      console.error('Authentication failed:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // 비밀번호 입력 폼
+  if (!isAuthenticated) {
+    return (
+      <AdminLayout>
+        <Container>
+          <Title>관리자 인증</Title>
+          <Form onSubmit={handleSubmit}>
+            <Input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="관리자 비밀번호를 입력하세요"
+              required
+            />
+            <SubmitButton type="submit" disabled={isSubmitting}>
+              {isSubmitting ? <LoadingSpinner /> : '확인'}
+            </SubmitButton>
+          </Form>
+        </Container>
+      </AdminLayout>
+    );
+  }
+
+  // 인증 후 대시보드
   return (
     <AdminLayout>
       <Container>
@@ -139,6 +181,68 @@ const LogoutButton = styled.button`
   
   @media (max-width: 768px) {
     width: 100%;
+  }
+`;
+
+const SubmitButton = styled.button`
+  padding: 0.8rem 1.5rem;
+  background-color: #f0f0f0;
+  border: none;
+  border-radius: 5px;
+  color: #666;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background-color: #e0e0e0;
+  }
+  
+  @media (max-width: 768px) {
+    width: 100%;
+  }
+`;
+
+const LoadingSpinner = styled.div`
+  display: inline-block;
+  position: relative;
+  width: 20px;
+  height: 20px;
+  
+  &:after {
+    content: '';
+    display: block;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    border-color: #fff transparent #fff transparent;
+    animation: spin 1.2s linear infinite;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`;
+
+const Form = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 400px;
+  margin: 2rem auto;
+`;
+
+const Input = styled.input`
+  padding: 0.8rem;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 1rem;
+  
+  &:focus {
+    outline: none;
+    border-color: #FFB6C1;
   }
 `;
 

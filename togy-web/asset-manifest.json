@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/togy-web/static/css/main.4e297f75.css",
-    "main.js": "/togy-web/static/js/main.a22b9e7a.js",
+    "main.js": "/togy-web/static/js/main.93cc3ca7.js",
     "index.html": "/togy-web/index.html",
     "main.4e297f75.css.map": "/togy-web/static/css/main.4e297f75.css.map",
-    "main.a22b9e7a.js.map": "/togy-web/static/js/main.a22b9e7a.js.map"
+    "main.93cc3ca7.js.map": "/togy-web/static/js/main.93cc3ca7.js.map"
   },
   "entrypoints": [
     "static/css/main.4e297f75.css",
-    "static/js/main.a22b9e7a.js"
+    "static/js/main.93cc3ca7.js"
   ]
 }

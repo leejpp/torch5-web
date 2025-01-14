@@ -790,6 +790,8 @@ const Modal = styled.div`
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  padding: 20px;
+  overflow-y: auto;
 `;
 
 const ModalContent = styled.div`
@@ -798,11 +800,38 @@ const ModalContent = styled.div`
   border-radius: 10px;
   width: 90%;
   max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  margin: auto;
   
   h2 {
     margin-top: 0;
     margin-bottom: 1.5rem;
     color: #333;
+    position: sticky;
+    top: 0;
+    background: white;
+    padding: 1rem 0;
+    z-index: 1;
+  }
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #FFB6C1;
+    border-radius: 4px;
+  }
+
+  @media (max-height: 800px) {
+    max-height: 85vh;
   }
 `;
 
@@ -810,6 +839,7 @@ const Form = styled.form`
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  padding-bottom: 1rem;
 `;
 
 const InputGroup = styled.div`
@@ -853,6 +883,11 @@ const ButtonGroup = styled.div`
   display: flex;
   gap: 1rem;
   margin-top: 1.5rem;
+  position: sticky;
+  bottom: 0;
+  background: white;
+  padding: 1rem 0;
+  border-top: 1px solid #eee;
   
   @media (max-width: 768px) {
     flex-direction: column;

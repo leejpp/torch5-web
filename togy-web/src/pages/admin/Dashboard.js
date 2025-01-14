@@ -1,52 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import styled from 'styled-components';
-import { db, verifyPassword } from '../../firebase/config';
 import { Link } from 'react-router-dom'; 
 import AdminLayout from '../../layouts/AdminLayout';
 
 const Dashboard = () => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [password, setPassword] = useState('');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    try {
-      // 비밀번호 체크 로직
-      await verifyPassword(password);
-      setIsAuthenticated(true);
-    } catch (error) {
-      console.error('Authentication failed:', error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // 비밀번호 입력 폼
-  if (!isAuthenticated) {
-    return (
-      <AdminLayout>
-        <Container>
-          <Title>관리자 인증</Title>
-          <Form onSubmit={handleSubmit}>
-            <Input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="관리자 비밀번호를 입력하세요"
-              required
-            />
-            <SubmitButton type="submit" disabled={isSubmitting}>
-              {isSubmitting ? <LoadingSpinner /> : '확인'}
-            </SubmitButton>
-          </Form>
-        </Container>
-      </AdminLayout>
-    );
-  }
-
-  // 인증 후 대시보드
   return (
     <AdminLayout>
       <Container>

@@ -105,28 +105,22 @@ const AdminCalendar = () => {
   };
 
   const handleSelect = ({ start }) => {
-    // 새 일정 추가 시에만 호출되도록 수정
-    if (!selectedEvent) {
-      setIsModalOpen(true);
-      setTimeout(() => {
-        setSelectedEvent(null);
-        setFormData({
-          title: '',
-          start: format(new Date(start), "yyyy-MM-dd"),
-          end: format(new Date(start), "yyyy-MM-dd"),
-          description: '',
-          location: '',
-          type: 'DEFAULT',
-          repeat: {
-            type: REPEAT_TYPES.NONE
-          }
-        });
-      }, 0);
-    }
+    setSelectedEvent(null);
+    setFormData({
+      title: '',
+      start: format(new Date(start), "yyyy-MM-dd"),
+      end: format(new Date(start), "yyyy-MM-dd"),
+      description: '',
+      location: '',
+      type: 'DEFAULT',
+      repeat: {
+        type: REPEAT_TYPES.NONE
+      }
+    });
+    setIsModalOpen(true);
   };
 
   const handleEventSelect = (event) => {
-    // 기존 일정 클릭 시 수정 모드로 진입
     setSelectedEvent(event);
     setFormData({
       title: event.title,
@@ -838,7 +832,6 @@ const Modal = styled.div`
   align-items: center;
   z-index: 1000;
   padding: 20px;
-  overflow-y: auto;
 `;
 
 const ModalContent = styled.div`
@@ -849,36 +842,12 @@ const ModalContent = styled.div`
   max-width: 500px;
   max-height: 90vh;
   overflow-y: auto;
-  position: relative;
   margin: auto;
-  
-  h2 {
-    margin-top: 0;
-    margin-bottom: 1.5rem;
-    color: #333;
-    position: sticky;
-    top: 0;
-    background: white;
-    padding: 1rem 0;
-    z-index: 1;
-  }
+  position: relative;
 
-  &::-webkit-scrollbar {
-    width: 8px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: #FFB6C1;
-    border-radius: 4px;
-  }
-
-  @media (max-height: 800px) {
-    max-height: 85vh;
+  @media (max-width: 768px) {
+    width: 95%;
+    padding: 1.5rem;
   }
 `;
 

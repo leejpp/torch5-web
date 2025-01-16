@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>TOGY 셀 재편성</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: "Noto Sans", sans-serif;
+            background: #f9f9f9;
+            color: #333;
+        }
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .guide {
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+            line-height: 1.5;
+            font-size: 15px;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px 0;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        textarea, input {
+            width: 100%;
+            padding: 8px;
+            font-size: 14px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        textarea {
+            resize: vertical;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            color: #fff;
+            background-color: #3498db;
+            cursor: pointer;
+            margin: 15px 0;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        #loading {
+            display: none;
+            font-size: 16px;
+            color: #e74c3c;
+            text-align: center;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        #result {
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            font-size: 15px;
+            line-height: 1.5;
+        }
+        #result p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>셀 재편성</h1>
+        <div class="guide">
+            <p>1. 총원과 새 셀 갯수를 입력</p>
+            <p>2. 기존 셀 목록(셀은 줄바꿈으로, 셀원은 공백으로 구분) 입력</p>
+            <p>3. 새로 들어온 멤버도 공백 구분 입력</p>
+            <p>4. ‘새 셀 배정’ 버튼 클릭 후 결과 확인</p>
+        </div>
+        
+        <label for="totalMembers">총원 (예: 15)</label>
+        <input type="number" id="totalMembers" placeholder="총 인원수 입력"/>
+
+        <label for="cellCount">새로 만들 셀 수 (예: 3)</label>
+        <input type="number" id="cellCount" placeholder="셀 갯수 입력"/>
+
+        <label for="oldCellsText">기존 셀 목록</label>
+        <textarea id="oldCellsText" rows="4" placeholder="A B C D E&#13;&#10;F G H I J&#13;&#10;K L M N O&#13;&#10;각 줄이 1개 셀"></textarea>
+        
+        <label for="newMembers">새로 들어온 멤버 (예: X Y)</label>
+        <input type="text" id="newMembers" placeholder="새 멤버들 (공백 구분)"/>
+
+        <button onclick="createNewCells()">새 셀 배정</button>
+        
+        <div id="loading">계산 중...</div>
+        <div id="result"></div>
+    </div>
+    
+    <script>
+    // 무작위 섞기(Fisher-Yates)
+    function shuffle(array) {
+        for(let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+    async function createNewCells() {
+        // 로딩 표시
+        document.getElementById("loading").style.display = "block";
+        document.getElementById("result").innerHTML = "";
+
+        // 입력값
+        let N = parseInt(document.getElementById("totalMembers").value.trim(), 10);
+        let C = parseInt(document.getElementById("cellCount").value.trim(), 10);
+        
+        // 기존 셀들 (여러 줄)
+        let oldCellsText = document.getElementById("oldCellsText").value.trim();
+        // 줄 단위로 분리
+        let oldCellLines = oldCellsText.split("\n").map(line => line.trim()).filter(x => x);
+        
+        // oldCells 배열로 만들기
+        // 각 줄마다 공백으로 구분된 멤버들
+        let oldCells = [];
+        oldCellLines.forEach(line => {
+            let membersInCell = line.split(" ").filter(x => x);
+            oldCells.push(membersInCell);
+        });
+
+        // 새로 들어온 멤버
+        let newMems = document.getElementById("newMembers").value.trim().split(" ").filter(x => x);
+        
+        // 기존 셀에 포함된 인원 Set
+        let existingMembers = new Set();
+        oldCells.forEach(cell => cell.forEach(person => existingMembers.add(person)));
+        
+        // 새 멤버 추가
+        newMems.forEach(person => existingMembers.add(person));
+        
+        // 이제 existingMembers.size = 실제 입력된 총 멤버 수
+        let membersArray = Array.from(existingMembers);
+        
+        // 만약 입력된 멤버가 총원 N보다 적으면 Extra… 생성
+        if(membersArray.length < N) {
+            let shortage = N - membersArray.length;
+            for(let i=1; i<=shortage; i++) {
+                membersArray.push(`Extra${i}`);
+            }
+        }
+        // 만약 기존+새 멤버가 N보다 많으면(= 입력된 사람이 더 많은 경우), 그대로 사용.
+        
+        // 무작위 시도 횟수
+        let maxIterations = 1000;
+        let minOverlap = Number.MAX_VALUE;
+        let bestCells = null;
+        
+        for(let i=0; i<maxIterations; i++){
+            shuffle(membersArray);
+            
+            // 셀 분배
+            let newCells = [];
+            let baseSize = Math.floor(membersArray.length / C);
+            let remainder = membersArray.length % C;
+            
+            let startIndex = 0;
+            for(let c=0; c<C; c++){
+                let size = baseSize + (c < remainder ? 1 : 0);
+                newCells.push(membersArray.slice(startIndex, startIndex + size));
+                startIndex += size;
+            }
+            
+            // 교집합 계산
+            let totalOverlap = 0;
+            for(let oc of oldCells){
+                for(let nc of newCells){
+                    let overlapCount = oc.filter(x => nc.includes(x)).length;
+                    totalOverlap += overlapCount;
+                }
+            }
+            
+            if(totalOverlap < minOverlap){
+                minOverlap = totalOverlap;
+                bestCells = newCells;
+            }
+            
+            // UI 갱신(50회마다 한 번씩 잠깐 대기)
+            if(i % 50 === 0) {
+                await new Promise(resolve => setTimeout(resolve, 0));
+            }
+        }
+        
+        document.getElementById("loading").style.display = "none";
+        
+        // 결과 출력
+        let resultDiv = document.getElementById("result");
+        if(!bestCells) {
+            resultDiv.innerHTML = "<p>결과 없음</p>";
+            return;
+        }
+        bestCells.forEach((cell, idx) => {
+            resultDiv.innerHTML += `<p><strong>새 셀${idx+1}</strong>: ${cell.join(", ")}</p>`;
+        });
+        resultDiv.innerHTML += `<p><strong>최소 교집합 합계</strong>: ${minOverlap}</p>`;
+    }
+    </script>
+</body>
+</html>

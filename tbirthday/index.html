@@ -4,151 +4,301 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>월별 생일자 목록</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pretendard/1.3.8/static/pretendard.css">
     <style>
-        /* 이전 스타일 유지 */
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #f0f0ff;
+            background-color: #F5F5F7;
             padding: 20px;
+            color: #1A1A1A;
+            line-height: 1.6;
         }
 
         .container {
             width: 100%;
-            max-width: 500px;
+            max-width: 560px;
             margin: 0 auto;
-            background-color: #2d2d35;
-            border-radius: 25px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background-color: white;
+            border-radius: 20px;
+            padding: 32px;
+            box-shadow: 0 4px 20px rgba(123, 74, 255, 0.08);
+        }
+
+        .page-title {
+            font-size: 32px;
+            font-weight: bold;
+            color: #1A1A1A;
+            margin-bottom: 8px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #7B4AFF;
+            margin-bottom: 24px;
         }
 
         .header {
-            background-color: #ffa726;
-            color: #000;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 20px;
-            border-radius: 15px;
-            margin-bottom: 20px;
+            margin-bottom: 32px;
         }
 
         .controls {
             display: flex;
-            gap: 10px;
+            gap: 16px;
+            align-items: flex-start;
+            margin-top: 24px;
+        }
+        
+        .filter-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .filter-header {
+            display: flex;
+            justify-content: space-between;
             align-items: center;
         }
-
-        .title {
-            font-size: 24px;
-            font-weight: bold;
+        
+        .filter-stats {
+            color: #7B4AFF;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .reset-button {
+            background: none;
+            border: none;
+            color: #666666;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: underline;
+            padding: 4px 8px;
+        }
+        
+        .reset-button:hover {
+            color: #7B4AFF;
         }
 
         select {
-            padding: 8px;
-            border-radius: 10px;
-            border: none;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid #DDDDDD;
             font-size: 16px;
             background-color: white;
-        }
-
-        .refresh-btn {
-            padding: 8px;
-            border-radius: 10px;
-            border: none;
-            background-color: white;
+            color: #666666;
+            width: 100%;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%237B4AFF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 40px;
             cursor: pointer;
-            font-size: 16px;
         }
 
-        .refresh-btn:hover {
-            background-color: #f0f0f0;
+        select:focus {
+            outline: none;
+            border-color: #7B4AFF;
+            box-shadow: 0 0 0 2px rgba(123, 74, 255, 0.2);
+        }
+
+        .select-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .select-label {
+            color: #666666;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .birthday-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
         }
 
         .birthday-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin: 10px 0;
-            padding: 12px 20px;
-            background-color: #006064;
-            border-radius: 25px;
-            color: white;
+            padding: 16px 20px;
+            background-color: #F5F5F7;
+            border-radius: 16px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+        }
+
+        .birthday-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .birthday-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background-color: #7B4AFF;
+            border-top-left-radius: 16px;
+            border-bottom-left-radius: 16px;
         }
 
         .name-position {
             font-size: 18px;
+            font-weight: 600;
+            color: #1A1A1A;
+        }
+
+        .department {
+            font-size: 14px;
+            color: #666666;
+            margin-top: 4px;
         }
 
         .birthday-info {
             background-color: white;
-            color: black;
-            padding: 8px 15px;
-            border-radius: 15px;
+            padding: 8px 14px;
+            border-radius: 12px;
             font-size: 14px;
+            font-weight: 500;
+            color: #7B4AFF;
+            border: 1px solid rgba(123, 74, 255, 0.2);
         }
 
         .no-birthdays {
-            color: white;
             text-align: center;
-            padding: 20px;
+            padding: 32px 20px;
+            color: #666666;
+            background-color: #F5F5F7;
+            border-radius: 16px;
+            font-size: 16px;
         }
 
         .timestamp {
-            color: white;
             text-align: center;
-            font-size: 12px;
-            margin-top: 20px;
-        }
-
-        .controls select {
-            padding: 8px;
-            border-radius: 10px;
-            border: none;
-            font-size: 16px;
-            background-color: white;
-            min-width: 100px;
+            font-size: 14px;
+            margin-top: 32px;
+            color: #666666;
         }
         
-        @media (max-width: 480px) {
-            .header {
-                flex-direction: column;
-                gap: 10px;
+        .dot-decoration {
+            display: flex;
+            justify-content: center;
+            margin: 16px 0;
+        }
+        
+        .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: #DDDDDD;
+            margin: 0 4px;
+        }
+        
+        .dot.active {
+            background-color: #7B4AFF;
+        }
+        
+        /* 로딩 애니메이션 */
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            color: #666666;
+            gap: 16px;
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(123, 74, 255, 0.2);
+            border-radius: 50%;
+            border-top-color: #7B4AFF;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* 재시도 버튼 */
+        .retry-button {
+            background-color: #7B4AFF;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 10px 20px;
+            margin-top: 16px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+        
+        .retry-button:hover {
+            background-color: #6B3AD8;
+        }
+        
+        /* 생일 카드 트랜지션 개선 */
+        .birthday-list {
+            position: relative;
+        }
+        
+        .birthday-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            background-color: #F5F5F7;
+            border-radius: 16px;
+            transition: all 0.2s ease-out;
+            position: relative;
+            transform-origin: center;
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 560px) {
+            .container {
+                padding: 24px;
             }
             
             .controls {
-                display: flex;
                 flex-direction: column;
-                gap: 10px;
+            }
+            
+            .select-group {
                 width: 100%;
             }
             
-            .controls select {
-                width: 100%;
+            .page-title {
+                font-size: 28px;
             }
-        }
-
-        .select-group {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .select-label {
-            color: #000;
-            font-size: 14px;
-            font-weight: bold;
-        }
-
-        @media (max-width: 480px) {
-            .select-group {
-                width: 100%;
+            
+            .section-title {
+                font-size: 20px;
             }
         }
     </style>
@@ -156,11 +306,19 @@
 <body>
     <div class="container">
         <div class="header">
-            <div class="title">월별 생일자 목록</div>
+            <h1 class="page-title">월별 생일자 목록</h1>
+            <h2 class="section-title">생일을 축하합니다</h2>
+        </div>
+        
+        <div class="filter-section">
+            <div class="filter-header">
+                <div class="filter-stats" id="filterStats">총 0명</div>
+                <button id="resetFilters" class="reset-button">필터 초기화</button>
+            </div>
             <div class="controls">
                 <div class="select-group">
                     <label class="select-label">월 선택</label>
-                    <select id="monthSelect" onchange="filterBirthdays()">
+                    <select id="monthSelect">
                         <option value="all">전체</option>
                         <option value="1">1월</option>
                         <option value="2">2월</option>
@@ -178,7 +336,7 @@
                 </div>
                 <div class="select-group">
                     <label class="select-label">소속 선택</label>
-                    <select id="departmentSelect" onchange="filterBirthdays()">
+                    <select id="departmentSelect">
                         <option value="all">전체</option>
                         <option value="장년부">장년부</option>
                         <option value="청년부">청년부</option>
@@ -189,94 +347,273 @@
                 </div>
             </div>
         </div>
-        <div id="birthdayList"></div>
+        
+        <div class="dot-decoration">
+            <div class="dot active"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
+        
+        <div id="birthdayList" class="birthday-list"></div>
+        
         <div class="timestamp" id="timestamp"></div>
     </div>
 
     <script>
         const scriptURL = 'https://script.google.com/macros/s/AKfycbwKMY7UDajbisVm_UgLr1cEuib5de1rNk0t3P_hV9HYues7f_aWNFXr54en0miE40lWuA/exec';
         let birthdayData = [];
-
+        let cachedFilteredData = [];
+        let isLoading = false;
+        
+        // 날짜 캐싱 최적화
+        const dateCache = new Map();
         function formatDate(dateStr) {
+            if (dateCache.has(dateStr)) {
+                return dateCache.get(dateStr);
+            }
             const date = new Date(dateStr);
-            return `${date.getMonth() + 1}월 ${date.getDate()}일`;
+            const formatted = `${date.getMonth() + 1}월 ${date.getDate()}일`;
+            dateCache.set(dateStr, formatted);
+            return formatted;
         }
 
         function getMonthFromDate(dateStr) {
+            if (dateCache.has(`month_${dateStr}`)) {
+                return dateCache.get(`month_${dateStr}`);
+            }
             const date = new Date(dateStr);
-            return date.getMonth() + 1;
+            const month = date.getMonth() + 1;
+            dateCache.set(`month_${dateStr}`, month);
+            return month;
         }
 
+        // 디바운스 처리를 위한 함수
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // 로딩 상태 표시 함수
+        function showLoading() {
+            isLoading = true;
+            document.getElementById('birthdayList').innerHTML = 
+                '<div class="loading"><div class="loading-spinner"></div><div>데이터를 불러오는 중...</div></div>';
+        }
+
+        // 필터링 및 정렬을 한번에 처리하는 함수
         function filterBirthdays() {
             const selectedMonth = document.getElementById('monthSelect').value;
             const selectedDepartment = document.getElementById('departmentSelect').value;
             
-            let filteredData = birthdayData;
-
-            // 월 필터링
-            if (selectedMonth !== 'all') {
-                filteredData = filteredData.filter(person => 
-                    getMonthFromDate(person.birthday) === parseInt(selectedMonth)
-                );
+            // 로컬 스토리지에 선택값 저장
+            localStorage.setItem('selectedMonth', selectedMonth);
+            localStorage.setItem('selectedDepartment', selectedDepartment);
+            
+            // 보여주기 전에 로딩 상태 표시
+            if (isLoading) {
+                showLoading();
             }
-
-            // 소속 필터링
-            if (selectedDepartment !== 'all') {
-                filteredData = filteredData.filter(person => person.소속 === selectedDepartment);
-            }
-
-            // 날짜순으로 정렬
-            filteredData.sort((a, b) => {
-                const dateA = new Date(a.birthday);
-                const dateB = new Date(b.birthday);
-                // 월이 다른 경우 월로 정렬
-                if (dateA.getMonth() !== dateB.getMonth()) {
-                    return dateA.getMonth() - dateB.getMonth();
+            
+            // UI 렌더링을 다음 프레임으로 지연
+            requestAnimationFrame(() => {
+                let filteredData = birthdayData;
+    
+                // 월 필터링
+                if (selectedMonth !== 'all') {
+                    const monthInt = parseInt(selectedMonth);
+                    filteredData = filteredData.filter(person => 
+                        getMonthFromDate(person.birthday) === monthInt
+                    );
                 }
-                // 월이 같은 경우 일로 정렬
-                return dateA.getDate() - dateB.getDate();
+    
+                // 소속 필터링
+                if (selectedDepartment !== 'all') {
+                    filteredData = filteredData.filter(person => person.소속 === selectedDepartment);
+                }
+    
+                // 날짜순으로 정렬 (캐시 사용)
+                if (!arraysEqual(filteredData, cachedFilteredData)) {
+                    filteredData.sort((a, b) => {
+                        const monthA = getMonthFromDate(a.birthday);
+                        const monthB = getMonthFromDate(b.birthday);
+                        
+                        if (monthA !== monthB) {
+                            return monthA - monthB;
+                        }
+                        
+                        const dateA = new Date(a.birthday);
+                        const dateB = new Date(b.birthday);
+                        return dateA.getDate() - dateB.getDate();
+                    });
+                    
+                    cachedFilteredData = filteredData;
+                }
+    
+                renderBirthdayList(filteredData);
+                isLoading = false;
             });
-
-            const listHtml = filteredData.length === 0 
-                ? '<div class="no-birthdays">해당하는 생일자가 없습니다.</div>'
-                : filteredData.map(person => `
-                    <div class="birthday-item">
-                        <div class="name-position">${person.name} ${person.position}</div>
-                        <div class="birthday-info">${formatDate(person.birthday)} (${person.type}력)</div>
-                    </div>
-                `).join('');
-
-            document.getElementById('birthdayList').innerHTML = listHtml;
+        }
+        
+        // 배열 비교 함수
+        function arraysEqual(a, b) {
+            if (a === b) return true;
+            if (a.length !== b.length) return false;
+            for (let i = 0; i < a.length; i++) {
+                if (a[i] !== b[i]) return false;
+            }
+            return true;
+        }
+        
+        // 렌더링 함수 분리
+        function renderBirthdayList(data) {
+            const birthdayList = document.getElementById('birthdayList');
+            
+            if (data.length === 0) {
+                birthdayList.innerHTML = '<div class="no-birthdays">해당하는 생일자가 없습니다.</div>';
+                return;
+            }
+            
+            // DOM 조작 최소화
+            const fragment = document.createDocumentFragment();
+            
+            data.forEach(person => {
+                const item = document.createElement('div');
+                item.className = 'birthday-item';
+                
+                const personInfo = document.createElement('div');
+                personInfo.className = 'person-info';
+                
+                const namePosition = document.createElement('div');
+                namePosition.className = 'name-position';
+                namePosition.textContent = `${person.name} ${person.position || ''}`;
+                
+                const department = document.createElement('div');
+                department.className = 'department';
+                department.textContent = person.소속 || '';
+                
+                personInfo.appendChild(namePosition);
+                personInfo.appendChild(department);
+                
+                const birthdayInfo = document.createElement('div');
+                birthdayInfo.className = 'birthday-info';
+                birthdayInfo.textContent = `${formatDate(person.birthday)} ${person.type ? `(${person.type}력)` : ''}`;
+                
+                item.appendChild(personInfo);
+                item.appendChild(birthdayInfo);
+                fragment.appendChild(item);
+            });
+            
+            // 한 번에 DOM 갱신
+            birthdayList.innerHTML = '';
+            birthdayList.appendChild(fragment);
+            
+            // 필터링 결과 통계 업데이트
+            updateFilterStats(data.length);
+        }
+        
+        // 필터링 결과 통계 표시
+        function updateFilterStats(count) {
+            const stats = document.getElementById('filterStats');
+            if (stats) {
+                stats.textContent = `총 ${count}명`;
+            }
+        }
+        
+        // 디바운스된 필터 함수
+        const debouncedFilter = debounce(filterBirthdays, 100);
+        
+        // 필터 변경 이벤트 리스너
+        function setupEventListeners() {
+            const monthSelect = document.getElementById('monthSelect');
+            const departmentSelect = document.getElementById('departmentSelect');
+            
+            monthSelect.addEventListener('change', debouncedFilter);
+            departmentSelect.addEventListener('change', debouncedFilter);
+            
+            // 필터 리셋 버튼 이벤트
+            const resetButton = document.getElementById('resetFilters');
+            if (resetButton) {
+                resetButton.addEventListener('click', function() {
+                    monthSelect.value = 'all';
+                    departmentSelect.value = 'all';
+                    debouncedFilter();
+                });
+            }
         }
 
-        window.onload = function() {
-            document.getElementById('monthSelect').value = 'all';
-            document.getElementById('departmentSelect').value = 'all';
+        // 데이터 초기 로드
+        async function loadBirthdayData() {
+            showLoading();
             
-            // 초기 데이터 로드
-            fetch(scriptURL)
-                .then(response => response.json())
-                .then(data => {
-                    birthdayData = data.birthdays;
-                    // 데이터 구조 자세히 확인
-                    console.log('전체 응답:', data);
-                    console.log('birthdays 배열:', birthdayData);
-                    if (birthdayData.length > 0) {
-                        console.log('첫 번째 항목의 모든 속성:', Object.keys(birthdayData[0]));
-                        console.log('첫 번째 항목 전체:', birthdayData[0]);
-                    }
-                    filterBirthdays();
-                    
-                    const now = new Date();
-                    document.getElementById('timestamp').textContent = 
-                        `마지막 업데이트: ${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    document.getElementById('birthdayList').innerHTML = 
-                        '<div class="no-birthdays">데이터를 불러오는데 실패했습니다.<br>잠시 후 다시 시도해주세요.</div>';
-                });
-        };
+            try {
+                // 캐시 버스팅을 위한 타임스탬프 추가
+                const timestamp = new Date().getTime();
+                const url = `${scriptURL}?t=${timestamp}`;
+                
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error('네트워크 응답이 올바르지 않습니다');
+                }
+                
+                const data = await response.json();
+                birthdayData = data.birthdays;
+                
+                // 초기 필터 값 설정 (로컬 스토리지에서 복원)
+                restoreFilterSettings();
+                
+                // 필터 적용
+                filterBirthdays();
+                
+                // 마지막 업데이트 시간 표시
+                updateTimestamp();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('birthdayList').innerHTML = 
+                    '<div class="no-birthdays">데이터를 불러오는데 실패했습니다.<br><button id="retryButton" class="retry-button">다시 시도</button></div>';
+                
+                // 재시도 버튼 이벤트 리스너
+                const retryButton = document.getElementById('retryButton');
+                if (retryButton) {
+                    retryButton.addEventListener('click', loadBirthdayData);
+                }
+            } finally {
+                isLoading = false;
+            }
+        }
+        
+        // 필터 설정 복원
+        function restoreFilterSettings() {
+            const monthSelect = document.getElementById('monthSelect');
+            const departmentSelect = document.getElementById('departmentSelect');
+            
+            // 저장된 값이 있으면 복원, 없으면 현재 월 설정
+            const savedMonth = localStorage.getItem('selectedMonth');
+            const savedDepartment = localStorage.getItem('selectedDepartment');
+            
+            monthSelect.value = savedMonth || new Date().getMonth() + 1;
+            departmentSelect.value = savedDepartment || 'all';
+        }
+        
+        // 타임스탬프 업데이트
+        function updateTimestamp() {
+            const now = new Date();
+            document.getElementById('timestamp').textContent = 
+                `마지막 업데이트: ${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        }
+
+        // 페이지 로드 시 실행
+        window.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+            loadBirthdayData();
+        });
     </script>
 </body>
 </html>

@@ -1,10 +1,22 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>달란트 전체 내역</title>
     <style>
+        /* 
+         * 디자인 사양에 맞춘 새로운 CSS 디자인
+         * 컬러 스킴:
+         * - 주요색-1: #7B4AFF (rgb(123, 74, 255))
+         * - 중성-1: #F5F5F7 (rgb(245, 245, 247))
+         * - 중성-2: #DDDDDD (rgb(221, 221, 221))
+         * - 중성-3: #666666 (rgb(102, 102, 102))
+         * - 중성-4: #1A1A1A (rgb(26, 26, 26))
+         */
+
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -12,8 +24,10 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #f5f5f5;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #F5F5F7;
+            line-height: 1.6;
+            color: #666666;
         }
 
         .container {
@@ -24,58 +38,86 @@
 
         .header {
             background: white;
-            padding: 15px;
-            border-radius: 12px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(123, 74, 255, 0.1);
+            margin-bottom: 24px;
+        }
+
+        .title {
+            color: #7B4AFF;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 16px;
+            text-align: center;
         }
 
         .filters {
             display: flex;
-            gap: 10px;
+            gap: 16px;
             margin-bottom: 15px;
         }
 
         select, input {
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 0.9rem;
+            padding: 12px;
+            border: 1px solid #DDDDDD;
+            border-radius: 12px;
+            font-size: 16px;
+            font-family: 'Pretendard', sans-serif;
+            color: #1A1A1A;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+            background-color: white;
+        }
+
+        select:focus, input:focus {
+            border-color: #7B4AFF;
+            box-shadow: 0 0 0 2px rgba(123, 74, 255, 0.1);
         }
 
         .history-list {
             background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(123, 74, 255, 0.1);
             overflow: hidden;
         }
 
         .history-item {
-            padding: 15px;
-            border-bottom: 1px solid #eee;
-            display: grid;
-            grid-template-columns: auto 80px 100px;
-            gap: 15px;
+            padding: 16px 20px;
+            border-bottom: 1px solid #F5F5F7;
+            display: flex;
+            justify-content: space-between;
             align-items: center;
+            transition: background-color 0.2s;
+        }
+
+        .history-item:hover {
+            background-color: rgba(123, 74, 255, 0.03);
         }
 
         .history-item:last-child {
             border-bottom: none;
         }
 
+        .history-content {
+            flex: 1;
+        }
+
         .reason {
             font-weight: 500;
+            color: #1A1A1A;
+            margin-bottom: 4px;
         }
 
         .talant {
-            text-align: right;
+            color: #7B4AFF;
             font-weight: bold;
-            color: #4a90e2;
+            font-size: 18px;
         }
 
         .date {
-            color: #666;
-            font-size: 0.9rem;
+            color: #666666;
+            font-size: 14px;
         }
 
         .name-filter {
@@ -83,21 +125,98 @@
         }
 
         .date-filter {
-            width: 140px;
+            width: 160px;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            font-size: 16px;
+            opacity: 0.5;
+            transition: opacity 0.2s;
+            color: #666666;
+            margin-left: 16px;
+        }
+
+        .delete-btn:hover {
+            opacity: 1;
+            color: #FF4A4A;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(245, 245, 247, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(123, 74, 255, 0.2);
+            border-top: 4px solid #7B4AFF;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-text {
+            margin-top: 16px;
+            color: #1A1A1A;
+            font-weight: 500;
+        }
+
+        .empty-message {
+            padding: 40px 20px;
+            text-align: center;
+            color: #666666;
+            font-size: 16px;
+        }
+
+        .actions {
+            display: flex;
+            align-items: center;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         @media (max-width: 600px) {
-            .history-item {
-                grid-template-columns: 1fr auto;
-                grid-template-areas: 
-                    "reason talant"
-                    "date date";
-                gap: 8px;
+            .container {
+                padding: 16px;
             }
 
-            .reason { grid-area: reason; }
-            .talant { grid-area: talant; }
-            .date { grid-area: date; }
+            .history-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .history-content {
+                width: 100%;
+                margin-bottom: 8px;
+            }
+
+            .actions {
+                width: 100%;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .date {
+                font-size: 13px;
+            }
 
             .filters {
                 flex-direction: column;
@@ -107,45 +226,12 @@
                 width: 100%;
             }
         }
-
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid #4a90e2;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        .loading-text {
-            position: absolute;
-            margin-top: 80px;
-            color: #333;
-            font-weight: bold;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
+            <h1 class="title">달란트 전체 내역</h1>
             <div class="filters">
                 <select class="name-filter" id="nameFilter">
                     <option value="">전체 이름</option>
@@ -167,7 +253,7 @@
 
     <script>
         const scriptURL = 'https://script.google.com/macros/s/AKfycbyx9WOTbj-QtQpuXLFeORf-Hl4tivR17dYcJT5O__Ejeq8ftSClCQPNiarGxv3mQ2IdDw/exec';
-        const people = ['황준구', '황희', '임동하', '장지민', '김종진', '방시온', '정예담', '방온유', '정예준'];
+        const people = ['황희', '임동하', '장지민', '김종진', '방시온', '정예담', '방온유', '정예준'];
         let allHistory = [];
 
         // 이름 필터 옵션 추가
@@ -220,7 +306,7 @@
             
             if (history.length === 0) {
                 historyList.innerHTML = `
-                    <div style="padding: 20px; text-align: center; color: #666;">
+                    <div class="empty-message">
                         표시할 내역이 없습니다.
                     </div>
                 `;
@@ -231,12 +317,14 @@
                 <div class="history-item" data-index="${index}">
                     <div class="history-content">
                         <div class="reason">${item.name} - ${item.reason}</div>
-                        <div class="talant">+${item.talant}</div>
                         <div class="date">${formatDate(item.timestamp)}</div>
                     </div>
-                    <button class="delete-btn" onclick="confirmDelete('${item.timestamp}', '${item.name}', '${item.reason}', ${item.talant})">
-                        🗑️
-                    </button>
+                    <div class="actions">
+                        <div class="talant">+${item.talant}</div>
+                        <button class="delete-btn" onclick="confirmDelete('${item.timestamp}', '${item.name}', '${item.reason}', ${item.talant})">
+                            🗑️
+                        </button>
+                    </div>
                 </div>
             `).join('');
         }
@@ -309,9 +397,6 @@
                 showLoading();
                 console.log('데이터 로딩 시작...');
                 
-                const people = ['황준구','김예빈', '황희', '임동하', '장지민', '김종진', '방시온', '정예담', '방온유', '정예준'];
-                let allData = [];
-                
                 const response = await fetch(`${scriptURL}?action=getHistory`);
                 const data = await response.json();
                 
@@ -332,7 +417,7 @@
                 console.error('에러 발생:', error);
                 const historyList = document.getElementById('historyList');
                 historyList.innerHTML = `
-                    <div style="padding: 20px; text-align: center; color: #666;">
+                    <div class="empty-message">
                         데이터를 불러오는데 실패했습니다.<br>
                         에러 메시지: ${error.message}
                     </div>
@@ -347,52 +432,13 @@
         document.getElementById('dateFilter').addEventListener('change', applyFilters);
 
         // 초기화
-        initializeFilters();
         document.addEventListener('DOMContentLoaded', () => {
             console.log('페이지 로드됨');
             initializeFilters();
             loadHistory();
         });
 
-        // CSS 스타일 추가
-        const additionalStyle = `
-            .history-item {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding-right: 10px;
-            }
-
-            .history-content {
-                flex: 1;
-            }
-
-            .delete-btn {
-                background: none;
-                border: none;
-                cursor: pointer;
-                padding: 5px;
-                font-size: 1.2rem;
-                opacity: 0.6;
-                transition: opacity 0.2s;
-            }
-
-            .delete-btn:hover {
-                opacity: 1;
-            }
-        `;
-        document.head.appendChild(document.createElement('style')).textContent += additionalStyle;
-
-        // HTML에 로딩 오버레이 추가 (body 끝부분에)
-        const loadingHTML = `
-            <div id="loadingOverlay" class="loading-overlay" style="display: none;">
-                <div class="loading-spinner"></div>
-                <div class="loading-text">데이터를 불러오는 중...</div>
-            </div>
-        `;
-        document.body.insertAdjacentHTML('beforeend', loadingHTML);
-
-        // 로딩 표시/숨김 함수 추가
+        // 로딩 표시/숨김 함수
         function showLoading() {
             document.getElementById('loadingOverlay').style.display = 'flex';
         }

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -8,6 +8,18 @@
     <meta name="mobile-web-app-capable" content="yes">
     <title>달란트 입력</title>
     <style>
+        /* 
+         * 디자인 사양에 맞춘 새로운 CSS 디자인
+         * 컬러 스킴:
+         * - 주요색-1: #7B4AFF (rgb(123, 74, 255))
+         * - 중성-1: #F5F5F7 (rgb(245, 245, 247))
+         * - 중성-2: #DDDDDD (rgb(221, 221, 221))
+         * - 중성-3: #666666 (rgb(102, 102, 102))
+         * - 중성-4: #1A1A1A (rgb(26, 26, 26))
+         */
+
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -16,25 +28,30 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #f5f5f5;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #F5F5F7;
+            color: #1A1A1A;
+            line-height: 1.6;
             padding: 0;
+            min-height: 100vh;
+            position: relative;
         }
 
         .container {
             max-width: 100%;
             margin: 0 auto;
-            background: white;
             min-height: 100vh;
+            padding-bottom: 32px;
         }
 
         .header {
             position: sticky;
             top: 0;
             background: white;
-            padding: 15px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 16px;
+            box-shadow: 0 4px 15px rgba(123, 74, 255, 0.1);
             z-index: 100;
+            margin-bottom: 16px;
         }
 
         .header-content {
@@ -46,105 +63,166 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 16px;
         }
 
-        h1 {
-            font-size: 1.2rem;
+        h1, h2 {
+            color: #7B4AFF;
+            font-weight: bold;
+        }
+
+        .header-title {
+            font-size: 24px;
             margin: 0;
         }
 
+        .view-history-btn {
+            background-color: #7B4AFF;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            font-family: 'Pretendard', sans-serif;
+        }
+
+        .view-history-btn:hover, .view-history-btn:active {
+            background-color: #6a3ce0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(123, 74, 255, 0.2);
+        }
+
         .date-select {
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 1rem;
-            width: 140px;
+            padding: 12px;
+            border: 1px solid #DDDDDD;
+            border-radius: 12px;
+            font-size: 16px;
+            width: 100%;
+            font-family: 'Pretendard', sans-serif;
+            outline: none;
+            transition: all 0.2s;
+            margin-bottom: 12px;
+        }
+
+        .date-select:focus {
+            border-color: #7B4AFF;
+            box-shadow: 0 0 0 2px rgba(123, 74, 255, 0.1);
         }
 
         .log-display {
-            margin-top: 10px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 10px;
-            font-size: 0.9rem;
-            color: #666;
+            background: rgba(123, 74, 255, 0.05);
+            border-radius: 12px;
+            padding: 12px;
+            font-size: 15px;
+            color: #7B4AFF;
+            border: 1px solid rgba(123, 74, 255, 0.1);
             display: none;
+            margin-top: 8px;
+            transition: all 0.3s ease;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .person-grid {
             max-width: 600px;
             margin: 0 auto;
-            padding: 15px;
+            padding: 0 16px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
         }
 
         .person-card {
             background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            margin-bottom: 15px;
-            border: 1px solid #eee;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(123, 74, 255, 0.1);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        .person-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(123, 74, 255, 0.15);
+            border-color: rgba(123, 74, 255, 0.1);
         }
 
         .person-name {
             font-weight: bold;
-            padding: 15px;
-            font-size: 1.1rem;
-            border-bottom: 1px solid #eee;
+            padding: 16px;
+            font-size: 18px;
+            border-bottom: 1px solid #F5F5F7;
+            color: #1A1A1A;
+            background-color: rgba(123, 74, 255, 0.03);
         }
 
         .buttons-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 8px;
-            padding: 12px;
+            padding: 16px;
         }
 
         .talant-button {
             position: relative;
-            padding: 12px 0;
+            padding: 20px 0 8px;
             border: none;
-            border-radius: 8px;
-            background-color: #4a90e2;
+            border-radius: 12px;
+            background-color: #7B4AFF;
             color: white;
             cursor: pointer;
-            font-size: 1rem;
-            min-height: 48px;
+            font-size: 16px;
+            font-family: 'Pretendard', sans-serif;
+            min-height: 64px;
+            font-weight: 500;
             transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(123, 74, 255, 0.2);
         }
 
         .talant-button:hover {
-            background-color: #357abd;
-            transform: translateY(-1px);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background-color: #6a3ce0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(123, 74, 255, 0.3);
         }
 
         .talant-button:active {
-            background-color: #2868a9;
+            background-color: #5a2fd0;
             transform: translateY(1px);
-            box-shadow: none;
+            box-shadow: 0 1px 2px rgba(123, 74, 255, 0.2);
         }
 
         .talant-button::after {
             content: attr(data-category);
             position: absolute;
-            top: 4px;
+            top: 6px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 0.55rem;
+            font-size: 11px;
+            font-weight: normal;
             opacity: 0.9;
             white-space: nowrap;
         }
 
         .talant-button.etc {
-            background-color: #6c757d;
+            background-color: #666666;
         }
 
         .talant-button.etc:hover {
-            background-color: #5a6268;
+            background-color: #555555;
         }
 
         .talant-button.etc:active {
-            background-color: #495057;
+            background-color: #444444;
         }
 
         .modal-backdrop {
@@ -153,58 +231,150 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(26, 26, 26, 0.7);
             display: none;
             justify-content: center;
             align-items: center;
             z-index: 1000;
+            backdrop-filter: blur(4px);
+            animation: fadeIn 0.3s;
         }
 
         .modal {
             background: white;
-            padding: 20px;
-            border-radius: 12px;
+            padding: 24px;
+            border-radius: 20px;
             width: 90%;
-            max-width: 300px;
+            max-width: 360px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            animation: modalSlideIn 0.3s;
+        }
+
+        @keyframes modalSlideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .modal-title {
-            font-size: 1.1rem;
+            font-size: 20px;
             font-weight: bold;
-            margin-bottom: 15px;
+            margin-bottom: 16px;
+            color: #7B4AFF;
         }
 
         .modal input {
             width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 1rem;
+            padding: 12px;
+            margin-bottom: 12px;
+            border: 1px solid #DDDDDD;
+            border-radius: 12px;
+            font-size: 16px;
+            font-family: 'Pretendard', sans-serif;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .modal input:focus {
+            border-color: #7B4AFF;
+            box-shadow: 0 0 0 2px rgba(123, 74, 255, 0.1);
         }
 
         .modal-buttons {
             display: flex;
             justify-content: flex-end;
-            gap: 10px;
-            margin-top: 15px;
+            gap: 12px;
+            margin-top: 20px;
         }
 
         .modal-button {
-            padding: 8px 16px;
-            border-radius: 6px;
+            padding: 10px 20px;
+            border-radius: 12px;
             border: none;
-            font-size: 0.9rem;
+            font-size: 16px;
+            font-family: 'Pretendard', sans-serif;
             cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
         }
 
         .modal-button.cancel {
-            background: #f1f1f1;
+            background: #F5F5F7;
+            color: #666666;
+        }
+
+        .modal-button.cancel:hover {
+            background: #DDDDDD;
         }
 
         .modal-button.confirm {
-            background: #4a90e2;
+            background: #7B4AFF;
             color: white;
+        }
+
+        .modal-button.confirm:hover {
+            background: #6a3ce0;
+        }
+
+        #resultModal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 24px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            width: 90%;
+            max-width: 360px;
+            text-align: center;
+            display: none;
+            animation: modalSlideIn 0.3s;
+        }
+
+        #resultMessage {
+            margin-bottom: 24px;
+            word-break: break-all;
+            color: #1A1A1A;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        #resultModal button {
+            background: #7B4AFF;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-family: 'Pretendard', sans-serif;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        #resultModal button:hover {
+            background: #6a3ce0;
+        }
+
+        #modalOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(26, 26, 26, 0.7);
+            z-index: 999;
+            backdrop-filter: blur(4px);
+            display: none;
+        }
+
+        /* 태블릿 및 모바일 대응 */
+        @media (max-width: 768px) {
+            .person-grid {
+                grid-template-columns: 1fr;
+                max-width: 480px;
+            }
         }
 
         @media (max-width: 360px) {
@@ -213,8 +383,28 @@
             }
             
             .talant-button {
-                font-size: 0.9rem;
+                font-size: 15px;
             }
+
+            .talant-button::after {
+                font-size: 10px;
+            }
+        }
+
+        /* 사용자 피드백을 위한 로딩 애니메이션 */
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     </style>
     <script>
@@ -232,24 +422,9 @@
     <div class="container">
         <div class="header">
             <div class="header-content">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h2 style="margin: 0;">달란트 입력</h2>
-                    <button onclick="location.href='https://www.torch5.com/thistory/'" 
-                        style="
-                            background-color: #4a90e2;
-                            color: white;
-                            border: none;
-                            padding: 8px 16px;
-                            border-radius: 6px;
-                            cursor: pointer;
-                            font-size: 0.9rem;
-                            display: flex;
-                            align-items: center;
-                            gap: 6px;
-                            transition: background-color 0.2s;
-                        "
-                        onmouseover="this.style.backgroundColor='#357abd'"
-                        onmouseout="this.style.backgroundColor='#4a90e2'">
+                <div class="header-top">
+                    <h2 class="header-title">달란트 입력</h2>
+                    <button onclick="location.href='https://www.torch5.com/thistory/'" class="view-history-btn">
                         <span>전체 내역 보기</span>
                         <span style="font-size: 1.2em;">📋</span>
                     </button>
@@ -274,19 +449,11 @@
         </div>
     </div>
 
-    <div id="resultModal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-        background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); 
-        z-index: 1000; width: 80%; max-width: 300px; text-align: center;">
-        <div id="resultMessage" style="margin-bottom: 20px; word-break: break-all; color: #333;"></div>
-        <button onclick="closeResultModal()" 
-            style="background: #4a90e2; color: white; border: none; padding: 10px 20px; 
-            border-radius: 6px; cursor: pointer; font-size: 1rem;">
-            확인
-        </button>
+    <div id="resultModal">
+        <div id="resultMessage"></div>
+        <button onclick="closeResultModal()">확인</button>
     </div>
-    <div id="modalOverlay" style="display: none; position: fixed; top: 0; left: 0; 
-        width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999;">
-    </div>
+    <div id="modalOverlay"></div>
 
     <script>
         const scriptURL = 'https://script.google.com/macros/s/AKfycbyx9WOTbj-QtQpuXLFeORf-Hl4tivR17dYcJT5O__Ejeq8ftSClCQPNiarGxv3mQ2IdDw/exec';
@@ -301,8 +468,11 @@
             { name: '손가락기도', value: 10 },
             { name: '기타', value: 'custom' }
         ];
+        
+        let currentPerson = null;
+        let lastSubmissionTime = 0; // 마지막 제출 시간 기록을 위한 변수
 
-        // 모달 관련 함수들 추가
+        // 모달 관련 함수들
         function showResultModal(message) {
             document.getElementById('resultMessage').innerHTML = message.replace(/\n/g, '<br>');
             document.getElementById('resultModal').style.display = 'block';
@@ -314,7 +484,7 @@
             document.getElementById('modalOverlay').style.display = 'none';
         }
 
-        // 기존 함수들...
+        // 기존 함수들
         function formatDate(dateStr) {
             return dateStr.replace(/-/g, '/');
         }
@@ -322,21 +492,55 @@
         function addLogEntry(name, talant, reason) {
             const logDisplay = document.getElementById('logDisplay');
             logDisplay.style.display = 'block';
-            logDisplay.textContent = `${name} / ${talant} / ${reason}`;
+            logDisplay.textContent = `${name} / ${talant}점 / ${reason}`;
+            
+            // 3초 후 자동으로 사라지게 함
+            setTimeout(() => {
+                logDisplay.style.opacity = '0';
+                setTimeout(() => {
+                    logDisplay.style.display = 'none';
+                    logDisplay.style.opacity = '1';
+                }, 300);
+            }, 3000);
         }
 
-        // submitTalant 함수 수정
+        // 중복 제출 방지를 위한 함수
+        function preventDuplicateSubmission() {
+            const now = Date.now();
+            if (now - lastSubmissionTime < 2000) { // 2초 이내 재제출 방지
+                return false;
+            }
+            lastSubmissionTime = now;
+            return true;
+        }
+
+        // submitTalant 함수 개선
         function submitTalant(name, reason, talant, button) {
             const date = document.getElementById('dateSelect').value;
             if (!date) {
                 showResultModal('날짜를 선택해주세요!');
                 return;
             }
+            
+            // 중복 제출 방지
+            if (!preventDuplicateSubmission()) {
+                return;
+            }
 
             if (button) {
-                button.textContent = '입력 중...';
+                const originalText = button.textContent;
+                button.innerHTML = '<span class="loading-spinner"></span>입력 중...';
                 button.style.opacity = '0.7';
                 button.disabled = true;
+                
+                // 5초 후 자동으로 버튼 원래대로 복구 (네트워크 오류 시 대비)
+                setTimeout(() => {
+                    if (button.disabled) {
+                        button.innerHTML = originalText;
+                        button.style.opacity = '1';
+                        button.disabled = false;
+                    }
+                }, 5000);
             }
 
             const formData = new FormData();
@@ -358,7 +562,7 @@
                 }
                 
                 if (button) {
-                    button.textContent = button.getAttribute('data-original-text');
+                    button.innerHTML = button.getAttribute('data-original-text');
                     button.style.opacity = '1';
                     button.disabled = false;
                 }
@@ -369,7 +573,7 @@
                 showResultModal('오류가 발생했습니다. 다시 시도해주세요.');
                 
                 if (button) {
-                    button.textContent = button.getAttribute('data-original-text');
+                    button.innerHTML = button.getAttribute('data-original-text');
                     button.style.opacity = '1';
                     button.disabled = false;
                 }
@@ -378,12 +582,17 @@
             xhr.send(formData);
         }
 
-        // 나머지 기존 함수들...
+        // 나머지 함수들
         function showModal(person) {
             currentPerson = person;
             document.getElementById('modalBackdrop').style.display = 'flex';
             document.getElementById('customReason').value = '';
             document.getElementById('customValue').value = '';
+            
+            // 포커스 설정
+            setTimeout(() => {
+                document.getElementById('customReason').focus();
+            }, 100);
         }
 
         function closeModal() {
@@ -395,17 +604,29 @@
             const reason = document.getElementById('customReason').value;
             const value = document.getElementById('customValue').value;
             
-            if (!reason || !value) {
-                alert('사유와 달란트 수를 모두 입력해주세요.');
+            if (!reason) {
+                document.getElementById('customReason').focus();
+                return;
+            }
+            
+            if (!value) {
+                document.getElementById('customValue').focus();
                 return;
             }
 
             const confirmButton = document.querySelector('.modal-button.confirm');
+            const originalText = confirmButton.textContent;
+            confirmButton.innerHTML = '<span class="loading-spinner"></span>입력 중...';
             confirmButton.disabled = true;
             
             submitTalant(currentPerson, reason, parseInt(value));
             closeModal();
-            confirmButton.disabled = false;
+            
+            // 버튼 원래대로 복구
+            setTimeout(() => {
+                confirmButton.innerHTML = originalText;
+                confirmButton.disabled = false;
+            }, 1000);
         }
 
         function createPersonCard(person) {
@@ -441,6 +662,25 @@
             card.appendChild(buttonsGrid);
             return card;
         }
+        
+        // 키보드 이벤트 추가 - 모달에서 엔터키로 제출
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && document.getElementById('modalBackdrop').style.display === 'flex') {
+                if (document.activeElement === document.getElementById('customValue')) {
+                    submitCustomTalant();
+                }
+            }
+            
+            // ESC 키로 모달 닫기
+            if (e.key === 'Escape') {
+                if (document.getElementById('modalBackdrop').style.display === 'flex') {
+                    closeModal();
+                }
+                if (document.getElementById('resultModal').style.display === 'block') {
+                    closeResultModal();
+                }
+            }
+        });
 
         function initializeApp() {
             const grid = document.getElementById('personGrid');

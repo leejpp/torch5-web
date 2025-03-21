@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>달란트 랭킹</title>
+    <!-- html2canvas 라이브러리 추가 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         /* 
          * 디자인 사양에 맞춘 새로운 CSS 디자인
@@ -235,6 +237,33 @@
             border: 1px solid #7B4AFF;
         }
 
+        /* 이미지 저장 버튼 스타일 */
+        .save-button {
+            display: block;
+            margin: 20px auto 10px;
+            padding: 12px 24px;
+            background-color: #7B4AFF;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            transition: background-color 0.2s ease-in-out;
+        }
+
+        .save-button:hover {
+            background-color: #6a3ce0;
+        }
+        
+        .save-message {
+            text-align: center;
+            color: #7B4AFF;
+            font-size: 14px;
+            margin-top: 10px;
+            height: 20px;
+        }
+
         @media (max-width: 480px) {
             body {
                 padding: 12px;
@@ -269,10 +298,12 @@
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container" id="capture-area">
         <div class="title">달란트 랭킹</div>
         <div id="rankingList"></div>
         <div class="timestamp" id="timestamp"></div>
+        <button class="save-button" id="saveButton">이미지로 저장하기</button>
+        <div class="save-message" id="saveMessage"></div>
     </div>
 
     <div class="overlay" id="overlay"></div>
@@ -391,9 +422,57 @@
             overlay.style.display = 'none';
         }
 
+        // 랭킹 이미지로 저장하기
+        function saveAsImage() {
+            const captureArea = document.getElementById('capture-area');
+            const saveButton = document.getElementById('saveButton');
+            const saveMessage = document.getElementById('saveMessage');
+            
+            // 저장 버튼 임시 숨기기 (이미지에 포함되지 않도록)
+            saveButton.style.display = 'none';
+            saveMessage.style.display = 'none';
+            
+            saveMessage.textContent = '이미지를 생성하는 중...';
+            
+            html2canvas(captureArea, {
+                backgroundColor: '#FFFFFF',
+                scale: 2, // 고화질을 위한 배율 설정
+                logging: false,
+                useCORS: true
+            }).then(canvas => {
+                // 저장 버튼 다시 표시
+                saveButton.style.display = 'block';
+                saveMessage.style.display = 'block';
+                
+                // 현재 날짜 형식화
+                const now = new Date();
+                const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+                
+                // 이미지 다운로드
+                const link = document.createElement('a');
+                link.download = `달란트랭킹_${dateStr}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                
+                saveMessage.textContent = '이미지가 저장되었습니다!';
+                
+                // 메시지 3초 후 사라짐
+                setTimeout(() => {
+                    saveMessage.textContent = '';
+                }, 3000);
+            }).catch(err => {
+                console.error('이미지 저장 중 오류 발생:', err);
+                saveButton.style.display = 'block';
+                saveMessage.textContent = '이미지 저장에 실패했습니다.';
+            });
+        }
+
         // 초기 로딩
         document.addEventListener('DOMContentLoaded', function() {
             updateRanking();
+            
+            // 이미지 저장 버튼 이벤트 리스너 등록
+            document.getElementById('saveButton').addEventListener('click', saveAsImage);
         });
     </script>
 </body>

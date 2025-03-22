@@ -6,7 +6,7 @@
     <title>달란트 전체 내역</title>
     <style>
         /* 
-         * 디자인 사양에 맞춘 새로운 CSS 디자인
+         * 디자인 사양에 맞춘 CSS 디자인
          * 컬러 스킴:
          * - 주요색-1: #7B4AFF (rgb(123, 74, 255))
          * - 중성-1: #F5F5F7 (rgb(245, 245, 247))
@@ -38,7 +38,7 @@
 
         .header {
             background: white;
-            padding: 20px;
+            padding: 24px;
             border-radius: 20px;
             box-shadow: 0 4px 15px rgba(123, 74, 255, 0.1);
             margin-bottom: 24px;
@@ -58,7 +58,20 @@
             margin-bottom: 15px;
         }
 
+        .filter-container {
+            flex: 1;
+        }
+
+        .filter-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #1A1A1A;
+            font-weight: 500;
+        }
+
         select, input {
+            width: 100%;
             padding: 12px;
             border: 1px solid #DDDDDD;
             border-radius: 12px;
@@ -75,6 +88,40 @@
             box-shadow: 0 0 0 2px rgba(123, 74, 255, 0.1);
         }
 
+        .active-filters {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .filter-badge {
+            background-color: rgba(123, 74, 255, 0.1);
+            color: #7B4AFF;
+            border-radius: 16px;
+            padding: 4px 12px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .filter-badge .remove {
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .clear-filters {
+            background: none;
+            border: none;
+            color: #7B4AFF;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 4px;
+            margin-left: auto;
+            font-weight: 500;
+        }
+
         .history-list {
             background: white;
             border-radius: 20px;
@@ -88,7 +135,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: background-color 0.2s;
+            transition: all 0.3s ease;
         }
 
         .history-item:hover {
@@ -99,33 +146,48 @@
             border-bottom: none;
         }
 
+        .history-item.deleting {
+            background-color: rgba(255, 74, 74, 0.05);
+            opacity: 0.7;
+        }
+
         .history-content {
             flex: 1;
+        }
+
+        .date {
+            color: #7B4AFF;
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 6px;
+            letter-spacing: -0.5px;
         }
 
         .reason {
             font-weight: 500;
             color: #1A1A1A;
-            margin-bottom: 4px;
+            font-size: 16px;
+        }
+
+        .name {
+            font-weight: 600;
         }
 
         .talant {
             color: #7B4AFF;
             font-weight: bold;
             font-size: 18px;
+            background-color: rgba(123, 74, 255, 0.1);
+            padding: 6px 12px;
+            border-radius: 10px;
+            min-width: 60px;
+            text-align: center;
         }
 
-        .date {
-            color: #666666;
-            font-size: 14px;
-        }
-
-        .name-filter {
-            flex: 1;
-        }
-
-        .date-filter {
-            width: 160px;
+        .actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
         .delete-btn {
@@ -137,7 +199,6 @@
             opacity: 0.5;
             transition: opacity 0.2s;
             color: #666666;
-            margin-left: 16px;
         }
 
         .delete-btn:hover {
@@ -182,9 +243,63 @@
             font-size: 16px;
         }
 
-        .actions {
+        .empty-icon {
+            font-size: 48px;
+            color: #DDDDDD;
+            margin-bottom: 16px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(26, 26, 26, 0.9);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 14px;
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        .date-group {
+            padding: 10px 20px;
+            background-color: #F5F5F7;
+            font-weight: 600;
+            font-size: 14px;
+            color: #666666;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        .section-header {
             display: flex;
+            justify-content: space-between;
             align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1A1A1A;
+        }
+
+        .section-count {
+            background-color: rgba(123, 74, 255, 0.1);
+            color: #7B4AFF;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
         }
 
         @keyframes spin {
@@ -197,33 +312,18 @@
                 padding: 16px;
             }
 
-            .history-item {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .history-content {
-                width: 100%;
-                margin-bottom: 8px;
-            }
-
-            .actions {
-                width: 100%;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            }
-
-            .date {
-                font-size: 13px;
-            }
-
             .filters {
                 flex-direction: column;
+                gap: 12px;
             }
 
-            .name-filter, .date-filter {
-                width: 100%;
+            .history-item {
+                padding: 14px 16px;
+            }
+
+            .talant {
+                font-size: 16px;
+                padding: 4px 10px;
             }
         }
     </style>
@@ -233,14 +333,30 @@
         <div class="header">
             <h1 class="title">달란트 전체 내역</h1>
             <div class="filters">
-                <select class="name-filter" id="nameFilter">
-                    <option value="">전체 이름</option>
-                </select>
-                <select class="date-filter" id="dateFilter">
-                    <option value="">전체 기간</option>
-                </select>
+                <div class="filter-container">
+                    <label class="filter-label" for="nameFilter">이름</label>
+                    <select id="nameFilter">
+                        <option value="">전체 이름</option>
+                    </select>
+                </div>
+                <div class="filter-container">
+                    <label class="filter-label" for="dateFilter">기간</label>
+                    <select id="dateFilter">
+                        <option value="">전체 기간</option>
+                    </select>
+                </div>
+            </div>
+            <div class="active-filters" id="activeFilters" style="display: none;">
+                <!-- 활성화된 필터들이 여기에 표시됩니다 -->
+                <button class="clear-filters" id="clearFilters">모든 필터 지우기</button>
             </div>
         </div>
+
+        <div class="section-header">
+            <h2 class="section-title">내역 목록</h2>
+            <div class="section-count" id="recordCount">0개</div>
+        </div>
+
         <div class="history-list" id="historyList">
             <!-- 내역이 여기에 동적으로 추가됩니다 -->
         </div>
@@ -251,10 +367,84 @@
         <div class="loading-text">데이터를 불러오는 중...</div>
     </div>
 
+    <div id="toast" class="toast"></div>
+
     <script>
         const scriptURL = 'https://script.google.com/macros/s/AKfycbyx9WOTbj-QtQpuXLFeORf-Hl4tivR17dYcJT5O__Ejeq8ftSClCQPNiarGxv3mQ2IdDw/exec';
         const people = ['황희', '임동하', '장지민', '김종진', '방시온', '정예담', '방온유', '정예준'];
         let allHistory = [];
+        let activeFilters = { name: '', date: '' };
+
+        // 토스트 메시지 표시
+        function showToast(message, duration = 3000) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, duration);
+        }
+
+        // 활성 필터 표시 업데이트
+        function updateActiveFilters() {
+            const activeFiltersEl = document.getElementById('activeFilters');
+            const hasActiveFilters = activeFilters.name || activeFilters.date;
+            
+            if (!hasActiveFilters) {
+                activeFiltersEl.style.display = 'none';
+                return;
+            }
+            
+            activeFiltersEl.style.display = 'flex';
+            activeFiltersEl.innerHTML = '';
+            
+            if (activeFilters.name) {
+                const badge = document.createElement('div');
+                badge.className = 'filter-badge';
+                badge.innerHTML = `이름: ${activeFilters.name} <span class="remove" data-filter="name">×</span>`;
+                activeFiltersEl.appendChild(badge);
+                
+                badge.querySelector('.remove').addEventListener('click', () => {
+                    document.getElementById('nameFilter').value = '';
+                    activeFilters.name = '';
+                    updateActiveFilters();
+                    applyFilters();
+                    showToast('이름 필터가 제거되었습니다');
+                });
+            }
+            
+            if (activeFilters.date) {
+                const [year, month] = activeFilters.date.split('-');
+                const badge = document.createElement('div');
+                badge.className = 'filter-badge';
+                badge.innerHTML = `기간: ${year}년 ${month}월 <span class="remove" data-filter="date">×</span>`;
+                activeFiltersEl.appendChild(badge);
+                
+                badge.querySelector('.remove').addEventListener('click', () => {
+                    document.getElementById('dateFilter').value = '';
+                    activeFilters.date = '';
+                    updateActiveFilters();
+                    applyFilters();
+                    showToast('기간 필터가 제거되었습니다');
+                });
+            }
+            
+            const clearBtn = document.createElement('button');
+            clearBtn.className = 'clear-filters';
+            clearBtn.id = 'clearFilters';
+            clearBtn.textContent = '모든 필터 지우기';
+            activeFiltersEl.appendChild(clearBtn);
+            
+            clearBtn.addEventListener('click', () => {
+                document.getElementById('nameFilter').value = '';
+                document.getElementById('dateFilter').value = '';
+                activeFilters = { name: '', date: '' };
+                updateActiveFilters();
+                applyFilters();
+                showToast('모든 필터가 제거되었습니다');
+            });
+        }
 
         // 이름 필터 옵션 추가
         function initializeFilters() {
@@ -291,6 +481,8 @@
             // 현재 월 선택
             const currentValue = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`;
             dateFilter.value = currentValue;
+            activeFilters.date = currentValue;
+            updateActiveFilters();
         }
 
         // 날짜 포맷팅
@@ -299,39 +491,90 @@
             return `${date.getMonth() + 1}월 ${date.getDate()}일`;
         }
 
+        // 날짜별 그룹화 함수
+        function groupByDate(items) {
+            const groups = {};
+            
+            items.forEach(item => {
+                const date = new Date(item.timestamp);
+                const dateKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+                
+                if (!groups[dateKey]) {
+                    groups[dateKey] = {
+                        date: item.timestamp,
+                        items: []
+                    };
+                }
+                
+                groups[dateKey].items.push(item);
+            });
+            
+            // 날짜 기준 정렬 (최신순)
+            return Object.values(groups).sort((a, b) => new Date(b.date) - new Date(a.date));
+        }
+
         // 내역 표시
         function displayHistory(history) {
             console.log('화면 표시 시작, 데이터 수:', history.length);
             const historyList = document.getElementById('historyList');
+            const recordCount = document.getElementById('recordCount');
+            
+            recordCount.textContent = `${history.length}개`;
             
             if (history.length === 0) {
                 historyList.innerHTML = `
                     <div class="empty-message">
-                        표시할 내역이 없습니다.
+                        <div class="empty-icon">📋</div>
+                        <p>표시할 내역이 없습니다.</p>
                     </div>
                 `;
                 return;
             }
 
-            historyList.innerHTML = history.map((item, index) => `
-                <div class="history-item" data-index="${index}">
-                    <div class="history-content">
-                        <div class="reason">${item.name} - ${item.reason}</div>
-                        <div class="date">${formatDate(item.timestamp)}</div>
-                    </div>
-                    <div class="actions">
-                        <div class="talant">+${item.talant}</div>
-                        <button class="delete-btn" onclick="confirmDelete('${item.timestamp}', '${item.name}', '${item.reason}', ${item.talant})">
-                            🗑️
-                        </button>
-                    </div>
-                </div>
-            `).join('');
+            // 날짜별로 그룹화
+            const groups = groupByDate(history);
+            
+            let html = '';
+            
+            groups.forEach(group => {
+                const groupDate = new Date(group.date);
+                const formattedGroupDate = `${groupDate.getFullYear()}년 ${groupDate.getMonth() + 1}월 ${groupDate.getDate()}일`;
+                
+                html += `<div class="date-group">${formattedGroupDate}</div>`;
+                
+                group.items.forEach((item, index) => {
+                    html += `
+                        <div class="history-item" data-index="${index}">
+                            <div class="history-content">
+                                <div class="date">${formatDate(item.timestamp)}</div>
+                                <div class="reason"><span class="name">${item.name}</span> - ${item.reason}</div>
+                            </div>
+                            <div class="actions">
+                                <div class="talant">+${item.talant}</div>
+                                <button class="delete-btn" onclick="confirmDelete('${item.timestamp}', '${item.name}', '${item.reason}', ${item.talant})">
+                                    🗑️
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+            
+            historyList.innerHTML = html;
         }
 
         // 삭제 확인 함수 추가
         function confirmDelete(timestamp, name, reason, talant) {
             if (confirm(`정말로 다음 항목을 삭제하시겠습니까?\n\n이름: ${name}\n사유: ${reason}\n달란트: ${talant}`)) {
+                // 시각적 피드백 추가 (삭제 중 상태 표시)
+                const items = document.querySelectorAll('.history-item');
+                items.forEach(item => {
+                    const content = item.querySelector('.reason').textContent;
+                    if (content.includes(name) && content.includes(reason)) {
+                        item.classList.add('deleting');
+                    }
+                });
+                
                 deleteHistoryItem(timestamp, name, reason, talant);
             }
         }
@@ -355,14 +598,14 @@
                 const result = await response.json();
 
                 if (result.result === "success") {
-                    alert('삭제되었습니다.');
+                    showToast('내역이 삭제되었습니다');
                     await loadHistory();
                 } else {
                     throw new Error(result.message || '삭제 실패');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('삭제 중 오류가 발생했습니다.');
+                showToast('삭제 중 오류가 발생했습니다', 5000);
             } finally {
                 hideLoading();
             }
@@ -372,6 +615,18 @@
         function applyFilters() {
             const nameFilter = document.getElementById('nameFilter').value;
             const dateFilter = document.getElementById('dateFilter').value;
+            
+            // 필터 상태 업데이트
+            const hasChanges = 
+                (activeFilters.name !== nameFilter) || 
+                (activeFilters.date !== dateFilter);
+                
+            activeFilters.name = nameFilter;
+            activeFilters.date = dateFilter;
+            
+            if (hasChanges) {
+                updateActiveFilters();
+            }
 
             let filtered = [...allHistory];
 
@@ -389,6 +644,18 @@
             }
 
             displayHistory(filtered);
+            
+            if (hasChanges) {
+                if (nameFilter && dateFilter) {
+                    showToast(`이름: ${nameFilter}, 기간: ${dateFilter.split('-')[0]}년 ${dateFilter.split('-')[1]}월 필터 적용됨`);
+                } else if (nameFilter) {
+                    showToast(`이름: ${nameFilter} 필터 적용됨`);
+                } else if (dateFilter) {
+                    showToast(`기간: ${dateFilter.split('-')[0]}년 ${dateFilter.split('-')[1]}월 필터 적용됨`);
+                } else {
+                    showToast('모든 필터가 제거되었습니다');
+                }
+            }
         }
 
         // 데이터 로드
@@ -418,10 +685,12 @@
                 const historyList = document.getElementById('historyList');
                 historyList.innerHTML = `
                     <div class="empty-message">
-                        데이터를 불러오는데 실패했습니다.<br>
-                        에러 메시지: ${error.message}
+                        <div class="empty-icon">⚠️</div>
+                        <p>데이터를 불러오는데 실패했습니다.<br>
+                        에러 메시지: ${error.message}</p>
                     </div>
                 `;
+                showToast('데이터를 불러오는데 실패했습니다', 5000);
             } finally {
                 hideLoading();
             }

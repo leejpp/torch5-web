@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>달란트 전체 내역</title>
+    <title>달란트 전체 내역 - Firebase 버전</title>
+    <!-- Firebase SDK 추가 -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
     <style>
         /* 
          * 디자인 사양에 맞춘 CSS 디자인
@@ -86,6 +89,19 @@
         select:focus, input:focus {
             border-color: #7B4AFF;
             box-shadow: 0 0 0 2px rgba(123, 74, 255, 0.1);
+        }
+        
+        input[type="date"] {
+            appearance: none;
+            -webkit-appearance: none;
+            padding-right: 12px;
+        }
+        
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            background-color: transparent;
+            cursor: pointer;
+            color: #7B4AFF;
+            opacity: 0.8;
         }
 
         .active-filters {
@@ -180,22 +196,6 @@
             font-weight: 500;
         }
 
-        .card-summary {
-            padding: 12px 16px;
-            display: flex;
-            justify-content: flex-end;
-            font-size: 14px;
-            color: #666666;
-            background-color: rgba(123, 74, 255, 0.03);
-            border-bottom: 1px solid rgba(123, 74, 255, 0.1);
-        }
-
-        .card-total {
-            font-weight: 600;
-            color: #7B4AFF;
-            font-size: 16px;
-        }
-
         .history-list {
             flex-grow: 1;
             overflow: hidden;
@@ -232,8 +232,6 @@
             word-break: break-word;
         }
 
-        /* 시간 표시 제거 */
-
         .reason {
             font-weight: 500;
             color: #1A1A1A;
@@ -245,6 +243,12 @@
 
         .name {
             font-weight: 600;
+        }
+
+        .created-at {
+            font-size: 12px;
+            color: #666666;
+            margin-top: 4px;
         }
 
         .talant {
@@ -369,6 +373,68 @@
             font-weight: 500;
         }
 
+        /* 에러 메시지 스타일 */
+        .error-message {
+            padding: 20px;
+            background-color: #FFF0F0;
+            color: #FF4A4A;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 74, 74, 0.3);
+        }
+
+        .error-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .error-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 18px;
+        }
+        
+        .error-details {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .retry-button {
+            background-color: #7B4AFF;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 12px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+        
+        .retry-button:hover {
+            background-color: #6A3AD8;
+        }
+
+        .mock-data-button {
+            background-color: #F5F5F7;
+            color: #666;
+            border: 1px solid #DDDDDD;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 12px;
+            margin-left: 8px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .mock-data-button:hover {
+            background-color: #EBEBED;
+            border-color: #7B4AFF;
+            color: #7B4AFF;
+        }
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -441,10 +507,21 @@
                     </select>
                 </div>
                 <div class="filter-container">
-                    <label class="filter-label" for="dateFilter">기간</label>
+                    <label class="filter-label" for="dateFilterType">기간 유형</label>
+                    <select id="dateFilterType">
+                        <option value="month">월별</option>
+                        <option value="specific">특정 날짜</option>
+                    </select>
+                </div>
+                <div class="filter-container" id="monthFilterContainer">
+                    <label class="filter-label" for="dateFilter">월 선택</label>
                     <select id="dateFilter">
                         <option value="">전체 기간</option>
                     </select>
+                </div>
+                <div class="filter-container" id="specificDateContainer" style="display: none;">
+                    <label class="filter-label" for="specificDateFilter">날짜 선택</label>
+                    <input type="date" id="specificDateFilter" class="date-input">
                 </div>
             </div>
             <div class="active-filters" id="activeFilters" style="display: none;">
@@ -452,6 +529,8 @@
                 <button class="clear-filters" id="clearFilters">모든 필터 지우기</button>
             </div>
         </div>
+
+        <div id="errorContainer" style="display: none;"></div>
 
         <div class="section-header">
             <h2 class="section-title">내역 목록</h2>
@@ -463,7 +542,7 @@
         </div>
     </div>
 
-    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+    <div id="loadingOverlay" class="loading-overlay">
         <div class="loading-spinner"></div>
         <div class="loading-text">데이터를 불러오는 중...</div>
     </div>
@@ -471,10 +550,70 @@
     <div id="toast" class="toast"></div>
 
     <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbyx9WOTbj-QtQpuXLFeORf-Hl4tivR17dYcJT5O__Ejeq8ftSClCQPNiarGxv3mQ2IdDw/exec';
-        const people = ['임동하', '장지민','황희', '김종진', '방시온', '정예담', '방온유', '정예준'];
+        // Firebase 설정
+        const firebaseConfig = {
+            apiKey: "AIzaSyBQhlKHBMGKuT95pM6kP6AH7Mv-xhJelBo",
+            authDomain: "togy-web.firebaseapp.com",
+            projectId: "togy-web",
+            storageBucket: "togy-web.firebasestorage.app",
+            messagingSenderId: "61696764840",
+            appId: "1:61696764840:web:53096a4fe0ae1622e9cb9d"
+        };
+
+        // 기본 목업 데이터 (Firebase 연결 실패 시 사용)
+        const mockData = [
+            {
+                id: "mock1",
+                name: "황준구",
+                talant: "10",
+                reason: "예배 참석",
+                receivedDate: new Date(2025, 2, 23), // 3월 23일
+                timestamp: new Date(2025, 2, 23, 14, 30)
+            },
+            {
+                id: "mock2",
+                name: "임동하",
+                talant: "5",
+                reason: "성경 암송",
+                receivedDate: new Date(2025, 2, 23), // 3월 23일
+                timestamp: new Date(2025, 2, 23, 15, 45)
+            },
+            {
+                id: "mock3",
+                name: "정예담",
+                talant: "15",
+                reason: "찬양팀 참여",
+                receivedDate: new Date(2025, 2, 22), // 3월 22일
+                timestamp: new Date(2025, 2, 22, 11, 20)
+            },
+            {
+                id: "mock4",
+                name: "방시온",
+                talant: "8",
+                reason: "봉사 활동",
+                receivedDate: new Date(2025, 2, 21), // 3월 21일
+                timestamp: new Date(2025, 2, 21, 16, 10)
+            }
+        ];
+
+        // Firebase 변수들
+        let db;
+        let talantCollection;
+        let firebaseInitialized = false;
+        
+        const people = ['임동하', '장지민', '황희', '김종진', '방시온', '정예담', '방온유', '정예준'];
         let allHistory = [];
-        let activeFilters = { name: '', date: '' };
+        let activeFilters = { name: '', date: '', specificDate: '' };
+        let isUsingMockData = false;
+
+        // 로딩 표시 및 숨기기 함수
+        function showLoading() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+        
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
 
         // 토스트 메시지 표시
         function showToast(message, duration = 3000) {
@@ -487,10 +626,31 @@
             }, duration);
         }
 
+        // 에러 메시지 표시
+        function showError(title, message) {
+            const errorContainer = document.getElementById('errorContainer');
+            errorContainer.style.display = 'block';
+            errorContainer.innerHTML = `
+                <div class="error-message">
+                    <div class="error-icon">⚠️</div>
+                    <div class="error-title">${title}</div>
+                    <div class="error-details">${message}</div>
+                    <button class="retry-button" onclick="initializeFirebase()">재시도</button>
+                    <button class="mock-data-button" onclick="useMockData()">테스트 데이터 사용하기</button>
+                </div>
+            `;
+        }
+
+        // 에러 메시지 숨기기
+        function hideError() {
+            const errorContainer = document.getElementById('errorContainer');
+            errorContainer.style.display = 'none';
+        }
+
         // 활성 필터 표시 업데이트
         function updateActiveFilters() {
             const activeFiltersEl = document.getElementById('activeFilters');
-            const hasActiveFilters = activeFilters.name || activeFilters.date;
+            const hasActiveFilters = activeFilters.name || activeFilters.date || activeFilters.specificDate;
             
             if (!hasActiveFilters) {
                 activeFiltersEl.style.display = 'none';
@@ -531,6 +691,26 @@
                 });
             }
             
+            if (activeFilters.specificDate) {
+                const specificDate = new Date(activeFilters.specificDate);
+                const year = specificDate.getFullYear();
+                const month = specificDate.getMonth() + 1;
+                const day = specificDate.getDate();
+                
+                const badge = document.createElement('div');
+                badge.className = 'filter-badge';
+                badge.innerHTML = `날짜: ${year}년 ${month}월 ${day}일 <span class="remove" data-filter="specificDate">×</span>`;
+                activeFiltersEl.appendChild(badge);
+                
+                badge.querySelector('.remove').addEventListener('click', () => {
+                    document.getElementById('specificDateFilter').value = '';
+                    activeFilters.specificDate = '';
+                    updateActiveFilters();
+                    applyFilters();
+                    showToast('날짜 필터가 제거되었습니다');
+                });
+            }
+            
             const clearBtn = document.createElement('button');
             clearBtn.className = 'clear-filters';
             clearBtn.id = 'clearFilters';
@@ -540,7 +720,8 @@
             clearBtn.addEventListener('click', () => {
                 document.getElementById('nameFilter').value = '';
                 document.getElementById('dateFilter').value = '';
-                activeFilters = { name: '', date: '' };
+                document.getElementById('specificDateFilter').value = '';
+                activeFilters = { name: '', date: '', specificDate: '' };
                 updateActiveFilters();
                 applyFilters();
                 showToast('모든 필터가 제거되었습니다');
@@ -548,16 +729,19 @@
         }
 
         // 이름 필터 옵션 추가
-        function initializeFilters() {
+        function initializeFilters(useSpecificDateFilter = false) {
             // 이름 필터 초기화
             const nameFilter = document.getElementById('nameFilter');
+            
             nameFilter.innerHTML = '<option value="">전체 이름</option>';
+            
             const uniqueNames = [...new Set(people)];
             uniqueNames.forEach(person => {
-                const option = document.createElement('option');
-                option.value = person;
-                option.textContent = person;
-                nameFilter.appendChild(option);
+                // 필터용 옵션
+                const filterOption = document.createElement('option');
+                filterOption.value = person;
+                filterOption.textContent = person;
+                nameFilter.appendChild(filterOption);
             });
 
             // 날짜 필터 초기화
@@ -579,26 +763,43 @@
                 dateFilter.appendChild(option);
             }
 
-            // 현재 월 선택
-            const currentValue = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`;
-            dateFilter.value = currentValue;
-            activeFilters.date = currentValue;
+            // 필터 컨테이너 요소
+            const dateFilterType = document.getElementById('dateFilterType');
+            const monthFilterContainer = document.getElementById('monthFilterContainer');
+            const specificDateContainer = document.getElementById('specificDateContainer');
+            
+            // 특정 날짜 필터의 기본값 설정 (오늘 날짜)
+            const specificDateFilter = document.getElementById('specificDateFilter');
+            const today = new Date();
+            const formattedToday = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
+            specificDateFilter.value = formattedToday;
+            
+            // 반드시 기본값을 모두 비우고 시작
+            dateFilter.value = '';
+            activeFilters.date = '';
+            
+            if (useSpecificDateFilter) {
+                // 특정 날짜 필터 사용 (오늘 날짜)
+                dateFilterType.value = 'specific';
+                monthFilterContainer.style.display = 'none';
+                specificDateContainer.style.display = 'block';
+                
+                // 필터 상태 업데이트
+                activeFilters.specificDate = formattedToday;
+                console.log('특정 날짜 필터 설정:', formattedToday);
+            } else {
+                // 월별 필터 사용 (현재 월)
+                const currentValue = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`;
+                dateFilter.value = currentValue;
+                activeFilters.date = currentValue;
+                activeFilters.specificDate = '';
+            }
+            
+            // 콘솔에 현재 필터 상태 출력
+            console.log('필터 초기화 완료. 현재 필터 상태:', JSON.stringify(activeFilters));
+            
             updateActiveFilters();
         }
-
-        // 날짜 포맷팅
-        function formatDate(dateStr) {
-            const date = new Date(dateStr);
-            return `${date.getMonth() + 1}월 ${date.getDate()}일`;
-        }
-
-        // 시간 포맷팅 (사용하지 않음)
-        /* function formatTime(dateStr) {
-            const date = new Date(dateStr);
-            const hours = date.getHours().toString().padStart(2, '0');
-            const minutes = date.getMinutes().toString().padStart(2, '0');
-            return `${hours}:${minutes}`;
-        } */
 
         // 요일 구하기
         function getKoreanDayOfWeek(dateStr) {
@@ -612,12 +813,12 @@
             const groups = {};
             
             items.forEach(item => {
-                const date = new Date(item.timestamp);
+                const date = new Date(item.receivedDate); // 달란트 받은 날짜 기준 그룹화
                 const dateKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
                 
                 if (!groups[dateKey]) {
                     groups[dateKey] = {
-                        date: item.timestamp,
+                        date: item.receivedDate,
                         items: [],
                         totalTalant: 0
                     };
@@ -668,23 +869,25 @@
                         </div>
                         <div class="date-count">${group.items.length}개</div>
                     </div>
-                    <div class="card-summary">
-                        <div class="card-total">총 달란트: +${group.totalTalant}</div>
-                    </div>
                     <div class="history-list">`;
                 
                 // 시간순으로 정렬 (최신순)
                 group.items.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
                 
                 group.items.forEach((item, index) => {
+                    // 지급 날짜와 시간 포맷팅
+                    const createdAt = new Date(item.timestamp);
+                    const createdAtStr = `${createdAt.getFullYear()}-${(createdAt.getMonth() + 1).toString().padStart(2, '0')}-${createdAt.getDate().toString().padStart(2, '0')} ${createdAt.getHours().toString().padStart(2, '0')}:${createdAt.getMinutes().toString().padStart(2, '0')}`;
+                    
                     html += `
                         <div class="history-item" data-index="${index}">
                             <div class="history-content">
                                 <div class="reason"><span class="name">${item.name}</span> - ${item.reason}</div>
+                                <div class="created-at">지급일시: ${createdAtStr}</div>
                             </div>
                             <div class="actions">
                                 <div class="talant">+${item.talant}</div>
-                                <button class="delete-btn" onclick="confirmDelete('${item.timestamp}', '${item.name}', '${item.reason}', ${item.talant})">
+                                <button class="delete-btn" onclick="confirmDelete('${item.id}')">
                                     🗑️
                                 </button>
                             </div>
@@ -703,157 +906,325 @@
         }
 
         // 삭제 확인 함수 추가
-        function confirmDelete(timestamp, name, reason, talant) {
-            if (confirm(`정말로 다음 항목을 삭제하시겠습니까?\n\n이름: ${name}\n사유: ${reason}\n달란트: ${talant}`)) {
+        function confirmDelete(id) {
+            const item = allHistory.find(item => item.id === id);
+            if (!item) return;
+            
+            if (confirm(`정말로 다음 항목을 삭제하시겠습니까?\n\n이름: ${item.name}\n사유: ${item.reason}\n달란트: ${item.talant}`)) {
                 // 시각적 피드백 추가 (삭제 중 상태 표시)
                 const items = document.querySelectorAll('.history-item');
-                items.forEach(item => {
-                    const content = item.querySelector('.reason').textContent;
-                    if (content.includes(name) && content.includes(reason)) {
-                        item.classList.add('deleting');
+                items.forEach(el => {
+                    if (el.querySelector('.delete-btn').onclick.toString().includes(id)) {
+                        el.classList.add('deleting');
                     }
                 });
                 
-                deleteHistoryItem(timestamp, name, reason, talant);
+                deleteHistoryItem(id);
             }
         }
 
         // 삭제 실행 함수 추가
-        async function deleteHistoryItem(timestamp, name, reason, talant) {
+        async function deleteHistoryItem(id) {
             try {
                 showLoading();
-                const formData = new FormData();
-                formData.append('action', 'deleteHistory');
-                formData.append('timestamp', timestamp);
-                formData.append('name', name);
-                formData.append('reason', reason);
-                formData.append('talant', talant);
-
-                const response = await fetch(scriptURL, {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const result = await response.json();
-
-                if (result.result === "success") {
+                
+                if (isUsingMockData) {
+                    // 모의 데이터일 경우 배열에서 제거
+                    allHistory = allHistory.filter(item => item.id !== id);
+                    setTimeout(() => {
+                        applyFilters();
+                        hideLoading();
+                        showToast('내역이 삭제되었습니다');
+                    }, 500);
+                } else {
+                    // Firestore에서 문서 삭제
+                    await talantCollection.doc(id).delete();
                     showToast('내역이 삭제되었습니다');
                     await loadHistory();
-                } else {
-                    throw new Error(result.message || '삭제 실패');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                showToast('삭제 중 오류가 발생했습니다', 5000);
-            } finally {
+                showToast('삭제 중 오류가 발생했습니다: ' + error.message, 5000);
                 hideLoading();
             }
         }
 
         // 필터 적용
         function applyFilters() {
+            console.log('필터 적용 시작, 현재 필터 상태:', JSON.stringify(activeFilters));
+            
             const nameFilter = document.getElementById('nameFilter').value;
             const dateFilter = document.getElementById('dateFilter').value;
+            const specificDateFilter = document.getElementById('specificDateFilter').value;
+            const dateFilterType = document.getElementById('dateFilterType').value;
+            
+            console.log('현재 UI 필터 값:', {
+                name: nameFilter,
+                dateType: dateFilterType,
+                date: dateFilter,
+                specificDate: specificDateFilter
+            });
             
             // 필터 상태 업데이트
             const hasChanges = 
                 (activeFilters.name !== nameFilter) || 
-                (activeFilters.date !== dateFilter);
-                
+                (activeFilters.date !== dateFilter) ||
+                (activeFilters.specificDate !== specificDateFilter);
+            
+            // 기존 필터 값 저장
             activeFilters.name = nameFilter;
-            activeFilters.date = dateFilter;
+            
+            // 날짜 필터 타입에 따라 필터 설정
+            if (dateFilterType === 'month') {
+                activeFilters.date = dateFilter;
+                activeFilters.specificDate = '';
+                // UI에서도 특정 날짜 필터 입력 필드를 비움
+                document.getElementById('specificDateFilter').value = '';
+            } else {
+                activeFilters.date = '';
+                activeFilters.specificDate = specificDateFilter;
+                // UI에서도 월별 필터 입력 필드를 비움
+                document.getElementById('dateFilter').value = '';
+            }
             
             if (hasChanges) {
                 updateActiveFilters();
             }
 
+            console.log('필터 적용 전 상태 업데이트:', JSON.stringify(activeFilters));
+
             let filtered = [...allHistory];
+            console.log('전체 데이터 수:', filtered.length);
 
             if (nameFilter) {
                 filtered = filtered.filter(item => item.name === nameFilter);
+                console.log('이름 필터 후 데이터 수:', filtered.length);
             }
 
-            if (dateFilter) {
-                const [year, month] = dateFilter.split('-');
+            // 월별 필터와 특정 날짜 필터는 상호 배타적
+            if (activeFilters.date) {
+                console.log('월별 필터 적용:', activeFilters.date);
+                const [year, month] = activeFilters.date.split('-');
                 filtered = filtered.filter(item => {
-                    const date = new Date(item.timestamp);
+                    const date = new Date(item.receivedDate);
                     return date.getFullYear() === parseInt(year) && 
                            date.getMonth() === parseInt(month) - 1;
                 });
+                console.log('월별 필터 후 데이터 수:', filtered.length);
+            }
+            
+            if (activeFilters.specificDate) {
+                console.log('특정 날짜 필터 적용:', activeFilters.specificDate);
+                const selectedDate = new Date(activeFilters.specificDate);
+                selectedDate.setHours(0, 0, 0, 0); // 시간 부분을 0으로 설정
+                
+                filtered = filtered.filter(item => {
+                    const itemDate = new Date(item.receivedDate);
+                    itemDate.setHours(0, 0, 0, 0); // 시간 부분을 0으로 설정
+                    
+                    // 날짜 비교
+                    const isMatch = itemDate.getTime() === selectedDate.getTime();
+                    return isMatch;
+                });
+                console.log('특정 날짜 필터 후 데이터 수:', filtered.length);
             }
 
             displayHistory(filtered);
             
             if (hasChanges) {
-                if (nameFilter && dateFilter) {
-                    showToast(`이름: ${nameFilter}, 기간: ${dateFilter.split('-')[0]}년 ${dateFilter.split('-')[1]}월 필터 적용됨`);
-                } else if (nameFilter) {
-                    showToast(`이름: ${nameFilter} 필터 적용됨`);
-                } else if (dateFilter) {
-                    showToast(`기간: ${dateFilter.split('-')[0]}년 ${dateFilter.split('-')[1]}월 필터 적용됨`);
+                let toastMessage = '';
+                
+                if (nameFilter) {
+                    toastMessage += `이름: ${nameFilter}`;
+                }
+                
+                if (activeFilters.date) {
+                    if (toastMessage) toastMessage += ', ';
+                    toastMessage += `기간: ${activeFilters.date.split('-')[0]}년 ${activeFilters.date.split('-')[1]}월`;
+                }
+                
+                if (activeFilters.specificDate) {
+                    if (toastMessage) toastMessage += ', ';
+                    const specDate = new Date(activeFilters.specificDate);
+                    toastMessage += `날짜: ${specDate.getFullYear()}년 ${specDate.getMonth() + 1}월 ${specDate.getDate()}일`;
+                }
+                
+                if (toastMessage) {
+                    showToast(`${toastMessage} 필터 적용됨`);
                 } else {
                     showToast('모든 필터가 제거되었습니다');
                 }
             }
         }
 
-        // 데이터 로드
+        // Firebase 초기화
+        async function initializeFirebase() {
+            try {
+                showLoading();
+                hideError();
+                
+                console.log('Firebase 초기화 시도...');
+                
+                // 이미 초기화된 경우 중복 초기화 방지
+                if (!firebaseInitialized) {
+                    firebase.initializeApp(firebaseConfig);
+                    db = firebase.firestore();
+                    talantCollection = db.collection('talant_history');
+                    firebaseInitialized = true;
+                }
+                
+                // 연결 테스트
+                await db.collection('talant_history').limit(1).get();
+                
+                console.log('Firebase 연결 성공');
+                isUsingMockData = false;
+                
+                // 필터 초기화
+                initializeFilters();
+                
+                // 데이터 로드
+                await loadHistory();
+                
+                hideLoading();
+            } catch (error) {
+                console.error('Firebase 초기화 실패:', error);
+                hideLoading();
+                showError('Firebase 연결 오류', '데이터베이스에 연결할 수 없습니다. 네트워크 상태를 확인하거나 잠시 후 다시 시도해 주세요.');
+            }
+        }
+
+        // 목업 데이터 사용
+        function useMockData() {
+            hideError();
+            showLoading();
+            
+            console.log('목업 데이터 사용 중...');
+            isUsingMockData = true;
+            
+            // 필터 초기화
+            initializeFilters(true); // 특정 날짜(오늘) 필터로 시작
+            
+            // 목업 데이터 설정
+            allHistory = [...mockData];
+            
+            // 필터 적용
+            setTimeout(() => {
+                applyFilters();
+                hideLoading();
+                showToast('테스트 데이터가 로드되었습니다', 3000);
+            }, 500);
+        }
+
+        // 데이터 로드 (Firebase)
         async function loadHistory() {
             try {
                 showLoading();
-                console.log('데이터 로딩 시작...');
+                console.log('Firebase에서 데이터 로딩 시작...');
                 
-                const response = await fetch(`${scriptURL}?action=getHistory`);
-                const data = await response.json();
+                // Firestore에서 데이터 가져오기
+                const snapshot = await talantCollection.orderBy('receivedDate', 'desc').get();
                 
-                if (data.history && Array.isArray(data.history)) {
-                    allHistory = data.history.map(item => ({
-                        timestamp: item.date,
-                        name: item.name,
-                        talant: item.amount,
-                        reason: item.reason
-                    }));
-                    
-                    allHistory.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                console.log('데이터 로드 성공, 문서 수:', snapshot.size);
+                
+                if (snapshot.empty) {
+                    console.log('데이터가 없습니다.');
+                    allHistory = [];
                     applyFilters();
-                } else {
-                    throw new Error('데이터가 없습니다.');
+                    hideLoading();
+                    return;
                 }
+                
+                allHistory = snapshot.docs.map(doc => {
+                    const data = doc.data();
+                    return {
+                        id: doc.id,
+                        timestamp: data.createdAt ? data.createdAt.toDate() : new Date(), // 지급한 시간
+                        receivedDate: data.receivedDate ? data.receivedDate.toDate() : new Date(), // 달란트 받은 날짜
+                        name: data.name || '',
+                        talant: data.talant || '0',
+                        reason: data.reason || '(사유 없음)'
+                    };
+                });
+                
+                console.log('데이터 변환 완료, 항목 수:', allHistory.length);
+                
+                // 현재 필터 상태 출력
+                console.log('데이터 로드 후 필터 상태:', JSON.stringify(activeFilters));
+                
+                // 필터 적용
+                applyFilters();
+                
+                hideLoading();
             } catch (error) {
-                console.error('에러 발생:', error);
-                const historyList = document.getElementById('historyList');
-                historyList.innerHTML = `
-                    <div class="empty-message">
-                        <div class="empty-icon">⚠️</div>
-                        <p>데이터를 불러오는데 실패했습니다.<br>
-                        에러 메시지: ${error.message}</p>
-                    </div>
-                `;
-                showToast('데이터를 불러오는데 실패했습니다', 5000);
-            } finally {
+                console.error('데이터 로드 오류:', error);
+                showError('데이터 로드 실패', '달란트 내역을 불러오는 중 오류가 발생했습니다. 다시 시도하거나 테스트 데이터를 사용해 주세요.');
                 hideLoading();
             }
         }
 
-        // 이벤트 리스너 설정
-        document.getElementById('nameFilter').addEventListener('change', applyFilters);
-        document.getElementById('dateFilter').addEventListener('change', applyFilters);
+        // 이벤트 리스너 추가
+        function addEventListeners() {
+            const nameFilter = document.getElementById('nameFilter');
+            const dateFilter = document.getElementById('dateFilter');
+            const specificDateFilter = document.getElementById('specificDateFilter');
+            const dateFilterType = document.getElementById('dateFilterType');
+            
+            nameFilter.addEventListener('change', () => {
+                applyFilters();
+            });
+            
+            dateFilter.addEventListener('change', () => {
+                applyFilters();
+            });
+            
+            specificDateFilter.addEventListener('change', () => {
+                applyFilters();
+            });
+            
+            dateFilterType.addEventListener('change', () => {
+                const monthFilterContainer = document.getElementById('monthFilterContainer');
+                const specificDateContainer = document.getElementById('specificDateContainer');
+                
+                if (dateFilterType.value === 'month') {
+                    monthFilterContainer.style.display = 'block';
+                    specificDateContainer.style.display = 'none';
+                    
+                    // 특정 날짜 필터 초기화
+                    document.getElementById('specificDateFilter').value = '';
+                    activeFilters.specificDate = '';
+                } else {
+                    monthFilterContainer.style.display = 'none';
+                    specificDateContainer.style.display = 'block';
+                    
+                    // 월별 필터 초기화
+                    document.getElementById('dateFilter').value = '';
+                    activeFilters.date = '';
+                }
+                
+                updateActiveFilters();
+                applyFilters();
+            });
+        }
 
-        // 초기화
+        // 페이지 로드 시 초기화
         document.addEventListener('DOMContentLoaded', () => {
             console.log('페이지 로드됨');
-            initializeFilters();
-            loadHistory();
+            addEventListeners();
+            
+            // Firebase 초기화
+            try {
+                initializeFirebase();
+                
+                // 초기화 후 필터 정상 적용을 위해 지연 실행
+                setTimeout(() => {
+                    applyFilters();
+                }, 100);
+            } catch (error) {
+                console.error('초기화 오류:', error);
+                showError('초기화 오류', '애플리케이션 초기화 중 문제가 발생했습니다. 페이지를 새로고침하거나 테스트 데이터를 사용해 주세요.');
+                hideLoading();
+            }
         });
-
-        // 로딩 표시/숨김 함수
-        function showLoading() {
-            document.getElementById('loadingOverlay').style.display = 'flex';
-        }
-
-        function hideLoading() {
-            document.getElementById('loadingOverlay').style.display = 'none';
-        }
     </script>
 </body>
 </html>

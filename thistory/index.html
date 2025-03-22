@@ -31,7 +31,7 @@
         }
 
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -46,7 +46,7 @@
 
         .title {
             color: #7B4AFF;
-            font-size: 24px;
+            font-size: 28px;
             font-weight: bold;
             margin-bottom: 16px;
             text-align: center;
@@ -122,20 +122,94 @@
             font-weight: 500;
         }
 
-        .history-list {
+        /* 카드형 날짜 그룹 스타일링 */
+        .date-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+
+        .date-card {
             background: white;
             border-radius: 20px;
             box-shadow: 0 4px 15px rgba(123, 74, 255, 0.1);
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .date-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(123, 74, 255, 0.15);
+        }
+
+        .date-card-header {
+            padding: 16px;
+            background-color: rgba(123, 74, 255, 0.05);
+            border-bottom: 1px solid rgba(123, 74, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .date-header-left {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .date-text {
+            font-weight: 600;
+            font-size: 16px;
+            color: #1A1A1A;
+        }
+
+        .date-day {
+            color: #7B4AFF;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .date-count {
+            background-color: rgba(123, 74, 255, 0.1);
+            color: #7B4AFF;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .card-summary {
+            padding: 12px 16px;
+            display: flex;
+            justify-content: flex-end;
+            font-size: 14px;
+            color: #666666;
+            background-color: rgba(123, 74, 255, 0.03);
+            border-bottom: 1px solid rgba(123, 74, 255, 0.1);
+        }
+
+        .card-total {
+            font-weight: 600;
+            color: #7B4AFF;
+            font-size: 16px;
+        }
+
+        .history-list {
+            flex-grow: 1;
+            overflow: hidden;
         }
 
         .history-item {
-            padding: 16px 20px;
-            border-bottom: 1px solid #F5F5F7;
+            padding: 16px;
+            border-bottom: 1px solid rgba(123, 74, 255, 0.05);
             display: flex;
             justify-content: space-between;
             align-items: center;
             transition: all 0.3s ease;
+            flex-wrap: wrap;
+            gap: 8px;
         }
 
         .history-item:hover {
@@ -153,20 +227,20 @@
 
         .history-content {
             flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            word-break: break-word;
         }
 
-        .date {
-            color: #7B4AFF;
-            font-weight: 600;
-            font-size: 15px;
-            margin-bottom: 6px;
-            letter-spacing: -0.5px;
-        }
+        /* 시간 표시 제거 */
 
         .reason {
             font-weight: 500;
             color: #1A1A1A;
             font-size: 16px;
+            white-space: normal;
+            word-break: break-word;
+            overflow-wrap: break-word;
         }
 
         .name {
@@ -182,6 +256,7 @@
             border-radius: 10px;
             min-width: 60px;
             text-align: center;
+            margin-left: 10px;
         }
 
         .actions {
@@ -241,6 +316,9 @@
             text-align: center;
             color: #666666;
             font-size: 16px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(123, 74, 255, 0.1);
         }
 
         .empty-icon {
@@ -269,17 +347,6 @@
             opacity: 1;
         }
 
-        .date-group {
-            padding: 10px 20px;
-            background-color: #F5F5F7;
-            font-weight: 600;
-            font-size: 14px;
-            color: #666666;
-            position: sticky;
-            top: 0;
-            z-index: 1;
-        }
-
         .section-header {
             display: flex;
             justify-content: space-between;
@@ -288,7 +355,7 @@
         }
 
         .section-title {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 600;
             color: #1A1A1A;
         }
@@ -296,7 +363,7 @@
         .section-count {
             background-color: rgba(123, 74, 255, 0.1);
             color: #7B4AFF;
-            padding: 2px 10px;
+            padding: 4px 12px;
             border-radius: 12px;
             font-size: 14px;
             font-weight: 500;
@@ -307,9 +374,15 @@
             100% { transform: rotate(360deg); }
         }
 
+        @media (max-width: 768px) {
+            .date-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+
         @media (max-width: 600px) {
             .container {
-                padding: 16px;
+                padding: 10px;
             }
 
             .filters {
@@ -318,12 +391,40 @@
             }
 
             .history-item {
-                padding: 14px 16px;
+                padding: 12px;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .history-content {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            
+            .actions {
+                width: 100%;
+                justify-content: space-between;
             }
 
             .talant {
                 font-size: 16px;
                 padding: 4px 10px;
+            }
+            
+            .title {
+                font-size: 24px;
+            }
+            
+            .section-title {
+                font-size: 18px;
+            }
+            
+            .date-card-header {
+                padding: 12px;
+            }
+            
+            .reason {
+                font-size: 15px;
             }
         }
     </style>
@@ -357,7 +458,7 @@
             <div class="section-count" id="recordCount">0개</div>
         </div>
 
-        <div class="history-list" id="historyList">
+        <div id="historyList">
             <!-- 내역이 여기에 동적으로 추가됩니다 -->
         </div>
     </div>
@@ -371,7 +472,7 @@
 
     <script>
         const scriptURL = 'https://script.google.com/macros/s/AKfycbyx9WOTbj-QtQpuXLFeORf-Hl4tivR17dYcJT5O__Ejeq8ftSClCQPNiarGxv3mQ2IdDw/exec';
-        const people = ['황희', '임동하', '장지민', '김종진', '방시온', '정예담', '방온유', '정예준'];
+        const people = ['임동하', '장지민','황희', '김종진', '방시온', '정예담', '방온유', '정예준'];
         let allHistory = [];
         let activeFilters = { name: '', date: '' };
 
@@ -491,6 +592,21 @@
             return `${date.getMonth() + 1}월 ${date.getDate()}일`;
         }
 
+        // 시간 포맷팅 (사용하지 않음)
+        /* function formatTime(dateStr) {
+            const date = new Date(dateStr);
+            const hours = date.getHours().toString().padStart(2, '0');
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            return `${hours}:${minutes}`;
+        } */
+
+        // 요일 구하기
+        function getKoreanDayOfWeek(dateStr) {
+            const date = new Date(dateStr);
+            const days = ['일', '월', '화', '수', '목', '금', '토'];
+            return days[date.getDay()];
+        }
+
         // 날짜별 그룹화 함수
         function groupByDate(items) {
             const groups = {};
@@ -502,18 +618,20 @@
                 if (!groups[dateKey]) {
                     groups[dateKey] = {
                         date: item.timestamp,
-                        items: []
+                        items: [],
+                        totalTalant: 0
                     };
                 }
                 
                 groups[dateKey].items.push(item);
+                groups[dateKey].totalTalant += parseInt(item.talant);
             });
             
             // 날짜 기준 정렬 (최신순)
             return Object.values(groups).sort((a, b) => new Date(b.date) - new Date(a.date));
         }
 
-        // 내역 표시
+        // 내역 표시 (카드형)
         function displayHistory(history) {
             console.log('화면 표시 시작, 데이터 수:', history.length);
             const historyList = document.getElementById('historyList');
@@ -534,19 +652,34 @@
             // 날짜별로 그룹화
             const groups = groupByDate(history);
             
-            let html = '';
+            let html = '<div class="date-cards">';
             
             groups.forEach(group => {
                 const groupDate = new Date(group.date);
                 const formattedGroupDate = `${groupDate.getFullYear()}년 ${groupDate.getMonth() + 1}월 ${groupDate.getDate()}일`;
+                const dayOfWeek = getKoreanDayOfWeek(group.date);
                 
-                html += `<div class="date-group">${formattedGroupDate}</div>`;
+                html += `
+                <div class="date-card">
+                    <div class="date-card-header">
+                        <div class="date-header-left">
+                            <div class="date-text">${formattedGroupDate}</div>
+                            <div class="date-day">${dayOfWeek}요일</div>
+                        </div>
+                        <div class="date-count">${group.items.length}개</div>
+                    </div>
+                    <div class="card-summary">
+                        <div class="card-total">총 달란트: +${group.totalTalant}</div>
+                    </div>
+                    <div class="history-list">`;
+                
+                // 시간순으로 정렬 (최신순)
+                group.items.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
                 
                 group.items.forEach((item, index) => {
                     html += `
                         <div class="history-item" data-index="${index}">
                             <div class="history-content">
-                                <div class="date">${formatDate(item.timestamp)}</div>
                                 <div class="reason"><span class="name">${item.name}</span> - ${item.reason}</div>
                             </div>
                             <div class="actions">
@@ -558,7 +691,13 @@
                         </div>
                     `;
                 });
+                
+                html += `
+                    </div>
+                </div>`;
             });
+            
+            html += '</div>';
             
             historyList.innerHTML = html;
         }

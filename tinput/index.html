@@ -7,6 +7,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <title>달란트 입력</title>
+    <!-- Firebase SDK 추가 -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
     <style>
         /* 
          * 디자인 사양에 맞춘 새로운 CSS 디자인
@@ -369,6 +372,20 @@
             display: none;
         }
 
+        /* 에러 표시 스타일 */
+        .error-message {
+            display: none;
+            background-color: #FFEDED;
+            color: #D32F2F;
+            padding: 12px;
+            border-radius: 12px;
+            margin-top: 12px;
+            font-size: 14px;
+            text-align: center;
+            border: 1px solid rgba(211, 47, 47, 0.2);
+            animation: fadeIn 0.3s;
+        }
+
         /* 태블릿 및 모바일 대응 */
         @media (max-width: 768px) {
             .person-grid {
@@ -424,13 +441,14 @@
             <div class="header-content">
                 <div class="header-top">
                     <h2 class="header-title">달란트 입력</h2>
-                    <button onclick="location.href='https://www.torch5.com/thistory/'" class="view-history-btn">
+                    <button onclick="location.href='firebase-talant-history.html'" class="view-history-btn">
                         <span>전체 내역 보기</span>
                         <span style="font-size: 1.2em;">📋</span>
                     </button>
                 </div>
                 <input type="date" class="date-select" id="dateSelect">
                 <div class="log-display" id="logDisplay"></div>
+                <div class="error-message" id="errorMessage"></div>
             </div>
         </div>
 
@@ -456,8 +474,22 @@
     <div id="modalOverlay"></div>
 
     <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbyx9WOTbj-QtQpuXLFeORf-Hl4tivR17dYcJT5O__Ejeq8ftSClCQPNiarGxv3mQ2IdDw/exec';
-        const people = ['황희', '임동하', '장지민', '김종진', '방시온', '정예담', '방온유', '정예준'];
+        // Firebase 설정
+        const firebaseConfig = {
+            apiKey: "AIzaSyBQhlKHBMGKuT95pM6kP6AH7Mv-xhJelBo",
+            authDomain: "togy-web.firebaseapp.com",
+            projectId: "togy-web",
+            storageBucket: "togy-web.firebasestorage.app",
+            messagingSenderId: "61696764840",
+            appId: "1:61696764840:web:53096a4fe0ae1622e9cb9d"
+        };
+
+        // Firebase 초기화
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const talantCollection = db.collection('talant_history');
+        
+        const people = ['임동하', '장지민', '황희', '김종진', '방시온', '정예담', '방온유', '정예준'];
         const categories = [
             { name: '출석', value: 3 },
             { name: '오후출석', value: 3 },
@@ -471,6 +503,23 @@
         
         let currentPerson = null;
         let lastSubmissionTime = 0; // 마지막 제출 시간 기록을 위한 변수
+        let firebaseInitialized = false;
+
+        // 에러 표시 함수
+        function showError(message, duration = 5000) {
+            const errorElement = document.getElementById('errorMessage');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+            
+            // 일정 시간 후 자동으로 사라지게 함
+            setTimeout(() => {
+                errorElement.style.opacity = '0';
+                setTimeout(() => {
+                    errorElement.style.display = 'none';
+                    errorElement.style.opacity = '1';
+                }, 300);
+            }, duration);
+        }
 
         // 모달 관련 함수들
         function showResultModal(message) {
@@ -485,10 +534,6 @@
         }
 
         // 기존 함수들
-        function formatDate(dateStr) {
-            return dateStr.replace(/-/g, '/');
-        }
-
         function addLogEntry(name, talant, reason) {
             const logDisplay = document.getElementById('logDisplay');
             logDisplay.style.display = 'block';
@@ -514,10 +559,10 @@
             return true;
         }
 
-        // submitTalant 함수 개선
-        function submitTalant(name, reason, talant, button) {
-            const date = document.getElementById('dateSelect').value;
-            if (!date) {
+        // Firebase에 달란트 정보 저장
+        async function submitTalant(name, reason, talant, button) {
+            const dateInput = document.getElementById('dateSelect').value;
+            if (!dateInput) {
                 showResultModal('날짜를 선택해주세요!');
                 return;
             }
@@ -543,43 +588,36 @@
                 }, 5000);
             }
 
-            const formData = new FormData();
-            formData.append('name', name);
-            formData.append('talant', talant);
-            formData.append('reason', reason);
-            formData.append('timestamp', formatDate(date));
-
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', scriptURL, true);
-            
-            xhr.onload = function() {
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    addLogEntry(name, talant, reason);
-                    showResultModal(`입력 완료!\n\n이름: ${name}\n사유: ${reason}\n달란트: ${talant}`);
-                } else {
-                    console.error('Error:', xhr.statusText);
-                    showResultModal('오류가 발생했습니다. 다시 시도해주세요.');
-                }
+            try {
+                // 선택된 날짜를 JavaScript Date 객체로 변환
+                const selectedDate = new Date(dateInput);
                 
-                if (button) {
-                    button.innerHTML = button.getAttribute('data-original-text');
-                    button.style.opacity = '1';
-                    button.disabled = false;
-                }
-            };
-            
-            xhr.onerror = function() {
-                console.error('Error:', xhr.statusText);
+                // Firestore에 저장할 데이터 객체 생성
+                const talantData = {
+                    name: name,
+                    reason: reason,
+                    talant: talant.toString(),   // Firebase에서 일관성 있게 문자열로 저장
+                    receivedDate: firebase.firestore.Timestamp.fromDate(selectedDate),  // 달란트 받은 날짜
+                    createdAt: firebase.firestore.Timestamp.fromDate(new Date())        // 시스템 현재 시간(생성 시간)
+                };
+                
+                // Firestore에 데이터 추가
+                const docRef = await talantCollection.add(talantData);
+                
+                console.log("달란트 저장 성공, 문서 ID:", docRef.id);
+                addLogEntry(name, talant, reason);
+                showResultModal(`입력 완료!\n\n이름: ${name}\n사유: ${reason}\n달란트: ${talant}`);
+            } catch (error) {
+                console.error("달란트 저장 오류:", error);
+                showError(`데이터 저장 중 오류가 발생했습니다: ${error.message}`);
                 showResultModal('오류가 발생했습니다. 다시 시도해주세요.');
-                
+            } finally {
                 if (button) {
                     button.innerHTML = button.getAttribute('data-original-text');
                     button.style.opacity = '1';
                     button.disabled = false;
                 }
-            };
-            
-            xhr.send(formData);
+            }
         }
 
         // 나머지 함수들
@@ -663,6 +701,24 @@
             return card;
         }
         
+        // Firebase 초기화 및 연결 확인
+        async function initializeFirebase() {
+            try {
+                if (!firebaseInitialized) {
+                    // Firestore 연결 테스트
+                    await db.collection('talant_history').limit(1).get();
+                    console.log('Firebase 연결 성공');
+                    firebaseInitialized = true;
+                    return true;
+                }
+                return true;
+            } catch (error) {
+                console.error('Firebase 초기화 오류:', error);
+                showError('Firebase 연결에 실패했습니다. 네트워크 연결을 확인하세요.');
+                return false;
+            }
+        }
+        
         // 키보드 이벤트 추가 - 모달에서 엔터키로 제출
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Enter' && document.getElementById('modalBackdrop').style.display === 'flex') {
@@ -682,12 +738,19 @@
             }
         });
 
-        function initializeApp() {
+        async function initializeApp() {
+            // 페이지 로드 시 Firebase 초기화
+            await initializeFirebase();
+            
+            // 사람 카드 생성
             const grid = document.getElementById('personGrid');
+            grid.innerHTML = '';  // 기존 내용 초기화
+            
             people.forEach(person => {
                 grid.appendChild(createPersonCard(person));
             });
 
+            // 오늘 날짜로 초기화
             const today = new Date();
             const dateStr = today.toISOString().split('T')[0];
             document.getElementById('dateSelect').value = dateStr;

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { db } from '../../firebase/config';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
-import UserLayout from '../../layouts/UserLayout';
 import { collection, query, getDocs, orderBy } from 'firebase/firestore';
 
 const PrayerRequests = () => {
@@ -43,99 +42,75 @@ const PrayerRequests = () => {
   };
 
   return (
-    <UserLayout>
-      <Header>
-        <TitleSection>
-          <HomeButton to="/">← 홈으로</HomeButton>
-          <Title>중보기도</Title>
-        </TitleSection>
-      </Header>
-
-      <PrayerList>
-        {prayers.map((prayer) => (
-          <PrayerCard key={prayer.id}>
-            <PrayerHeader>
-              <Name>{prayer.id}</Name>
-              <UpdatedAt>
-                마지막 수정: {formatDateTime(prayer.updatedAt)}
-              </UpdatedAt>
-            </PrayerHeader>
-            {prayer.prayerItems.map((item, index) => (
-              <PrayerItemContainer key={index}>
-                <PrayerItem>
-                  <PrayerContent>{item}</PrayerContent>
-                </PrayerItem>
-              </PrayerItemContainer>
-            ))}
-          </PrayerCard>
-        ))}
-      </PrayerList>
-    </UserLayout>
+    <>
+      {loading ? (
+        <LoadingContainer>
+          <LoadingSpinner>로딩 중...</LoadingSpinner>
+        </LoadingContainer>
+      ) : (
+        <Container>
+          {prayers.length === 0 ? (
+            <EmptyMessage>아직 등록된 기도제목이 없습니다.</EmptyMessage>
+          ) : (
+            <PrayerList>
+              {prayers.map((prayer) => (
+                <PrayerCard key={prayer.id}>
+                  <PrayerHeader>
+                    <Name>{prayer.id}</Name>
+                    <UpdatedAt>
+                      마지막 수정: {formatDateTime(prayer.updatedAt)}
+                    </UpdatedAt>
+                  </PrayerHeader>
+                  {prayer.prayerItems.map((item, index) => (
+                    <PrayerItemContainer key={index}>
+                      <PrayerItem>
+                        <PrayerContent>{item}</PrayerContent>
+                      </PrayerItem>
+                    </PrayerItemContainer>
+                  ))}
+                </PrayerCard>
+              ))}
+            </PrayerList>
+          )}
+        </Container>
+      )}
+    </>
   );
 };
+
+const LoadingContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+`;
+
+const LoadingSpinner = styled.div`
+  color: #4285F4;
+  font-size: 1.2rem;
+`;
+
+const EmptyMessage = styled.div`
+  text-align: center;
+  padding: 3rem;
+  color: #666;
+  font-size: 1.1rem;
+`;
 
 const Container = styled.div`
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 1rem 2rem;
+  padding-bottom: 3rem;
   
   @media (max-width: 768px) {
     padding: 1rem;
   }
 `;
 
-const Header = styled.header`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-  
-  @media (max-width: 768px) {
-    flex-direction: column;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-  }
-`;
-
-const TitleSection = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  
-  @media (max-width: 768px) {
-    width: 100%;
-    justify-content: center;
-  }
-`;
-
-const HomeButton = styled(Link)`
-  color: #666;
-  text-decoration: none;
-  padding: 0.5rem 1rem;
-  border-radius: 5px;
-  font-size: 1rem;
-  
-  @media (max-width: 768px) {
-    font-size: 0.9rem;
-  }
-  
-  &:hover {
-    background-color: #f0f0f0;
-    color: #333;
-  }
-`;
-
-const Title = styled.h1`
-  font-size: 2rem;
-  color: #333;
-  
-  @media (max-width: 768px) {
-    font-size: 1.8rem;
-  }
-`;
-
 const PrayerList = styled.div`
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 1.5rem;
   
   @media (max-width: 768px) {
@@ -146,8 +121,9 @@ const PrayerList = styled.div`
 const PrayerCard = styled.div`
   background-color: white;
   padding: 1.5rem;
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e9ecef;
   
   @media (max-width: 768px) {
     padding: 1rem;
@@ -170,7 +146,7 @@ const PrayerHeader = styled.div`
 
 const Name = styled.h2`
   font-size: 1.5rem;
-  color: #333;
+  color: #4285F4;
   margin-right: 1rem;
   
   @media (max-width: 768px) {
@@ -180,7 +156,7 @@ const Name = styled.h2`
 `;
 
 const UpdatedAt = styled.span`
-  color: #888;
+  color: #666;
   font-size: 0.9rem;
   margin-right: auto;
   
@@ -193,8 +169,8 @@ const UpdatedAt = styled.span`
 const PrayerItemContainer = styled.div`
   margin-bottom: 1rem;
   padding: 1rem;
-  background-color: #f9f9f9;
-  border-radius: 5px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
   
   @media (max-width: 768px) {
     padding: 0.8rem;
@@ -215,7 +191,7 @@ const PrayerItem = styled.div`
 
 const PrayerContent = styled.p`
   flex: 1;
-  color: #666;
+  color: #333;
   line-height: 1.6;
   margin: 0;
   white-space: pre-wrap;

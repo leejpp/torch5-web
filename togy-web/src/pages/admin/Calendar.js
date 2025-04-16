@@ -8,7 +8,6 @@ import 'react-big-calendar/lib/css/react-big-calendar.css';
 import ko from 'date-fns/locale/ko';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
-import AdminLayout from '../../layouts/AdminLayout';
 import { db } from '../../firebase/config';
 import { collection, query, orderBy, getDocs, addDoc, updateDoc, deleteDoc, doc, writeBatch, where } from 'firebase/firestore';
 
@@ -322,275 +321,273 @@ const AdminCalendar = () => {
   `;
 
   return (
-    <AdminLayout>
-      <Container>
-        <Header>
-          <TitleSection>
-            <HomeButton to="/admin">← 홈으로</HomeButton>
-            <TitleWrapper>
-              <Title onClick={handleTitleClick}>일정 관리</Title>
-              <CurrentDate>{format(date, 'yyyy년 M월')}</CurrentDate>
-            </TitleWrapper>
-          </TitleSection>
-        </Header>
-        <CalendarContainer
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-        >
-          {isLoading ? (
-            <LoadingSpinner>일정을 불러오는 중...</LoadingSpinner>
-          ) : (
-            <BigCalendar
-              localizer={localizer}
-              events={events}
-              startAccessor="start"
-              endAccessor="end"
-              style={{ height: '100%' }}
-              culture='ko'
-              selectable={true}
-              onSelectSlot={handleSelect}
-              onSelectEvent={handleEventSelect}
-              views={['month']}
-              defaultView="month"
-              toolbar={true}
-              formats={{
-                monthHeaderFormat: 'yyyy년 MM월',
-                dayHeaderFormat: 'eee',
-                dayRangeHeaderFormat: ({ start, end }) =>
-                  `${format(start, 'MM월 dd일')} - ${format(end, 'MM월 dd일')}`,
-              }}
-              messages={{
-                showMore: total => `+${total}개 더보기`
-              }}
-              eventPropGetter={event => {
-                const eventType = EVENT_TYPES[event.type] || EVENT_TYPES.DEFAULT;
-                return {
-                  style: {
-                    backgroundColor: eventType.bgColor,
-                    color: eventType.color
-                  }
-                };
-              }}
-              dayPropGetter={date => {
-                const today = new Date();
-                const isToday = date.getDate() === today.getDate() &&
-                               date.getMonth() === today.getMonth() &&
-                               date.getYear() === today.getYear();
-                const isSunday = date.getDay() === 0;
-                const isSaturday = date.getDay() === 6;
-                
-                return {
-                  style: {
-                    cursor: 'pointer',
-                    backgroundColor: isToday ? '#FFF9F9' : 'white',
-                    color: isSunday ? '#ff4444' : isSaturday ? '#0066ff' : '#333'  // 일요일, 토요일 날짜 색상
-                  }
-                };
-              }}
-              date={date}
-              onNavigate={newDate => setDate(newDate)}
-              draggableAccessor={() => false}  // 드래그 비활성화
-              longPressThreshold={20}  // 터치 감지 시간을 매우 짧게 설정
-              components={{
-                dateCellWrapper: props => (
-                  <div
-                    onClick={() => handleSelect({ start: props.value })}
-                    style={{ height: '100%' }}
-                  >
-                    {props.children}
-                  </div>
-                )
-              }}
-            />
-          )}
-        </CalendarContainer>
+    <Container>
+      <Header>
+        <TitleSection>
+          <HomeButton to="/admin">← 홈으로</HomeButton>
+          <TitleWrapper>
+            <Title onClick={handleTitleClick}>일정 관리</Title>
+            <CurrentDate>{format(date, 'yyyy년 M월')}</CurrentDate>
+          </TitleWrapper>
+        </TitleSection>
+      </Header>
+      <CalendarContainer
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
+        {isLoading ? (
+          <LoadingSpinner>일정을 불러오는 중...</LoadingSpinner>
+        ) : (
+          <BigCalendar
+            localizer={localizer}
+            events={events}
+            startAccessor="start"
+            endAccessor="end"
+            style={{ height: '100%' }}
+            culture='ko'
+            selectable={true}
+            onSelectSlot={handleSelect}
+            onSelectEvent={handleEventSelect}
+            views={['month']}
+            defaultView="month"
+            toolbar={true}
+            formats={{
+              monthHeaderFormat: 'yyyy년 MM월',
+              dayHeaderFormat: 'eee',
+              dayRangeHeaderFormat: ({ start, end }) =>
+                `${format(start, 'MM월 dd일')} - ${format(end, 'MM월 dd일')}`,
+            }}
+            messages={{
+              showMore: total => `+${total}개 더보기`
+            }}
+            eventPropGetter={event => {
+              const eventType = EVENT_TYPES[event.type] || EVENT_TYPES.DEFAULT;
+              return {
+                style: {
+                  backgroundColor: eventType.bgColor,
+                  color: eventType.color
+                }
+              };
+            }}
+            dayPropGetter={date => {
+              const today = new Date();
+              const isToday = date.getDate() === today.getDate() &&
+                             date.getMonth() === today.getMonth() &&
+                             date.getYear() === today.getYear();
+              const isSunday = date.getDay() === 0;
+              const isSaturday = date.getDay() === 6;
+              
+              return {
+                style: {
+                  cursor: 'pointer',
+                  backgroundColor: isToday ? '#FFF9F9' : 'white',
+                  color: isSunday ? '#ff4444' : isSaturday ? '#0066ff' : '#333'  // 일요일, 토요일 날짜 색상
+                }
+              };
+            }}
+            date={date}
+            onNavigate={newDate => setDate(newDate)}
+            draggableAccessor={() => false}  // 드래그 비활성화
+            longPressThreshold={20}  // 터치 감지 시간을 매우 짧게 설정
+            components={{
+              dateCellWrapper: props => (
+                <div
+                  onClick={() => handleSelect({ start: props.value })}
+                  style={{ height: '100%' }}
+                >
+                  {props.children}
+                </div>
+              )
+            }}
+          />
+        )}
+      </CalendarContainer>
 
-        {isModalOpen && (
-          <Modal onClick={(e) => {
-            e.stopPropagation();
-          }}>
-            <ModalContent>
-              <h2>{selectedEvent ? '일정 수정' : '새 일정'}</h2>
-              <Form onSubmit={handleSubmit}>
-                <InputGroup>
-                  <Label>제목</Label>
-                  <Input
-                    type="text"
-                    value={formData.title}
-                    onChange={(e) => setFormData({...formData, title: e.target.value})}
-                    required
-                  />
-                </InputGroup>
-                <InputGroup>
-                  <Label>시작 날짜</Label>
-                  <Input
-                    type="date"
-                    value={formData.start}
-                    onChange={(e) => setFormData({...formData, start: e.target.value})}
-                    required
-                  />
-                </InputGroup>
-                <InputGroup>
-                  <Label>종료 날짜</Label>
-                  <Input
-                    type="date"
-                    value={formData.end}
-                    onChange={(e) => setFormData({...formData, end: e.target.value})}
-                    required
-                  />
-                </InputGroup>
-                <InputGroup>
-                  <Label>설명</Label>
-                  <TextArea
-                    value={formData.description}
-                    onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  />
-                </InputGroup>
-                <InputGroup>
-                  <Label>장소</Label>
-                  <Input
-                    type="text"
-                    value={formData.location}
-                    onChange={(e) => setFormData({...formData, location: e.target.value})}
-                  />
-                </InputGroup>
-                <InputGroup>
-                  <Label>일정 타입</Label>
-                  <Select
-                    value={formData.type}
-                    onChange={(e) => setFormData({...formData, type: e.target.value})}
-                  >
-                    {Object.entries(EVENT_TYPES).map(([key, value]) => (
-                      <option key={key} value={key}>{value.label}</option>
-                    ))}
-                  </Select>
-                </InputGroup>
-                <InputGroup>
-                  <Label>반복</Label>
-                  <Select
-                    value={formData.repeat.type}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      repeat: { type: e.target.value }
-                    })}
-                  >
-                    <option value={REPEAT_TYPES.NONE}>반복 안함</option>
-                    <option value={REPEAT_TYPES.YEARLY}>매년</option>
-                  </Select>
-                </InputGroup>
-                <ButtonGroup>
-                  <SubmitButton type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? (
-                      <LoadingSpinnerSmall />
-                    ) : (
-                      selectedEvent ? '수정' : '추가'
-                    )}
-                  </SubmitButton>
-                  {selectedEvent && (
-                    <DeleteButton 
-                      type="button" 
-                      onClick={handleDelete}
-                      disabled={isSubmitting}
-                    >
-                      {isSubmitting ? <LoadingSpinnerSmall /> : '삭제'}
-                    </DeleteButton>
+      {isModalOpen && (
+        <Modal onClick={(e) => {
+          e.stopPropagation();
+        }}>
+          <ModalContent>
+            <h2>{selectedEvent ? '일정 수정' : '새 일정'}</h2>
+            <Form onSubmit={handleSubmit}>
+              <InputGroup>
+                <Label>제목</Label>
+                <Input
+                  type="text"
+                  value={formData.title}
+                  onChange={(e) => setFormData({...formData, title: e.target.value})}
+                  required
+                />
+              </InputGroup>
+              <InputGroup>
+                <Label>시작 날짜</Label>
+                <Input
+                  type="date"
+                  value={formData.start}
+                  onChange={(e) => setFormData({...formData, start: e.target.value})}
+                  required
+                />
+              </InputGroup>
+              <InputGroup>
+                <Label>종료 날짜</Label>
+                <Input
+                  type="date"
+                  value={formData.end}
+                  onChange={(e) => setFormData({...formData, end: e.target.value})}
+                  required
+                />
+              </InputGroup>
+              <InputGroup>
+                <Label>설명</Label>
+                <TextArea
+                  value={formData.description}
+                  onChange={(e) => setFormData({...formData, description: e.target.value})}
+                />
+              </InputGroup>
+              <InputGroup>
+                <Label>장소</Label>
+                <Input
+                  type="text"
+                  value={formData.location}
+                  onChange={(e) => setFormData({...formData, location: e.target.value})}
+                />
+              </InputGroup>
+              <InputGroup>
+                <Label>일정 타입</Label>
+                <Select
+                  value={formData.type}
+                  onChange={(e) => setFormData({...formData, type: e.target.value})}
+                >
+                  {Object.entries(EVENT_TYPES).map(([key, value]) => (
+                    <option key={key} value={key}>{value.label}</option>
+                  ))}
+                </Select>
+              </InputGroup>
+              <InputGroup>
+                <Label>반복</Label>
+                <Select
+                  value={formData.repeat.type}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    repeat: { type: e.target.value }
+                  })}
+                >
+                  <option value={REPEAT_TYPES.NONE}>반복 안함</option>
+                  <option value={REPEAT_TYPES.YEARLY}>매년</option>
+                </Select>
+              </InputGroup>
+              <ButtonGroup>
+                <SubmitButton type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <LoadingSpinnerSmall />
+                  ) : (
+                    selectedEvent ? '수정' : '추가'
                   )}
-                  <CancelButton 
+                </SubmitButton>
+                {selectedEvent && (
+                  <DeleteButton 
                     type="button" 
-                    onClick={() => setIsModalOpen(false)}
+                    onClick={handleDelete}
                     disabled={isSubmitting}
                   >
-                    취소
-                  </CancelButton>
-                </ButtonGroup>
-              </Form>
-            </ModalContent>
-          </Modal>
-        )}
-
-        {isDeleteModalOpen && (
-          <DeleteConfirmModal>
-            <DeleteModalContent>
-              <h3>일정 삭제</h3>
-              <p>정말 이 일정을 삭제하시겠습니까?</p>
-              <p><strong>{selectedEvent?.title}</strong></p>
-              
-              {selectedEvent?.isRecurring && (
-                <DeleteOptions>
-                  <RadioGroup>
-                    <RadioOption>
-                      <input
-                        type="radio"
-                        id="single"
-                        name="deleteOption"
-                        value="single"
-                        checked={deleteOption === 'single'}
-                        onChange={(e) => setDeleteOption(e.target.value)}
-                      />
-                      <label htmlFor="single">이 일정만 삭제</label>
-                    </RadioOption>
-                    <RadioOption>
-                      <input
-                        type="radio"
-                        id="all"
-                        name="deleteOption"
-                        value="all"
-                        checked={deleteOption === 'all'}
-                        onChange={(e) => setDeleteOption(e.target.value)}
-                      />
-                      <label htmlFor="all">모든 반복 일정 삭제</label>
-                    </RadioOption>
-                  </RadioGroup>
-                </DeleteOptions>
-              )}
-
-              <DeleteModalButtons>
-                <DeleteConfirmButton 
-                  onClick={confirmDelete}
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? <LoadingSpinnerSmall /> : '삭제'}
-                </DeleteConfirmButton>
+                    {isSubmitting ? <LoadingSpinnerSmall /> : '삭제'}
+                  </DeleteButton>
+                )}
                 <CancelButton 
-                  onClick={() => setIsDeleteModalOpen(false)}
+                  type="button" 
+                  onClick={() => setIsModalOpen(false)}
                   disabled={isSubmitting}
                 >
                   취소
                 </CancelButton>
-              </DeleteModalButtons>
-            </DeleteModalContent>
-          </DeleteConfirmModal>
-        )}
+              </ButtonGroup>
+            </Form>
+          </ModalContent>
+        </Modal>
+      )}
 
-        {message.content && (
-          <MessagePopup type={message.type}>
-            {message.content}
-          </MessagePopup>
-        )}
+      {isDeleteModalOpen && (
+        <DeleteConfirmModal>
+          <DeleteModalContent>
+            <h3>일정 삭제</h3>
+            <p>정말 이 일정을 삭제하시겠습니까?</p>
+            <p><strong>{selectedEvent?.title}</strong></p>
+            
+            {selectedEvent?.isRecurring && (
+              <DeleteOptions>
+                <RadioGroup>
+                  <RadioOption>
+                    <input
+                      type="radio"
+                      id="single"
+                      name="deleteOption"
+                      value="single"
+                      checked={deleteOption === 'single'}
+                      onChange={(e) => setDeleteOption(e.target.value)}
+                    />
+                    <label htmlFor="single">이 일정만 삭제</label>
+                  </RadioOption>
+                  <RadioOption>
+                    <input
+                      type="radio"
+                      id="all"
+                      name="deleteOption"
+                      value="all"
+                      checked={deleteOption === 'all'}
+                      onChange={(e) => setDeleteOption(e.target.value)}
+                    />
+                    <label htmlFor="all">모든 반복 일정 삭제</label>
+                  </RadioOption>
+                </RadioGroup>
+              </DeleteOptions>
+            )}
 
-        {showMoreEvents.isOpen && (
-          <Modal onClick={() => setShowMoreEvents({ isOpen: false, date: null, events: [] })}>
-            <MoreEventsModalContent onClick={e => e.stopPropagation()}>
-              <h2>{format(showMoreEvents.date, 'yyyy년 MM월 dd일')} 일정</h2>
-              <EventsList>
-                {showMoreEvents.events.map((event, index) => (
-                  <EventItem key={index} onClick={() => {
-                    handleEventSelect(event);
-                    setShowMoreEvents({ isOpen: false, date: null, events: [] });
-                  }}>
-                    <EventTitle>{event.title}</EventTitle>
-                    {event.location && <EventLocation>{event.location}</EventLocation>}
-                  </EventItem>
-                ))}
-              </EventsList>
-              <CloseButton onClick={() => setShowMoreEvents({ isOpen: false, date: null, events: [] })}>
-                닫기
-              </CloseButton>
-            </MoreEventsModalContent>
-          </Modal>
-        )}
-      </Container>
-    </AdminLayout>
+            <DeleteModalButtons>
+              <DeleteConfirmButton 
+                onClick={confirmDelete}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? <LoadingSpinnerSmall /> : '삭제'}
+              </DeleteConfirmButton>
+              <CancelButton 
+                onClick={() => setIsDeleteModalOpen(false)}
+                disabled={isSubmitting}
+              >
+                취소
+              </CancelButton>
+            </DeleteModalButtons>
+          </DeleteModalContent>
+        </DeleteConfirmModal>
+      )}
+
+      {message.content && (
+        <MessagePopup type={message.type}>
+          {message.content}
+        </MessagePopup>
+      )}
+
+      {showMoreEvents.isOpen && (
+        <Modal onClick={() => setShowMoreEvents({ isOpen: false, date: null, events: [] })}>
+          <MoreEventsModalContent onClick={e => e.stopPropagation()}>
+            <h2>{format(showMoreEvents.date, 'yyyy년 MM월 dd일')} 일정</h2>
+            <EventsList>
+              {showMoreEvents.events.map((event, index) => (
+                <EventItem key={index} onClick={() => {
+                  handleEventSelect(event);
+                  setShowMoreEvents({ isOpen: false, date: null, events: [] });
+                }}>
+                  <EventTitle>{event.title}</EventTitle>
+                  {event.location && <EventLocation>{event.location}</EventLocation>}
+                </EventItem>
+              ))}
+            </EventsList>
+            <CloseButton onClick={() => setShowMoreEvents({ isOpen: false, date: null, events: [] })}>
+              닫기
+            </CloseButton>
+          </MoreEventsModalContent>
+        </Modal>
+      )}
+    </Container>
   );
 };
 

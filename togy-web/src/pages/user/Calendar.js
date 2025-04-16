@@ -7,10 +7,10 @@ import getDay from 'date-fns/getDay';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import ko from 'date-fns/locale/ko';
 import styled from 'styled-components';
-import { Link } from 'react-router-dom';
-import UserLayout from '../../layouts/UserLayout';
+import { useNavigate } from 'react-router-dom';
 import { db } from '../../firebase/config';
 import { collection, query, orderBy, getDocs } from 'firebase/firestore';
+import { theme } from '../../styles/theme';
 
 const locales = {
   'ko': ko,
@@ -25,7 +25,7 @@ const localizer = dateFnsLocalizer({
 });
 
 const EVENT_TYPES = {
-  DEFAULT: { label: '기본', bgColor: '#FFB6C1', color: 'white' },
+  DEFAULT: { label: '기본', bgColor: '#4285F4', color: 'white' },
   BIRTHDAY: { label: '생일', bgColor: '#E6E6FA', color: '#6A5ACD' },  // 보라색
   MEETING: { label: '모임', bgColor: '#E0F4FF', color: '#0066FF' },   // 파란색
   ACTIVITY: { label: '활동', bgColor: '#E8F5E9', color: '#2E7D32' },  // 초록색
@@ -41,6 +41,7 @@ const Calendar = () => {
   const calendarRef = useRef(null);
   const [touchStart, setTouchStart] = useState(null);
   const [date, setDate] = useState(new Date());
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchEvents();
@@ -96,119 +97,117 @@ const Calendar = () => {
   };
 
   return (
-    <UserLayout>
-      <Container>
-        <Header>
-          <TitleSection>
-            <HomeButton to="/">← 홈으로</HomeButton>
-            <TitleWrapper>
-              <Title onClick={handleTitleClick}>일정</Title>
-              <CurrentDate>
-                {format(date, 'yyyy년 M월')}
-              </CurrentDate>
-            </TitleWrapper>
-          </TitleSection>
-        </Header>
-        <CalendarContainer
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-        >
-          {isLoading ? (
-            <LoadingSpinner>일정을 불러오는 중...</LoadingSpinner>
-          ) : (
-            <BigCalendar
-              ref={calendarRef}
-              localizer={localizer}
-              events={events}
-              startAccessor="start"
-              endAccessor="end"
-              style={{ height: '100%' }}
-              culture='ko'
-              onSelectEvent={handleEventSelect}
-              views={['month']}
-              defaultView="month"
-              toolbar={false}
-              formats={{
-                monthHeaderFormat: 'yyyy년 MM월',
-                dayHeaderFormat: 'eee',
-                dayRangeHeaderFormat: ({ start, end }) =>
-                  `${format(start, 'MM월 dd일')} - ${format(end, 'MM월 dd일')}`,
-              }}
-              messages={{
-                next: "다음",
-                previous: "이전",
-                today: "오늘",
-                month: "월",
-                showMore: total => `+${total}개 더보기`
-              }}
-              eventPropGetter={event => {
-                const eventType = EVENT_TYPES[event.type] || EVENT_TYPES.DEFAULT;
-                return {
-                  style: {
-                    backgroundColor: eventType.bgColor,
-                    color: eventType.color
-                  }
-                };
-              }}
-              dayPropGetter={date => {
-                const today = new Date();
-                const isToday = date.getDate() === today.getDate() &&
-                               date.getMonth() === today.getMonth() &&
-                               date.getYear() === today.getYear();
-                const isSunday = date.getDay() === 0;
-                return {
-                  className: isToday ? 'today' : '',
-                  style: {
-                    backgroundColor: isToday ? '#FFF9F9' : 'white',
-                    color: isSunday ? '#ff4444' : '#333'
-                  }
-                };
-              }}
-              date={date}
-              onNavigate={newDate => setDate(newDate)}
-            />
-          )}
-        </CalendarContainer>
-
-        {isModalOpen && selectedEvent && (
-          <Modal onClick={() => setIsModalOpen(false)}>
-            <ModalContent onClick={e => e.stopPropagation()}>
-              <h2>{selectedEvent.title}</h2>
-              <EventDetails>
-                <DetailItem>
-                  <Label>날짜</Label>
-                  <Value>
-                    {format(selectedEvent.start, 'yyyy년 MM월 dd일')}
-                    {format(selectedEvent.start, 'yyyy-MM-dd') !== format(selectedEvent.end, 'yyyy-MM-dd') && 
-                      ` ~ ${format(selectedEvent.end, 'yyyy년 MM월 dd일')}`
-                    }
-                  </Value>
-                </DetailItem>
-                <DetailItem>
-                  <Label>타입</Label>
-                  <Value>{EVENT_TYPES[selectedEvent.type]?.label || EVENT_TYPES.DEFAULT.label}</Value>
-                </DetailItem>
-                {selectedEvent.location && (
-                  <DetailItem>
-                    <Label>장소</Label>
-                    <Value>{selectedEvent.location}</Value>
-                  </DetailItem>
-                )}
-                {selectedEvent.description && (
-                  <DetailItem>
-                    <Label>설명</Label>
-                    <Description>{selectedEvent.description}</Description>
-                  </DetailItem>
-                )}
-              </EventDetails>
-              <CloseButton onClick={() => setIsModalOpen(false)}>
-                닫기
-              </CloseButton>
-            </ModalContent>
-          </Modal>
+    <Container>
+      <Header>
+        <TitleSection>
+          <HomeButton onClick={() => navigate('/')}>← 홈으로</HomeButton>
+          <TitleWrapper>
+            <Title onClick={handleTitleClick}>일정</Title>
+            <CurrentDate>
+              {format(date, 'yyyy년 M월')}
+            </CurrentDate>
+          </TitleWrapper>
+        </TitleSection>
+      </Header>
+      <CalendarContainer
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
+        {isLoading ? (
+          <LoadingSpinner>일정을 불러오는 중...</LoadingSpinner>
+        ) : (
+          <BigCalendar
+            ref={calendarRef}
+            localizer={localizer}
+            events={events}
+            startAccessor="start"
+            endAccessor="end"
+            style={{ height: '100%' }}
+            culture='ko'
+            onSelectEvent={handleEventSelect}
+            views={['month']}
+            defaultView="month"
+            toolbar={false}
+            formats={{
+              monthHeaderFormat: 'yyyy년 MM월',
+              dayHeaderFormat: 'eee',
+              dayRangeHeaderFormat: ({ start, end }) =>
+                `${format(start, 'MM월 dd일')} - ${format(end, 'MM월 dd일')}`,
+            }}
+            messages={{
+              next: "다음",
+              previous: "이전",
+              today: "오늘",
+              month: "월",
+              showMore: total => `+${total}개 더보기`
+            }}
+            eventPropGetter={event => {
+              const eventType = EVENT_TYPES[event.type] || EVENT_TYPES.DEFAULT;
+              return {
+                style: {
+                  backgroundColor: eventType.bgColor,
+                  color: eventType.color
+                }
+              };
+            }}
+            dayPropGetter={date => {
+              const today = new Date();
+              const isToday = date.getDate() === today.getDate() &&
+                             date.getMonth() === today.getMonth() &&
+                             date.getYear() === today.getYear();
+              const isSunday = date.getDay() === 0;
+              return {
+                className: isToday ? 'today' : '',
+                style: {
+                  backgroundColor: isToday ? '#e7f0ff' : 'white',
+                  color: isSunday ? '#ff4444' : '#333'
+                }
+              };
+            }}
+            date={date}
+            onNavigate={newDate => setDate(newDate)}
+          />
         )}
-      </Container>
-    </UserLayout>
+      </CalendarContainer>
+
+      {isModalOpen && selectedEvent && (
+        <Modal onClick={() => setIsModalOpen(false)}>
+          <ModalContent onClick={e => e.stopPropagation()}>
+            <h2>{selectedEvent.title}</h2>
+            <EventDetails>
+              <DetailItem>
+                <Label>날짜</Label>
+                <Value>
+                  {format(selectedEvent.start, 'yyyy년 MM월 dd일')}
+                  {format(selectedEvent.start, 'yyyy-MM-dd') !== format(selectedEvent.end, 'yyyy-MM-dd') && 
+                    ` ~ ${format(selectedEvent.end, 'yyyy년 MM월 dd일')}`
+                  }
+                </Value>
+              </DetailItem>
+              <DetailItem>
+                <Label>타입</Label>
+                <Value>{EVENT_TYPES[selectedEvent.type]?.label || EVENT_TYPES.DEFAULT.label}</Value>
+              </DetailItem>
+              {selectedEvent.location && (
+                <DetailItem>
+                  <Label>장소</Label>
+                  <Value>{selectedEvent.location}</Value>
+                </DetailItem>
+              )}
+              {selectedEvent.description && (
+                <DetailItem>
+                  <Label>설명</Label>
+                  <Description>{selectedEvent.description}</Description>
+                </DetailItem>
+              )}
+            </EventDetails>
+            <CloseButton onClick={() => setIsModalOpen(false)}>
+              닫기
+            </CloseButton>
+          </ModalContent>
+        </Modal>
+      )}
+    </Container>
   );
 };
 
@@ -217,7 +216,9 @@ const Container = styled.div`
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: white;
+  background-color: ${theme.colors.background};
+  max-width: 1200px;
+  margin: 0 auto;
   
   @media (max-width: 768px) {
     padding: 0;
@@ -225,11 +226,20 @@ const Container = styled.div`
 `;
 
 const Header = styled.header`
-  padding: 1rem;
-  border-bottom: 1px solid #eee;
+  background-color: ${theme.colors.primary};
+  color: white;
+  padding: 1.5rem 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  border-radius: ${theme.borderRadius.lg};
+  margin: 1rem 1rem 2rem;
+  box-shadow: ${theme.shadows.sm};
   
   @media (max-width: 768px) {
-    padding: 0.8rem 1rem;
+    padding: 1rem 1.5rem;
+    margin: 0.5rem 0.5rem 1rem;
   }
 `;
 
@@ -237,6 +247,9 @@ const TitleSection = styled.div`
   display: flex;
   align-items: center;
   gap: 1rem;
+  width: 100%;
+  justify-content: center;
+  position: relative;
 `;
 
 const TitleWrapper = styled.div`
@@ -246,25 +259,37 @@ const TitleWrapper = styled.div`
 `;
 
 const CurrentDate = styled.span`
-  color: #666;
+  color: rgba(255, 255, 255, 0.8);
   font-size: 1.1rem;
 `;
 
-const HomeButton = styled(Link)`
-  color: #666;
+const HomeButton = styled.button`
+  color: white;
   text-decoration: none;
   font-size: 1rem;
   display: flex;
   align-items: center;
+  position: absolute;
+  left: 0;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
   
   &:hover {
-    color: #333;
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+  
+  @media (max-width: 768px) {
+    font-size: 0.9rem;
+    padding: 0.4rem 0.8rem;
   }
 `;
 
 const Title = styled.h1`
-  font-size: 1.5rem;
-  color: #333;
+  font-size: 1.8rem;
+  font-weight: bold;
   margin: 0;
   cursor: pointer;
   
@@ -274,6 +299,10 @@ const Title = styled.h1`
   
   &:active {
     opacity: 0.6;
+  }
+  
+  @media (max-width: 768px) {
+    font-size: 1.5rem;
   }
 `;
 

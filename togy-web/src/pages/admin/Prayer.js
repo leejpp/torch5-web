@@ -4,7 +4,6 @@ import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import { db } from '../../firebase/config';
 import { collection, getDocs, query, orderBy, doc, setDoc, updateDoc, deleteDoc, Timestamp } from 'firebase/firestore';
-import AdminLayout from '../../layouts/AdminLayout';
 
 const Prayer = () => {
   const [name, setName] = useState('');
@@ -153,11 +152,11 @@ const Prayer = () => {
   };
 
   return (
-    <AdminLayout>
+    <Container>
       <Header>
         <TitleSection>
           <HomeButton to="/admin">← 홈으로</HomeButton>
-          <Title>{editingPrayer ? '기도제목 수정' : '기도제목 작성'}</Title>
+          <Title>중보기도 관리</Title>
         </TitleSection>
       </Header>
 
@@ -252,14 +251,12 @@ const Prayer = () => {
           </ModalContent>
         </DeleteConfirmModal>
       )}
-    </AdminLayout>
+    </Container>
   );
 };
 
-const Title = styled.h1`
-  font-size: 2rem;
-  color: #333;
-  margin-bottom: 2rem;
+const Container = styled.div`
+  padding: 2rem;
 `;
 
 const Header = styled.header`
@@ -590,6 +587,12 @@ const ItemNumber = styled.span`
   color: #999;
   margin-right: 0.5rem;
   font-size: 0.9rem;
+`;
+
+const Title = styled.h1`
+  font-size: 2rem;
+  color: #333;
+  margin-bottom: 2rem;
 `;
 
 export default Prayer;

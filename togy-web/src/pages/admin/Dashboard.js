@@ -1,37 +1,34 @@
 import React from 'react';
 import styled from 'styled-components';
-import { Link } from 'react-router-dom'; 
-import AdminLayout from '../../layouts/AdminLayout';
+import { Link } from 'react-router-dom';
 
 const Dashboard = () => {
   return (
-    <AdminLayout>
-      <Container>
-        <Title>관리자 대시보드</Title>
-        <MenuGrid>
-          <MenuItem to="/admin/notice">
-            <MenuIcon>📢</MenuIcon>
-            <MenuTitle>공지사항 관리</MenuTitle>
-          </MenuItem>
-          <MenuItem to="/admin/prayer">
-            <MenuIcon>🙏</MenuIcon>
-            <MenuTitle>중보기도 관리</MenuTitle>
-          </MenuItem>
-          <MenuItem to="/admin/voices">
-            <MenuIcon>💌</MenuIcon>
-            <MenuTitle>마음의 소리 관리</MenuTitle>
-          </MenuItem>
-          <MenuItem to="/admin/calendar">
-            <MenuIcon>📅</MenuIcon>
-            <MenuTitle>일정 관리</MenuTitle>
-          </MenuItem>
-          <MenuItem to="/admin/members">
-            <MenuIcon>👥</MenuIcon>
-            <MenuTitle>멤버 관리</MenuTitle>
-          </MenuItem>
-        </MenuGrid>
-      </Container>
-    </AdminLayout>
+    <Container>
+      <Title>관리자 대시보드</Title>
+      <MenuGrid>
+        <MenuItem to="/admin/notice">
+          <MenuIcon>📢</MenuIcon>
+          <MenuTitle>공지사항 관리</MenuTitle>
+        </MenuItem>
+        <MenuItem to="/admin/prayer">
+          <MenuIcon>🙏</MenuIcon>
+          <MenuTitle>중보기도 관리</MenuTitle>
+        </MenuItem>
+        <MenuItem to="/admin/voices">
+          <MenuIcon>💌</MenuIcon>
+          <MenuTitle>마음의 소리 관리</MenuTitle>
+        </MenuItem>
+        <MenuItem to="/admin/calendar">
+          <MenuIcon>📅</MenuIcon>
+          <MenuTitle>일정 관리</MenuTitle>
+        </MenuItem>
+        <MenuItem to="/admin/members">
+          <MenuIcon>👥</MenuIcon>
+          <MenuTitle>멤버 관리</MenuTitle>
+        </MenuItem>
+      </MenuGrid>
+    </Container>
   );
 };
 

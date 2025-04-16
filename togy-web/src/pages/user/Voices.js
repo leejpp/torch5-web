@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { db } from '../../firebase/config';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
-import UserLayout from '../../layouts/UserLayout';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 
 const Voices = () => {
@@ -27,7 +26,7 @@ const Voices = () => {
         embeds: [{
           title: "💌 새로운 마음의 소리가 도착했습니다!",
           description: message.trim(),
-          color: 0xFFB6C1,
+          color: 0x4285F4,
           footer: {
             text: "TOGY 청년부"
           }
@@ -53,18 +52,12 @@ const Voices = () => {
   };
 
   return (
-    <UserLayout>
-      <Header>
-        <TitleSection>
-          <HomeButton to="/">← 홈으로</HomeButton>
-          <Title>마음의 소리</Title>
-        </TitleSection>
-      </Header>
-
+    <Container>
       <MessageForm onSubmit={handleSubmit}>
+        <FormTitle>마음의 소리</FormTitle>
         <Description>
           청년부에 하고 싶은 이야기를 자유롭게 적어주세요.
-          (발전 아이디어, 개선 사항 등)
+          <br />(발전 아이디어, 개선 사항 등)
         </Description>
         <MessageInput 
           value={message}
@@ -82,12 +75,12 @@ const Voices = () => {
           소중한 마음이 전달되었습니다 💌
         </SuccessMessage>
       )}
-    </UserLayout>
+    </Container>
   );
 };
 
 const Container = styled.div`
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
   
@@ -96,63 +89,27 @@ const Container = styled.div`
   }
 `;
 
-const Header = styled.header`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-  
-  @media (max-width: 768px) {
-    flex-direction: column;
-    gap: 1rem;
-  }
-`;
-
-const TitleSection = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  
-  @media (max-width: 768px) {
-    width: 100%;
-    justify-content: center;
-  }
-`;
-
-const HomeButton = styled(Link)`
-  color: #666;
-  text-decoration: none;
-  padding: 0.5rem 1rem;
-  border-radius: 5px;
-  font-size: 1rem;
-  
-  @media (max-width: 768px) {
-    font-size: 0.9rem;
-  }
-  
-  &:hover {
-    background-color: #f0f0f0;
-    color: #333;
-  }
-`;
-
-const Title = styled.h1`
-  font-size: 2rem;
-  color: #333;
-  
-  @media (max-width: 768px) {
-    font-size: 1.8rem;
-  }
-`;
-
 const MessageForm = styled.form`
   background-color: white;
   padding: 2rem;
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e9ecef;
   
   @media (max-width: 768px) {
     padding: 1.5rem;
+  }
+`;
+
+const FormTitle = styled.h1`
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #4285F4;
+  text-align: center;
+  margin: 0 0 1.5rem 0;
+  
+  @media (max-width: 768px) {
+    font-size: 1.5rem;
   }
 `;
 
@@ -174,7 +131,7 @@ const MessageInput = styled.textarea`
   padding: 1rem;
   margin-bottom: 1rem;
   border: 1px solid #ddd;
-  border-radius: 5px;
+  border-radius: 8px;
   font-size: 1rem;
   resize: vertical;
   
@@ -186,30 +143,31 @@ const MessageInput = styled.textarea`
   
   &:focus {
     outline: none;
-    border-color: #FFB6C1;
+    border-color: #4285F4;
   }
 `;
 
 const SubmitButton = styled.button`
   width: 100%;
   padding: 1rem;
-  background-color: #FFB6C1;
+  background-color: #4285F4;
   color: white;
   border: none;
-  border-radius: 5px;
+  border-radius: 8px;
   font-size: 1rem;
   cursor: pointer;
+  transition: all 0.2s ease-in-out;
   
   @media (max-width: 768px) {
     padding: 0.8rem;
   }
   
   &:hover {
-    background-color: #FF69B4;
+    background-color: ${props => props.disabled ? '#888' : '#357ae8'};
   }
   
   &:disabled {
-    background-color: #ddd;
+    background-color: #888;
     cursor: not-allowed;
   }
 `;
@@ -222,7 +180,8 @@ const SuccessMessage = styled.div`
   background-color: #4CAF50;
   color: white;
   padding: 1rem 2rem;
-  border-radius: 5px;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
   animation: fadeIn 0.3s ease-in;
   
   @media (max-width: 768px) {

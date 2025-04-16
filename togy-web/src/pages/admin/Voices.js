@@ -3,7 +3,6 @@ import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import { db } from '../../firebase/config';
 import { collection, query, orderBy, getDocs, doc, updateDoc } from 'firebase/firestore';
-import AdminLayout from '../../layouts/AdminLayout';
 
 const STATUS = {
   PENDING: { value: 'PENDING', label: '접수 대기', color: '#666' },
@@ -85,7 +84,7 @@ const VoicesAdmin = () => {
   );
 
   return (
-    <AdminLayout>
+    <Container>
       <Header>
         <TitleSection>
           <HomeButton to="/admin">← 홈으로</HomeButton>
@@ -180,7 +179,7 @@ const VoicesAdmin = () => {
           </ModalContent>
         </StatusModal>
       )}
-    </AdminLayout>
+    </Container>
   );
 };
 

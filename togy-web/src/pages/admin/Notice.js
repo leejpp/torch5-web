@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 import { db } from '../../firebase/config';
 import { collection, addDoc, getDocs, Timestamp, query, orderBy, doc, deleteDoc, updateDoc } from 'firebase/firestore';
 import CryptoJS from 'crypto-js';
-import AdminLayout from '../../layouts/AdminLayout';
 
 const NoticeAdmin = () => {
   const [title, setTitle] = useState('');
@@ -132,7 +131,7 @@ const NoticeAdmin = () => {
   };
 
   return (
-    <AdminLayout>
+    <Container>
       <Header>
         <TitleSection>
           <HomeButton to="/admin">← 홈으로</HomeButton>
@@ -214,7 +213,7 @@ const NoticeAdmin = () => {
           </ModalContent>
         </DeleteConfirmModal>
       )}
-    </AdminLayout>
+    </Container>
   );
 };
 

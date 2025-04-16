@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { db } from '../../firebase/config';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, setDoc } from 'firebase/firestore';
-import AdminLayout from '../../layouts/AdminLayout';
 import { Link } from 'react-router-dom';
 
 const ROLES = {
@@ -146,11 +145,11 @@ const Members = () => {
   };
 
   return (
-    <AdminLayout>
+    <Container>
       <Header>
         <TitleSection>
           <HomeButton to="/admin">← 홈으로</HomeButton>
-          <Title>{editingMember ? '멤버 수정' : '멤버 추가'}</Title>
+          <Title>멤버 관리</Title>
         </TitleSection>
       </Header>
 
@@ -266,9 +265,13 @@ const Members = () => {
           </ModalContent>
         </DeleteConfirmModal>
       )}
-    </AdminLayout>
+    </Container>
   );
 };
+
+const Container = styled.div`
+  padding: 2rem;
+`;
 
 const Header = styled.header`
   display: flex;

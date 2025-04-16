@@ -1,0 +1,93 @@
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+:root {
+  --primary: #7B4AFF;
+  --neutral-1: #F5F5F7;
+  --neutral-2: #DDDDDD;
+  --neutral-3: #666666;
+  --neutral-4: #1A1A1A;
+  
+  --radius-large: 20px;
+  --shadow-card: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  background-color: var(--neutral-1);
+  color: var(--neutral-3);
+  line-height: 1.6;
+}
+
+h1 {
+  font-size: 32px;
+  font-weight: bold;
+  color: var(--neutral-4);
+}
+
+h2 {
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--primary);
+}
+
+h3 {
+  font-size: 22px;
+  font-weight: bold;
+  color: var(--neutral-4);
+}
+
+p {
+  font-size: 16px;
+  color: var(--neutral-3);
+}
+
+.card {
+  background: white;
+  border-radius: var(--radius-large);
+  padding: 24px;
+  box-shadow: var(--shadow-card);
+}
+
+.badge {
+  background: var(--primary);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--neutral-2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: var(--primary);
+  transition: width 0.3s ease;
+}
+
+.insight-bar {
+  background: #444;
+  color: white;
+  padding: 16px;
+  border-radius: var(--radius-large);
+}
+
+.quote {
+  border-left: 4px solid var(--primary);
+  background: rgba(123, 74, 255, 0.1);
+  padding: 16px;
+  margin: 16px 0;
+  border-radius: 0 var(--radius-large) var(--radius-large) 0;
+} 

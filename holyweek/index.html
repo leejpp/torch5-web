@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>십자가의 길 - 고난주간 묵상집</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Pretendard', sans-serif;
+        }
+        
+        body {
+            background-color: #F5F5F7;
+            color: #666666;
+            line-height: 1.6;
+            font-size: 16px;
+            padding-bottom: 70px;
+            overflow-x: hidden; /* 가로 스크롤 방지 */
+        }
+        
+        .container {
+            position: relative;
+            max-width: 540px;
+            margin: 0 auto;
+            padding: 0 20px;
+            width: 100%;
+            /* 내비게이션바 위치에 영향을 받지 않도록 조정 */
+            z-index: 1;
+        }
+        
+        /* 헤더 스타일 */
+        header {
+            background-color: #7B4AFF;
+            color: white;
+            padding: 30px 0;
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        header::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 150px;
+            height: 150px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            z-index: 0;
+        }
+        
+        header::after {
+            content: '';
+            position: absolute;
+            bottom: -60px;
+            left: -60px;
+            width: 180px;
+            height: 180px;
+            background-color: rgba(255, 255, 255, 0.07);
+            border-radius: 50%;
+            z-index: 0;
+        }
+        
+        .page-title {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .page-desc {
+            font-size: 16px;
+            opacity: 0.9;
+            padding: 0 20px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* 카드 공통 스타일 */
+        .card {
+            background-color: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            position: relative;
+            overflow: hidden;
+            transform: translateY(20px);
+            opacity: 0;
+            transition: transform 0.5s ease, opacity 0.5s ease, box-shadow 0.3s ease;
+            width: 100%; /* 너비 일정하게 설정 */
+        }
+        
+        .card:hover {
+            box-shadow: 0 6px 15px rgba(123, 74, 255, 0.15);
+        }
+        
+        .card.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        /* 소개 카드 스타일 */
+        .intro-card p {
+            margin-bottom: 15px;
+        }
+        
+        .intro-card p:last-child {
+            margin-bottom: 0;
+        }
+        
+        /* 날짜 태그 스타일 */
+        .day-tag {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background-color: #7B4AFF;
+            color: white;
+            padding: 8px 15px;
+            font-size: 14px;
+            font-weight: bold;
+            border-bottom-left-radius: 15px;
+            z-index: 2;
+        }
+        
+        .day-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #7B4AFF;
+            color: white;
+            width: 35px;
+            height: 35px;
+            text-align: center;
+            border-radius: 50%;
+            margin-right: 10px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        
+        .day-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #7B4AFF;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        
+        /* 구절 스타일 */
+        .verse {
+            font-style: italic;
+            color: #1A1A1A;
+            margin-bottom: 15px;
+            padding: 15px;
+            background-color: #F5F5F7;
+            border-radius: 10px;
+            font-size: 15px;
+            position: relative;
+        }
+        
+        .verse::before {
+            content: '"';
+            position: absolute;
+            left: 7px;
+            top: 0;
+            font-size: 28px;
+            color: #7B4AFF;
+            opacity: 0.3;
+            font-family: serif;
+        }
+        
+        /* 내용 스타일 */
+        .content {
+            margin-bottom: 20px;
+            color: #666666;
+        }
+        
+        .content p {
+            margin-bottom: 12px;
+        }
+        
+        .content p:last-child {
+            margin-bottom: 0;
+        }
+        
+        /* 묵상 섹션 스타일 */
+        .meditation {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px dashed #DDDDDD;
+        }
+        
+        .meditation-title {
+            font-weight: bold;
+            color: #1A1A1A;
+            margin-bottom: 15px;
+        }
+        
+        .meditation-points {
+            padding-left: 20px;
+        }
+        
+        .meditation-point {
+            margin-bottom: 12px;
+            position: relative;
+        }
+        
+        .meditation-point::marker {
+            color: #7B4AFF;
+        }
+        
+        .meditation-point:last-child {
+            margin-bottom: 0;
+        }
+        
+        /* 푸터 스타일 */
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #666666;
+            font-size: 14px;
+            padding-bottom: 20px;
+        }
+        
+        /* 진행 표시줄 */
+        .progress-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background-color: #DDDDDD;
+            z-index: 100;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: #7B4AFF;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        /* 분리선 스타일 */
+        .card-separator {
+            height: 4px;
+            width: 50px;
+            background-color: #7B4AFF;
+            margin: 20px 0;
+            border-radius: 2px;
+        }
+        
+        /* 아이콘 스타일 */
+        .easter-icon {
+            display: inline-block;
+            margin-right: 8px;
+            color: #7B4AFF;
+        }
+        
+        /* 금요일 십자가 말씀 스타일 */
+        .cross-words {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 20px 0;
+        }
+        
+        .cross-word {
+            padding: 15px;
+            background-color: #F5F5F7;
+            border-radius: 12px;
+            font-weight: 500;
+            transition: transform 0.2s ease;
+        }
+        
+        .cross-word:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .cross-word-num {
+            color: #7B4AFF;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+        
+        /* 플로팅 네비게이션 버튼 */
+        .floating-nav-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background-color: #7B4AFF;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            z-index: 200;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+        
+        .floating-nav-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(123, 74, 255, 0.3);
+        }
+        
+        .floating-nav-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .floating-nav-btn i {
+            font-size: 24px;
+            transition: transform 0.3s ease;
+        }
+        
+        /* 플로팅 메뉴 */
+        .floating-nav-menu {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.15);
+            z-index: 199;
+            width: 280px;
+            padding: 15px;
+            transform: scale(0);
+            transform-origin: bottom right;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s ease;
+            opacity: 0;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        
+        .floating-nav-menu.active {
+            transform: scale(1);
+            opacity: 1;
+        }
+        
+        .nav-menu-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #1A1A1A;
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #F5F5F7;
+        }
+        
+        .nav-menu-items {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .nav-menu-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .nav-menu-item:hover, .nav-menu-item.active {
+            background-color: #F5F5F7;
+        }
+        
+        .nav-menu-item:active {
+            transform: scale(0.98);
+        }
+        
+        .nav-menu-item-number {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background-color: #7B4AFF;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        
+        .nav-menu-item-text {
+            font-size: 14px;
+            color: #666666;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .nav-menu-item.active .nav-menu-item-text {
+            font-weight: 600;
+            color: #1A1A1A;
+        }
+        
+        /* 오버레이 스타일 */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.3);
+            z-index: 198;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            backdrop-filter: blur(2px);
+        }
+        
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* 사이드 네비게이션 스타일 */
+        .side-nav {
+            position: fixed;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 97;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+            padding: 10px 5px;
+            background-color: rgba(255, 255, 255, 0.85);
+            border-radius: 30px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(5px);
+        }
+        
+        .side-nav-item {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #DDDDDD;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .side-nav-item::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            width: 6px;
+            height: 6px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.2s ease;
+        }
+        
+        .side-nav-item:hover, .side-nav-item.active {
+            background-color: #7B4AFF;
+        }
+        
+        .side-nav-item:hover::before, .side-nav-item.active::before {
+            transform: translate(-50%, -50%) scale(1);
+        }
+        
+        .side-nav-item .tooltip {
+            position: absolute;
+            right: 25px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: #1A1A1A;
+            color: white;
+            font-size: 12px;
+            padding: 5px 8px;
+            border-radius: 5px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+            pointer-events: none;
+            z-index: 98;
+        }
+        
+        .side-nav-item .tooltip::after {
+            content: '';
+            position: absolute;
+            right: -4px;
+            top: 50%;
+            transform: translateY(-50%);
+            border-width: 5px 0 5px 5px;
+            border-style: solid;
+            border-color: transparent transparent transparent #1A1A1A;
+        }
+        
+        .side-nav-item:hover .tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* 모바일 반응형 스타일 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 15px;
+            }
+            
+            .side-nav {
+                display: none; /* 모바일에서는 사이드 네비게이션 숨김 */
+            }
+            
+            .day-title {
+                font-size: 22px;
+            }
+            
+            .floating-nav-menu {
+                width: 260px;
+                max-height: 60vh;
+            }
+            
+            .verse, .cross-word {
+                padding: 12px;
+            }
+        }
+        
+        /* 미디어 쿼리로 항상 카드 너비 일정하게 유지 */
+        @media (max-width: 540px) {
+            .container {
+                width: 100%;
+                max-width: none;
+                padding: 0 15px;
+            }
+            
+            .card {
+                width: 100%;
+                margin-left: auto;
+                margin-right: auto;
+            }
+        }
+        
+        /* 애니메이션 효과 */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite ease-in-out;
+        }
+        
+        /* 터치 디바이스 최적화 */
+        @media (hover: none) {
+            .side-nav-item .tooltip {
+                display: none;
+            }
+            
+            .side-nav-item:active {
+                background-color: #7B4AFF;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 진행 표시줄 -->
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+    
+    <!-- 헤더 -->
+    <header>
+        <div class="container">
+            <h1 class="page-title">십자가의 길</h1>
+            <p class="page-desc">횃불교회 고난주간 묵상</p>
+        </div>
+    </header>
+    
+    <!-- 오버레이 -->
+    <div class="overlay" id="overlay"></div>
+    
+    <!-- 플로팅 네비게이션 버튼 -->
+    <button class="floating-nav-btn" id="navBtn">
+        <i class="fas fa-list-ol"></i>
+    </button>
+    
+    <!-- 플로팅 네비게이션 메뉴 -->
+    <div class="floating-nav-menu" id="navMenu">
+        <div class="nav-menu-title">일차별 묵상 이동</div>
+        <div class="nav-menu-items">
+            <div class="nav-menu-item" data-target="intro">
+                <div class="nav-menu-item-number" style="background-color: #1A1A1A;">
+                    <i class="fas fa-info" style="font-size: 12px;"></i>
+                </div>
+                <div class="nav-menu-item-text">고난주간 소개</div>
+            </div>
+            <div class="nav-menu-item" data-target="sun">
+                <div class="nav-menu-item-number">1</div>
+                <div class="nav-menu-item-text">주일 - 예루살렘 입성</div>
+            </div>
+            <div class="nav-menu-item" data-target="mon">
+                <div class="nav-menu-item-number">2</div>
+                <div class="nav-menu-item-text">월요일 - 성전을 청결케 하심</div>
+            </div>
+            <div class="nav-menu-item" data-target="tue">
+                <div class="nav-menu-item-number">3</div>
+                <div class="nav-menu-item-text">화요일 - 과부의 두 렙돈</div>
+            </div>
+            <div class="nav-menu-item" data-target="wed">
+                <div class="nav-menu-item-number">4</div>
+                <div class="nav-menu-item-text">수요일 - 한 여인의 헌신</div>
+            </div>
+            <div class="nav-menu-item" data-target="thu">
+                <div class="nav-menu-item-number">5</div>
+                <div class="nav-menu-item-text">목요일 - 최후의 만찬</div>
+            </div>
+            <div class="nav-menu-item" data-target="fri">
+                <div class="nav-menu-item-number">6</div>
+                <div class="nav-menu-item-text">금요일 - 십자가에 달리시고</div>
+            </div>
+            <div class="nav-menu-item" data-target="sat">
+                <div class="nav-menu-item-number">7</div>
+                <div class="nav-menu-item-text">토요일 - 무덤 속의 예수</div>
+            </div>
+            <div class="nav-menu-item" data-target="easter">
+                <div class="nav-menu-item-number">8</div>
+                <div class="nav-menu-item-text">부활절 - 부활의 주를 만난 삶</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 사이드 네비게이션 (데스크탑 전용) -->
+    <div class="side-nav" id="sideNav">
+        <div class="side-nav-item" data-target="intro">
+            <div class="tooltip">고난주간 소개</div>
+        </div>
+        <div class="side-nav-item" data-target="sun">
+            <div class="tooltip">1일차 - 주일</div>
+        </div>
+        <div class="side-nav-item" data-target="mon">
+            <div class="tooltip">2일차 - 월요일</div>
+        </div>
+        <div class="side-nav-item" data-target="tue">
+            <div class="tooltip">3일차 - 화요일</div>
+        </div>
+        <div class="side-nav-item" data-target="wed">
+            <div class="tooltip">4일차 - 수요일</div>
+        </div>
+        <div class="side-nav-item" data-target="thu">
+            <div class="tooltip">5일차 - 목요일</div>
+        </div>
+        <div class="side-nav-item" data-target="fri">
+            <div class="tooltip">6일차 - 금요일</div>
+        </div>
+        <div class="side-nav-item" data-target="sat">
+            <div class="tooltip">7일차 - 토요일</div>
+        </div>
+        <div class="side-nav-item" data-target="easter">
+            <div class="tooltip">8일차 - 부활절</div>
+        </div>
+    </div>
+    
+    <!-- 메인 컨텐츠 -->
+    <div class="container" id="mainContent">
+        <!-- 소개 -->
+        <div class="card intro-card" id="intro">
+            <p>고난주간은 부활절 전 한 주간으로, 이 기간 동안 그리스도인은 주님의 고난과 죽음을 기억하며, 하나님께 감사하고, 어떻게 신앙적으로 살 것인가를 생각하며 지냅니다.</p>
+            <div class="card-separator"></div>
+            <p>이 묵상집은 십자가에 달려 돌아가시기 전 주님께서 행하셨던 최후의 한 주간 동안의 사역을 살피면서 오늘의 고난주간을 의미 있게 보내기 위해 준비된 것입니다.</p>
+            <div class="card-separator"></div>
+            <p>고난주간 동안 해당되는 날의 말씀을 묵상하시며 주님이 우리 위해 당하신 그 큰 고난을 생각하고 자신을 십자가의 그 고난 현장에 참여시키는 기회로 삼으시기를 바랍니다.</p>
+        </div>
+        
+        <!-- 일요일 -->
+        <div class="card day-card" id="sun">
+            <div class="day-tag">주일</div>
+            <h2 class="day-title"><span class="day-number">1</span>예루살렘 입성</h2>
+            <div class="verse">"...예수께서 예루살렘에 이르러 성전에 들어가사 모든 것을 둘러보시고 때가 이미 저물매 열두 제자를 데리시고 베다니에 나가시다"(막11:1-11)</div>
+            <div class="content">
+                <p>예수께서는 자신을 죽이려는 사람들의 성으로 공공연히 나귀를 타시고 입성하셨으며, 수많은 사람들이 이를 지켜보았습니다. 예수께서는 성전에 들어가셔서 모든 것을 둘러보셨습니다.</p>
+                <p>그리고 웅장하고 아름답게 장식된 성전 속에서 인간의 위선, 탐욕, 가증스러움, 이기주의 등의 죄악이 가득 차 있음을 보셨습니다. 다음 날 예수께서는 이처럼 더럽혀진 성전을 깨끗케 하기 위해 채찍을 드셔야 했습니다.</p>
+            </div>
+            <div class="meditation">
+                <p class="meditation-title">[묵상]</p>
+                <ol class="meditation-points">
+                    <li class="meditation-point">고난과 죽음을 미리 아시면서도 예루살렘에 입성하신 예수님의 용기를 생각해 봅시다.</li>
+                    <li class="meditation-point">오늘 내 마음 속을, 우리 교회를 예수님께서 오셔서 둘러보신다면 무엇을 느끼실까요?</li>
+                </ol>
+            </div>
+        </div>
+        
+        <!-- 월요일 -->
+        <div class="card day-card" id="mon">
+            <div class="day-tag">월요일</div>
+            <h2 class="day-title"><span class="day-number">2</span>성전을 청결케 하심</h2>
+            <div class="verse">"예수께서 성전에 들어 가사 성전 안에서 매매하는 자들을 내어 쫓으시며 돈 바꾸는 자들의 상과 비둘기 파는자들의 의자를 둘러엎으시며..."(막11:15-19)</div>
+            <div class="content">
+                <p>당시 성전 안에서는 명절 때 희생의 제물로 쓸 짐승과 향유, 그밖에 필요한 물품을 매매하였고, 성전 안에서만 쓰는 유대 화폐를 교환하여 주곤 하였습니다. 이러한 상인들, 돈 바꾸는 자들과 결탁한 제사장들은 막대한 부당이득을 취하였으며, 이로 인해 성전은 완전히 시장과 같이 되어 버렸던 것입니다.</p>
+                <p>이때 예수께서는 그들을 내어 쫓으시며 "내 집은 만민의 기도하는 집이라 칭함을 받으리라고 하지 아니하였느냐? 너희는 강도의 굴혈을 만들었도다"(17절) 라고 말씀하셨습니다. 예수께서는 참 제사장의 자격으로 더러워진 성전에 대해 격분하시고 이를 깨끗케 하신 것입니다. 이것은 성전 뿐 아니라 온 세계를 성결케 하시려는 하나의 표징이 됩니다.</p>
+            </div>
+            <div class="meditation">
+                <p class="meditation-title">[묵상]</p>
+                <ol class="meditation-points">
+                    <li class="meditation-point">나의 신앙은 혹시 이기주의, 상업주의에 젖어 있지 않나요?</li>
+                    <li class="meditation-point">하나님의 성전을 참으로 '기도하는 집'으로 만들기 위해 우리는 어떤 신앙의 태도를 가져야 할까요?</li>
+                </ol>
+            </div>
+        </div>
+        
+        <!-- 화요일 -->
+        <div class="card day-card" id="tue">
+            <div class="day-tag">화요일</div>
+            <h2 class="day-title"><span class="day-number">3</span>과부의 두 렙돈</h2>
+            <div class="verse">"예수께서 제자들을 불러다가 이르시되 내가 진실로 너희에게 이르노니 이 가난한 과부는 연보궤에 넣는 모든 사람보다 많이 넣었도다..."(막 12:41-44)</div>
+            <div class="content">
+                <p>예수께서 연보를 대하여 앉으셔서 그들의 연보 넣는 것을 지켜보셨습니다. "한 과부는 두 렙돈 곧 한 고드란트"를 넣었습니다. 이때 예수께서 "이 가난한 과부는 연보에 넣는 모든 사람보다 많이 넣었도다. 저희는 그 풍족한 중에서 넣었거니와 이 과부는 그 구차한 중에서 자기 모든 소유 곧 생활비 전부를 넣었느니라"고 말씀하셨습니다.</p>
+                <p>예수께서는 이를 기뻐하신 것입니다. 우리는 이 평범한 것 같은 이야기에서 실로 하나님의 기뻐하심이 강조되어 있는 점에 주의하여야 하겠습니다. 하나님은 양보다는 질을, 형식보다는 중심을 중요시 하십니다. 우리가 드리는 헌금은 하나님께서 기뻐 받아 주실 만한 것입니까?</p>
+            </div>
+            <div class="meditation">
+                <p class="meditation-title">[묵상]</p>
+                <ol class="meditation-points">
+                    <li class="meditation-point">하나님이 기뻐 받으시는 헌금은 어떤 것일까요?(고후9:7,8:12)</li>
+                    <li class="meditation-point">다음의 말씀을 묵상합시다. "많은 사람들은 지갑으로만 바쳤지만 그녀는 마음으로 바쳤습니다. 이는 습관을 좇아 드리는 것과 사랑으로 드리는 것의 차이입니다."</li>
+                </ol>
+            </div>
+        </div>
+        
+        <!-- 수요일 -->
+        <div class="card day-card" id="wed">
+            <div class="day-tag">수요일</div>
+            <h2 class="day-title"><span class="day-number">4</span>한 여인의 헌신</h2>
+            <div class="verse">"..저가 힘을 다하여 내 몸에 향유를 부어 내 장사를 미리 준비하였느니라"(막14:3-9)</div>
+            <div class="content">
+                <p>예수께서 문둥이 시몬의 집에서 식사하실 때 한 여인이 비싼 향유가 든 옥합을 가지고 예수께 나아와 그 옥합을 깨뜨리고 향유를 예수님의 머리에 부었습니다. 이 향유는 300데나리온에 팔 수 있다고 하는데 한 데나리온은 노동자의 보통 하루 품삯에 해당합니다. 이 향유는 무척 비싼 것이었습니다.</p>
+                <p>우리는 이 여인에게서 무엇으로도 막을 수 없는 사랑의 충동을 볼 수 있습니다. 제자들의 불평과 비난 속에서도 예수께 향한 그녀의 사랑은 그칠 줄 몰랐습니다. 이 일을 주님께서 칭찬하셨습니다. "내가 진실로 너희에게 이르노니 온 천하에 어디서든지 복음이 전파되는 곳에는 이 여자의 행한 일도 말하여 저를 기념하리라"</p>
+            </div>
+            <div class="meditation">
+                <p class="meditation-title">[묵상]</p>
+                <ol class="meditation-points">
+                    <li class="meditation-point">하나님의 영광을 높이며, 주님을 위하는 데 따라야 할 자기희생에는 어떤 것이 있을까요?</li>
+                    <li class="meditation-point">"내 장사를 미리 준비함"과 "나는 너희와 항상 함께 있지 아니하리라"의 말씀에서 '봉사의 기회'에 대해 생각해 봅시다. 기회를 놓치지 말고 봉사해야 할 일에 어떤 것이 있을까요?</li>
+                </ol>
+            </div>
+        </div>
+        
+        <!-- 목요일 -->
+        <div class="card day-card" id="thu">
+            <div class="day-tag">목요일</div>
+            <h2 class="day-title"><span class="day-number">5</span>최후의 만찬</h2>
+            <div class="verse">"..받으라 이것이 내 몸이니라..,이것은 많은 사람을 위하여 흘리는 바 나의 피 곧 언약의 피니라..."(막14:22-25)</div>
+            <div class="content">
+                <p>예수께서는 배반당하시던 날 밤에 제자들과 함께 유월절을 지키셨습니다. 이 때 제자들과 함께 마지막 만찬을 드셨습니다. 이는 십자가 위에서 자기 몸을 희생해 제자들의 영원한 생명의 양식이 되실 것을 말씀으로만 아니라 눈으로 볼 수 있는 일로 나타내신 것입니다.</p>
+                <p>예수께서는 십자가 위에서 찢기실 자신의 몸과 흘리실 피로 속죄를 이루실 것을 말씀하신 것입니다. 이 마지막 만찬 때 예수께서는 한 사람의 제사장으로서 그의 영원한 영혼을 흠 없이 하나님께 드리셨습니다.</p>
+            </div>
+            <div class="meditation">
+                <p class="meditation-title">[묵상]</p>
+                <ol class="meditation-points">
+                    <li class="meditation-point">최후의 만찬에 참여한 제자들의 심정을 생각해 봅시다.</li>
+                    <li class="meditation-point">그리스도의 피와 살을 먹음으로 속죄에 참여하고 있는 우리들은 어떻게 사는 것이 올바른 것인가를 생각해 봅시다.</li>
+                </ol>
+            </div>
+        </div>
+        
+        <!-- 금요일 -->
+        <div class="card day-card" id="fri">
+            <div class="day-tag">금요일</div>
+            <h2 class="day-title"><span class="day-number">6</span>십자가에 달리시고 운명하시다</h2>
+            <div class="verse">"...예수께서 큰 소리를 지르시고 운명하시다..." (막15:16-41)</div>
+            <div class="content">
+                <div class="cross-words">
+                    <div class="cross-word"><span class="cross-word-num">1.</span>"아버지 저들을 용서해 주옵소서". 하나님의 용서하시는 사랑은 한이 없습니다.</div>
+                    <div class="cross-word"><span class="cross-word-num">2.</span>"오늘 네가 나와 함께 낙원에 있을 것이다." 회개하는 죄인에게 하나님은 새로운 희망을 주십니다.</div>
+                    <div class="cross-word"><span class="cross-word-num">3.</span>"어머니 보소서. 아들입니다." 인간 사이에 있어야 할 돌봄과 사랑을 보여주십니다.</div>
+                    <div class="cross-word"><span class="cross-word-num">4.</span>"나의 하나님 나의 하나님 왜 나를 버리시나이까?" 대신 지신 죄 때문에 고통당하시고 버림 받으시는 예수의 거룩한 절규를 보게 됩니다.</div>
+                    <div class="cross-word"><span class="cross-word-num">5.</span>"내가 목마르다." 인간들의 사랑과 헌신과 충성을 요청하시는 갈증입니다.</div>
+                    <div class="cross-word"><span class="cross-word-num">6.</span>"다 이루었다" 거룩한 희생으로 모든 죄를 대속하셨다는 하나님 어린 양의 승리의 외침입니다.</div>
+                    <div class="cross-word"><span class="cross-word-num">7.</span>"아버지, 내 영혼을 당신의 손에 맡깁니다." 하나님께로부터 오신 예수는 하나님께로 돌아가셨습니다.</div>
+                </div>
+            </div>
+            <div class="meditation">
+                <p class="meditation-title">[묵상]</p>
+                <ol class="meditation-points">
+                    <li class="meditation-point">용서함 받은 우리는 역시 남을 용서하며 사는 삶을 살아야 하지 않을까요?</li>
+                    <li class="meditation-point">훗날 우리가 남길 유언을 생각해 봅시다.</li>
+                </ol>
+            </div>
+        </div>
+        
+        <!-- 토요일 -->
+        <div class="card day-card" id="sat">
+            <div class="day-tag">토요일</div>
+            <h2 class="day-title"><span class="day-number">7</span>무덤 속의 예수</h2>
+            <div class="verse">"...요셉이 세마포를 사고 예수를 내려다가 이것으로 싸서 바위 속에 판 무덤에 넣어 두고 돌을 굴려 무덤 문에 놓으매..." (막15:42-47)</div>
+            <div class="content">
+                <p>그 전날 아리마대 사람 요셉이 빌라도에게 가서 청하여 자기를 위하여 새로 만들어 둔 무덤에 장사지냈습니다. 그는 알려지지 않은 제자였지만 이제는 관헌의 박해와 친지들의 차가운 눈총을 무릎 쓰고 용기 있게 행동했습니다. 그는 당당히 빌라도에게 가서 예수의 시체 인도를 요구했습니다.</p>
+                <p>예수께서는 그 자신이 무덤에 들어가심으로 죽음을 이기시고 악의 권세를 물리치시게 되셨습니다. 그는 무덤의 어두움을 제거하셨으며 그 공포를 영원히 쫓아 버리셨습니다. 죽음이 그 쏘는 살로 그리스도를 상하게 했지만 부활하심으로 이제는 그리스도를 따르는 모든 사람에게 죽음이 그 위력을 끼치지 못하게 만드셨습니다.</p>
+            </div>
+            <div class="meditation">
+                <p class="meditation-title">[묵상]</p>
+                <ol class="meditation-points">
+                    <li class="meditation-point">예수의 죽으심과 부활이 나에게 어떤 의미가 있나요?</li>
+                    <li class="meditation-point">기독교인은 죽음을 어떻게 맞아야 할까요?</li>
+                </ol>
+            </div>
+        </div>
+        
+        <!-- 부활절 -->
+        <div class="card day-card" id="easter">
+            <div class="day-tag" style="background-color: #1A1A1A;">부활절</div>
+            <h2 class="day-title"><span class="day-number">8</span>부활의 주를 만난 삶 <i class="fas fa-dove easter-icon"></i></h2>
+            <div class="verse">"...말하기를 주께서 과연 살아나시고 시몬에게 나타나셨다 하는지라..."(눅24:25-35)</div>
+            <div class="content">
+                <p>금요일에 장사지낸 바 된 예수님께서는 삼일 만에 다시 살아나셨습니다. 본문은 예수 부활 사건이 전해진 그날 오후 엠마오로 내려가던 두 제자에게 부활하신 주님께서 나타나셨고, 실의에 빠진 그들이 부활의 주를 만나 용기를 얻었다는 기록입니다.</p>
+                <p>글로바와 다른 한 제자는 그날 아침 예수의 부활 소식을 듣고도 믿지 못하고 엠마오로 가고 있었습니다. 그때 부활하신 주께서 그들 사이에 동행하시면서 구약성서를 풀어주셨습니다. 메시아가 고난 받으셔야 할 것과, 고난 후 영광이 있을 것이라는 사실을...</p>
+                <p>그 후 그들의 목적지까지 도달하여 떡을 떼실 때 그들은 부활하신 주님을 알아보게 되었고, 용기를 얻어 예루살렘으로 돌아와 부활을 증거 하게 되었습니다. 예수께서 그들과 동행하셨는데 왜 그들은 깨닫지 못했을까요? 마가복음 16장 12절에는 "예수께서 다른 모양으로 저희에게 나타나셨다"고 했습니다. 또한 누가복음에는 "저희의 눈이 가리워져서 그인 줄 알아보지 못하거늘"(24:16)이라고 기록했습니다. 그런 그들이 말씀을 풀어 주실 때 마음이 뜨거워졌고, 떡을 가지고 축사하사 저희에게 떼어 주실 때 "저희의 눈이 밝아져 그인 줄 알아"보게 되었습니다.</p>
+            </div>
+            <div class="meditation">
+                <p class="meditation-title">[묵상]</p>
+                <ol class="meditation-points">
+                    <li class="meditation-point">예수의 부활의 사실을 의심할 때가 있나요?</li>
+                    <li class="meditation-point">부활 신앙이 우리의 삶을 어떻게 생동감 있게 하나요?</li>
+                </ol>
+            </div>
+        </div>
+        
+        <footer>
+            <p>© 2025 십자가의 길 - 고난주간 묵상</p>
+            <p style="margin-top: 5px; font-size: 12px;">이 묵상집은 여러분의 영적 성장을 위해 제작되었습니다.</p>
+        </footer>
+    </div>
+    
+    <!-- 스크립트 -->
+    <script>
+        // DOM이 완전히 로드된 후 실행
+        document.addEventListener('DOMContentLoaded', function() {
+            // 요소 참조
+            const progressBar = document.getElementById('progressBar');
+            const navBtn = document.getElementById('navBtn');
+            const navMenu = document.getElementById('navMenu');
+            const overlay = document.getElementById('overlay');
+            const menuItems = document.querySelectorAll('.nav-menu-item');
+            const sideNavItems = document.querySelectorAll('.side-nav-item');
+            const cards = document.querySelectorAll('.card');
+            
+            // 현재 활성화된 카드 ID를 저장할 변수
+            let activeCardId = null;
+            
+            // 초기화 함수
+            function init() {
+                console.log('앱 초기화 중...');
+                
+                // 카드 애니메이션 설정
+                setupCardAnimations();
+                
+                // 이벤트 리스너 추가
+                setupEventListeners();
+                
+                // 스크롤 위치에 따라 처음 활성화할 카드 결정
+                updateActiveCardOnScroll();
+                
+                // 프로그레스 바 업데이트
+                updateProgressBar();
+                
+                console.log('앱 초기화 완료!');
+            }
+            
+            // 카드 애니메이션 설정
+            function setupCardAnimations() {
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('show');
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                }, { threshold: 0.15 });
+                
+                cards.forEach(card => {
+                    observer.observe(card);
+                });
+            }
+            
+            // 이벤트 리스너 설정
+            function setupEventListeners() {
+                // 네비게이션 버튼 클릭 이벤트
+                navBtn.addEventListener('click', toggleMenu);
+                
+                // 오버레이 클릭 이벤트
+                overlay.addEventListener('click', closeMenu);
+                
+                // 메뉴 아이템 클릭 이벤트
+                menuItems.forEach(item => {
+                    item.addEventListener('click', function() {
+                        navigateToCard(this.getAttribute('data-target'));
+                    });
+                });
+                
+                // 사이드 네비게이션 아이템 클릭 이벤트
+                sideNavItems.forEach(item => {
+                    item.addEventListener('click', function() {
+                        navigateToCard(this.getAttribute('data-target'));
+                    });
+                });
+                
+                // 스크롤 이벤트
+                window.addEventListener('scroll', function() {
+                    updateProgressBar();
+                    updateActiveCardOnScroll();
+                });
+                
+                // 리사이즈 이벤트
+                window.addEventListener('resize', updateProgressBar);
+            }
+            
+            // 카드로 이동하는 함수
+            function navigateToCard(targetId) {
+                const targetElement = document.getElementById(targetId);
+                
+                if (targetElement) {
+                    // 메뉴 닫기
+                    closeMenu();
+                    
+                    // 약간의 지연 후 스크롤 (메뉴 닫힘 애니메이션 기다림)
+                    setTimeout(function() {
+                        // 헤더 높이를 고려한 오프셋 계산
+                        const headerHeight = 80;
+                        const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - headerHeight;
+                        
+                        window.scrollTo({
+                            top: targetPosition,
+                            behavior: 'smooth'
+                        });
+                    }, 300);
+                }
+            }
+            
+            // 메뉴 토글 함수
+            function toggleMenu() {
+                if (navMenu.classList.contains('active')) {
+                    closeMenu();
+                } else {
+                    openMenu();
+                }
+            }
+            
+            // 메뉴 열기
+            function openMenu() {
+                navMenu.classList.add('active');
+                overlay.classList.add('active');
+                navBtn.innerHTML = '<i class="fas fa-times"></i>';
+                
+                // 현재 활성화된 카드에 해당하는 메뉴 아이템 활성화
+                updateActiveMenuItem();
+            }
+            
+            // 메뉴 닫기
+            function closeMenu() {
+                navMenu.classList.remove('active');
+                overlay.classList.remove('active');
+                navBtn.innerHTML = '<i class="fas fa-list-ol"></i>';
+            }
+            
+            // 스크롤에 따라 프로그레스 바 업데이트
+            function updateProgressBar() {
+                const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+                const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+                const scrolled = (winScroll / height) * 100;
+                progressBar.style.width = scrolled + "%";
+            }
+            
+            // 스크롤 위치에 따라 활성 카드 업데이트
+            function updateActiveCardOnScroll() {
+                const windowHeight = window.innerHeight;
+                const triggerPosition = windowHeight / 2;
+                
+                let activeCard = null;
+                let maxVisibility = 0;
+                
+                // 각 카드의 가시성 확인
+                cards.forEach(card => {
+                    const rect = card.getBoundingClientRect();
+                    // 카드가 화면에 얼마나 보이는지 계산
+                    const visibility = Math.min(
+                        rect.bottom, 
+                        windowHeight
+                    ) - Math.max(
+                        rect.top, 
+                        0
+                    );
+                    
+                    if (visibility > maxVisibility) {
+                        maxVisibility = visibility;
+                        activeCard = card;
+                    }
+                });
+                
+                if (activeCard && activeCard.id !== activeCardId) {
+                    activeCardId = activeCard.id;
+                    updateActiveMenuItem();
+                    updateActiveSideNavItem();
+                }
+            }
+            
+            // 활성 메뉴 아이템 업데이트
+            function updateActiveMenuItem() {
+                if (!activeCardId) return;
+                
+                // 모든 메뉴 아이템에서 활성 클래스 제거
+                menuItems.forEach(item => {
+                    item.classList.remove('active');
+                });
+                
+                // 현재 활성 카드에 해당하는 메뉴 아이템 찾아서 활성화
+                const activeMenuItem = document.querySelector(`.nav-menu-item[data-target="${activeCardId}"]`);
+                if (activeMenuItem) {
+                    activeMenuItem.classList.add('active');
+                }
+            }
+            
+            // 활성 사이드 네비게이션 아이템 업데이트
+            function updateActiveSideNavItem() {
+                if (!activeCardId) return;
+                
+                // 모든 사이드 네비게이션 아이템에서 활성 클래스 제거
+                sideNavItems.forEach(item => {
+                    item.classList.remove('active');
+                });
+                
+                // 현재 활성 카드에 해당하는 사이드 네비게이션 아이템 찾아서 활성화
+                const activeSideNavItem = document.querySelector(`.side-nav-item[data-target="${activeCardId}"]`);
+                if (activeSideNavItem) {
+                    activeSideNavItem.classList.add('active');
+                }
+            }
+            
+            // 앱 초기화
+            init();
+        });
+    </script>
+</body>
+</html>

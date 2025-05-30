@@ -1,0 +1,39 @@
+.bottomNav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  height: 60px; /* Keep height consistent */
+  background-color: var(--background-white); /* Use white background */
+  border-top: 1px solid var(--border-color);
+  box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.05); /* Subtle shadow */
+  z-index: 1000; /* Ensure it's above other content */
+}
+
+.navLink {
+  display: flex;
+  flex-direction: column; /* Icon and text vertically */
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1; /* Distribute space evenly */
+  height: 100%;
+  text-decoration: none;
+  color: var(--secondary-text); /* Use secondary text color */
+  font-size: 12px; /* Slightly smaller font size */
+  padding: 5px 0;
+  transition: color 0.2s ease-in-out;
+}
+
+/* Style for the active link */
+.navLink.active {
+  color: var(--primary-blue); /* Use primary blue for active link */
+  font-weight: 600;
+}
+
+/* Add some margin to the bottom of the main content area */
+.contentArea {
+  padding-bottom: 70px; /* Space for the fixed nav */
+} 

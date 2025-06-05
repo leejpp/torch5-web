@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { Link, Outlet } from 'react-router-dom';
-import { theme } from '../styles/theme';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 import AdminAuth from '../components/admin/AdminAuth';
 
 const AdminLayout = () => {
+  const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
@@ -19,11 +19,9 @@ const AdminLayout = () => {
               <MenuIcon>{isMenuOpen ? '✕' : '☰'}</MenuIcon>
             </MenuButton>
             <Nav $isOpen={isMenuOpen}>
-              <NavLink to="/admin/notice">공지사항</NavLink>
-              <NavLink to="/admin/prayer">중보기도</NavLink>
-              <NavLink to="/admin/voices">마음의 소리</NavLink>
-              <NavLink to="/admin/calendar">일정관리</NavLink>
-              <NavLink to="/admin/members">멤버관리</NavLink>
+              <NavLink to="/admin/prayer" $isActive={location.pathname === '/admin/prayer'}>중보기도</NavLink>
+              <NavLink to="/admin/voices" $isActive={location.pathname === '/admin/voices'}>마음의 소리</NavLink>
+              <NavLink to="/admin/calendar" $isActive={location.pathname === '/admin/calendar'}>일정관리</NavLink>
             </Nav>
           </HeaderContent>
         </Header>
@@ -32,7 +30,7 @@ const AdminLayout = () => {
         </Main>
         <Footer>
           <FooterContent>
-            <FooterText>© 2024 TOGY 청년부 관리자. All rights reserved.</FooterText>
+            <FooterText>© 2025 TOGY 청년부 관리자. All rights reserved.</FooterText>
           </FooterContent>
         </Footer>
       </Container>
@@ -44,27 +42,28 @@ const Container = styled.div`
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: ${theme.colors.background};
+  background-color: #f8f9fa;
 `;
 
 const Header = styled.header`
-  background-color: ${theme.colors.neutral[1]};
-  box-shadow: ${theme.shadows.sm};
+  background-color: #4285F4;
+  color: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;
   z-index: 100;
 `;
 
 const HeaderContent = styled.div`
-  max-width: ${theme.breakpoints.xl};
+  max-width: 1200px;
   margin: 0 auto;
-  padding: ${theme.spacing.md};
+  padding: 1rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   
-  @media (max-width: ${theme.breakpoints.md}) {
-    padding: ${theme.spacing.sm};
+  @media (max-width: 768px) {
+    padding: 0.8rem 1.5rem;
   }
 `;
 
@@ -73,13 +72,13 @@ const HomeLink = styled(Link)`
 `;
 
 const Logo = styled.h1`
-  font-size: ${theme.typography.fontSize['2xl']};
-  font-weight: ${theme.typography.fontWeight.bold};
-  color: ${theme.colors.background};
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: white;
   margin: 0;
   
-  @media (max-width: ${theme.breakpoints.md}) {
-    font-size: ${theme.typography.fontSize.xl};
+  @media (max-width: 768px) {
+    font-size: 1.5rem;
   }
 `;
 
@@ -87,12 +86,12 @@ const MenuButton = styled.button`
   display: none;
   background: none;
   border: none;
-  color: ${theme.colors.background};
-  font-size: ${theme.typography.fontSize['2xl']};
+  color: white;
+  font-size: 1.5rem;
   cursor: pointer;
-  padding: ${theme.spacing.xs};
+  padding: 0.5rem;
   
-  @media (max-width: ${theme.breakpoints.md}) {
+  @media (max-width: 768px) {
     display: block;
   }
 `;
@@ -104,35 +103,36 @@ const MenuIcon = styled.span`
 
 const Nav = styled.nav`
   display: flex;
-  gap: ${theme.spacing.md};
+  gap: 1.5rem;
   
-  @media (max-width: ${theme.breakpoints.md}) {
+  @media (max-width: 768px) {
     display: ${props => props.$isOpen ? 'flex' : 'none'};
     position: absolute;
     top: 100%;
     left: 0;
     right: 0;
-    background-color: ${theme.colors.neutral[1]};
-    padding: ${theme.spacing.md};
+    background-color: #357ae8;
+    padding: 1rem;
     flex-direction: column;
-    gap: ${theme.spacing.sm};
+    gap: 1rem;
   }
 `;
 
 const NavLink = styled(Link)`
-  color: ${theme.colors.background};
+  color: white;
   text-decoration: none;
-  font-weight: ${theme.typography.fontWeight.medium};
-  padding: ${theme.spacing.xs} ${theme.spacing.sm};
-  border-radius: ${theme.borderRadius.md};
-  transition: ${theme.transitions.default};
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  transition: all 0.2s ease-in-out;
+  background-color: ${props => props.$isActive ? 'rgba(255, 255, 255, 0.2)' : 'transparent'};
   
   &:hover {
-    background-color: ${theme.colors.neutral[4]};
+    background-color: rgba(255, 255, 255, 0.2);
   }
   
-  @media (max-width: ${theme.breakpoints.md}) {
-    font-size: ${theme.typography.fontSize.sm};
+  @media (max-width: 768px) {
+    font-size: 0.95rem;
     width: 100%;
     text-align: center;
   }
@@ -140,32 +140,26 @@ const NavLink = styled(Link)`
 
 const Main = styled.main`
   flex: 1;
-  max-width: ${theme.breakpoints.xl};
-  margin: 0 auto;
-  padding: ${theme.spacing.xl};
   width: 100%;
-  
-  @media (max-width: ${theme.breakpoints.md}) {
-    padding: ${theme.spacing.md};
-  }
+  margin: 0 auto;
 `;
 
 const Footer = styled.footer`
-  background-color: ${theme.colors.neutral[2]};
-  padding: ${theme.spacing.lg} 0;
+  background-color: #e7f0ff;
+  padding: 1.5rem 0;
   margin-top: auto;
 `;
 
 const FooterContent = styled.div`
-  max-width: ${theme.breakpoints.xl};
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 0 ${theme.spacing.md};
+  padding: 0 2rem;
   text-align: center;
 `;
 
 const FooterText = styled.p`
-  color: ${theme.colors.neutral[3]};
-  font-size: ${theme.typography.fontSize.sm};
+  color: #4285F4;
+  font-size: 0.9rem;
   margin: 0;
 `;
 

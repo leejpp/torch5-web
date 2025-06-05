@@ -12,11 +12,9 @@ import Calendar from './pages/user/Calendar';
 
 // Admin Pages
 import Dashboard from './pages/admin/Dashboard';
-import NoticeAdmin from './pages/admin/Notice';
 import PrayerAdmin from './pages/admin/Prayer';
 import VoicesAdmin from './pages/admin/Voices';
 import CalendarAdmin from './pages/admin/Calendar';
-import MembersAdmin from './pages/admin/Members';
 
 // Layouts
 import UserLayout from './layouts/UserLayout';
@@ -82,11 +80,9 @@ const App = () => {
           {/* Admin Routes */}
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<Dashboard />} />
-            <Route path="notice" element={<NoticeAdmin />} />
             <Route path="prayer" element={<PrayerAdmin />} />
             <Route path="voices" element={<VoicesAdmin />} />
             <Route path="calendar" element={<CalendarAdmin />} />
-            <Route path="members" element={<MembersAdmin />} />
           </Route>
         </Routes>
       </Router>

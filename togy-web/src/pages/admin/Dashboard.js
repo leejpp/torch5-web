@@ -5,12 +5,10 @@ import { Link } from 'react-router-dom';
 const Dashboard = () => {
   return (
     <Container>
-      <Title>관리자 대시보드</Title>
+      <Header>
+        <Title>관리자 대시보드</Title>
+      </Header>
       <MenuGrid>
-        <MenuItem to="/admin/notice">
-          <MenuIcon>📢</MenuIcon>
-          <MenuTitle>공지사항 관리</MenuTitle>
-        </MenuItem>
         <MenuItem to="/admin/prayer">
           <MenuIcon>🙏</MenuIcon>
           <MenuTitle>중보기도 관리</MenuTitle>
@@ -23,10 +21,6 @@ const Dashboard = () => {
           <MenuIcon>📅</MenuIcon>
           <MenuTitle>일정 관리</MenuTitle>
         </MenuItem>
-        <MenuItem to="/admin/members">
-          <MenuIcon>👥</MenuIcon>
-          <MenuTitle>멤버 관리</MenuTitle>
-        </MenuItem>
       </MenuGrid>
     </Container>
   );
@@ -35,65 +29,93 @@ const Dashboard = () => {
 const Container = styled.div`
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem;
-  
+  background-color: #f8f9fa;
+  padding-bottom: 3rem;
+  min-height: 100vh;
+
   @media (max-width: 768px) {
-    padding: 1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+`;
+
+const Header = styled.header`
+  background-color: #4285F4;
+  color: white;
+  padding: 1.5rem 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  @media (max-width: 768px) {
+    padding: 1rem 1.5rem;
   }
 `;
 
 const Title = styled.h1`
-  font-size: 2rem;
-  color: #333;
+  font-size: 1.8rem;
+  font-weight: bold;
   margin: 0;
-  
+
   @media (max-width: 768px) {
-    font-size: 1.8rem;
+    font-size: 1.5rem;
   }
 `;
 
 const MenuGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 2rem;
-  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 3rem 2rem;
   
   @media (max-width: 768px) {
-    grid-template-columns: 1fr;
+    padding: 2rem 1rem;
     gap: 1rem;
   }
 `;
 
 const MenuItem = styled(Link)`
   background-color: white;
-  padding: 2rem;
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 1.8rem 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   text-decoration: none;
   color: inherit;
-  transition: transform 0.2s ease;
+  transition: all 0.2s ease-in-out;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
   
   &:hover {
-    transform: translateY(-5px);
+    background-color: #f8f9fa;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   }
   
   @media (max-width: 768px) {
     padding: 1.5rem;
+    gap: 1rem;
   }
 `;
 
 const MenuIcon = styled.span`
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
+  font-size: 2rem;
+  display: inline-flex;
+  align-items: center;
+  
+  @media (max-width: 768px) {
+    font-size: 1.8rem;
+  }
 `;
 
 const MenuTitle = styled.h2`
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   color: #333;
   margin: 0;
+  font-weight: 500;
   
   @media (max-width: 768px) {
-    font-size: 1.3rem;
+    font-size: 1.1rem;
   }
 `;
 
@@ -106,7 +128,7 @@ const MenuDescription = styled.p`
   }
 `;
 
-const Header = styled.header`
+const DashboardHeader = styled.header`
   display: flex;
   justify-content: space-between;
   align-items: center;

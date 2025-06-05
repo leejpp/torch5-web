@@ -1,3 +1,4 @@
 node_modules
 .env
-build
+togy-web/build
+togy-web/node_modules

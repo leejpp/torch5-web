@@ -148,32 +148,42 @@ const VisionItem = styled.li`
   padding: 1.5rem 2rem;
   display: flex;
   align-items: center;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-  border: 1px solid #e9ecef;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    border-color: rgba(66, 133, 244, 0.2);
+  }
 
   @media (max-width: 768px) {
-    padding: 1rem 1.5rem;
-    flex-direction: row; /* Keep row layout */
+    padding: 1.2rem 1.5rem;
+    align-items: flex-start;
+    gap: 1rem;
   }
 `;
 
 const ItemNumber = styled.span`
-  background-color: #e7f0ff; /* Light blue background for number */
-  color: #4285F4;
+  background-color: #4285F4;
+  color: white;
   border-radius: 50%;
-  width: 35px;
-  height: 35px;
+  width: 40px;
+  height: 40px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-weight: bold;
+  font-weight: 600;
   margin-right: 1.5rem;
-  flex-shrink: 0; /* Prevent shrinking */
+  flex-shrink: 0;
+  font-size: 1rem;
 
   @media (max-width: 768px) {
-    width: 30px;
-    height: 30px;
-    margin-right: 1rem;
+    width: 32px;
+    height: 32px;
+    margin-right: 0;
+    font-size: 0.9rem;
   }
 `;
 
@@ -182,85 +192,80 @@ const ItemText = styled.span`
   text-align: left;
   font-size: 1.1rem;
   color: #333;
-  line-height: 1.6;
+  line-height: 1.7;
   word-break: keep-all;
-  padding-right: 1rem; /* Space before icon */
-
+  font-weight: 400;
 
   @media (max-width: 768px) {
     font-size: 1rem;
+    line-height: 1.6;
   }
 `;
 
 const QuickLinks = styled.div`
-  display: flex; /* Use flexbox for centering */
-  justify-content: center; /* Center buttons */
-  gap: 1.5rem;
-  padding: 0 2rem 3rem; /* Add padding */
-  flex-wrap: wrap; /* Allow wrapping on smaller screens */
-
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0 2rem 3rem;
+  max-width: 400px;
+  margin: 0 auto;
 
   @media (max-width: 768px) {
-     gap: 1rem;
-     padding: 0 1rem 2rem;
+    padding: 0 1rem 2rem;
   }
 `;
 
-// Update StyledButton component
 const StyledButton = styled.button`
-  padding: 0.8rem 1.8rem;
-  border-radius: 8px;
-  text-decoration: none;
+  padding: 1rem 2rem;
+  border-radius: 12px;
   font-size: 1.1rem;
-  font-weight: 500;
-  display: inline-flex;
+  font-weight: 600;
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.6rem;
-  transition: all 0.2s ease-in-out;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  min-width: 150px;
+  gap: 0.8rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   cursor: pointer;
   border: none;
   outline: none;
+  width: 100%;
 
   ${({ type }) => type === 'secondary' ? `
     background-color: white;
     color: #4285F4;
-    border: 1px solid #4285F4;
+    border: 2px solid #4285F4;
     &:hover {
       background-color: #f8f9fa;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(66, 133, 244, 0.2);
     }
   ` : `
     background-color: #4285F4;
     color: white;
-    border: 1px solid #4285F4;
+    border: 2px solid #4285F4;
     &:hover {
-      background-color: #357ae8;
+      background-color: #1a73e8;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
     }
   `}
 
   @media (max-width: 768px) {
+    padding: 1rem 1.5rem;
     font-size: 1rem;
-    padding: 0.7rem 1.5rem;
-    width: calc(50% - 0.5rem);
-    min-width: auto;
-    &:nth-child(3) {
-      margin-top: 1rem;
-    }
-    @media (max-width: 480px) {
-      width: 100%;
-      &:nth-child(3) {
-        margin-top: 1rem;
-      }
-    }
+    border-radius: 10px;
   }
 `;
 
 const ButtonIcon = styled.span`
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   display: inline-flex;
   align-items: center;
+
+  @media (max-width: 768px) {
+    font-size: 1.2rem;
+  }
 `;
 
 /* 이전 스타일 컴포넌트 - 현재는 사용되지 않음 */

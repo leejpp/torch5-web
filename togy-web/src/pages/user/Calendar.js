@@ -102,7 +102,7 @@ const Calendar = () => {
         <TitleSection>
           <HomeButton onClick={() => navigate('/')}>← 홈으로</HomeButton>
           <TitleWrapper>
-            <Title onClick={handleTitleClick}>일정</Title>
+            <Title onClick={handleTitleClick}>🗓️ 일정</Title>
             <CurrentDate>
               {format(date, 'yyyy년 M월')}
             </CurrentDate>
@@ -114,7 +114,10 @@ const Calendar = () => {
         onTouchEnd={handleTouchEnd}
       >
         {isLoading ? (
-          <LoadingSpinner>일정을 불러오는 중...</LoadingSpinner>
+          <LoadingSpinner>
+            <LoadingIcon>📅</LoadingIcon>
+            일정을 불러오는 중...
+          </LoadingSpinner>
         ) : (
           <BigCalendar
             ref={calendarRef}
@@ -173,36 +176,46 @@ const Calendar = () => {
       {isModalOpen && selectedEvent && (
         <Modal onClick={() => setIsModalOpen(false)}>
           <ModalContent onClick={e => e.stopPropagation()}>
-            <h2>{selectedEvent.title}</h2>
+            <ModalHeader>
+              <EventTitle>{selectedEvent.title}</EventTitle>
+              <EventTypeTag eventType={selectedEvent.type || 'DEFAULT'}>
+                {EVENT_TYPES[selectedEvent.type]?.label || EVENT_TYPES.DEFAULT.label}
+              </EventTypeTag>
+            </ModalHeader>
             <EventDetails>
               <DetailItem>
-                <Label>날짜</Label>
-                <Value>
-                  {format(selectedEvent.start, 'yyyy년 MM월 dd일')}
-                  {format(selectedEvent.start, 'yyyy-MM-dd') !== format(selectedEvent.end, 'yyyy-MM-dd') && 
-                    ` ~ ${format(selectedEvent.end, 'yyyy년 MM월 dd일')}`
-                  }
-                </Value>
-              </DetailItem>
-              <DetailItem>
-                <Label>타입</Label>
-                <Value>{EVENT_TYPES[selectedEvent.type]?.label || EVENT_TYPES.DEFAULT.label}</Value>
+                <DetailIcon>📅</DetailIcon>
+                <DetailContent>
+                  <Label>날짜</Label>
+                  <Value>
+                    {format(selectedEvent.start, 'yyyy년 MM월 dd일')}
+                    {format(selectedEvent.start, 'yyyy-MM-dd') !== format(selectedEvent.end, 'yyyy-MM-dd') && 
+                      ` ~ ${format(selectedEvent.end, 'yyyy년 MM월 dd일')}`
+                    }
+                  </Value>
+                </DetailContent>
               </DetailItem>
               {selectedEvent.location && (
                 <DetailItem>
-                  <Label>장소</Label>
-                  <Value>{selectedEvent.location}</Value>
+                  <DetailIcon>📍</DetailIcon>
+                  <DetailContent>
+                    <Label>장소</Label>
+                    <Value>{selectedEvent.location}</Value>
+                  </DetailContent>
                 </DetailItem>
               )}
               {selectedEvent.description && (
                 <DetailItem>
-                  <Label>설명</Label>
-                  <Description>{selectedEvent.description}</Description>
+                  <DetailIcon>📝</DetailIcon>
+                  <DetailContent>
+                    <Label>설명</Label>
+                    <Description>{selectedEvent.description}</Description>
+                  </DetailContent>
                 </DetailItem>
               )}
             </EventDetails>
             <CloseButton onClick={() => setIsModalOpen(false)}>
-              닫기
+              ✕ 닫기
             </CloseButton>
           </ModalContent>
         </Modal>
@@ -216,7 +229,7 @@ const Container = styled.div`
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: ${theme.colors.background};
+  background-color: #f8f9fa;
   max-width: 1200px;
   margin: 0 auto;
   
@@ -226,20 +239,20 @@ const Container = styled.div`
 `;
 
 const Header = styled.header`
-  background-color: ${theme.colors.primary};
+  background: linear-gradient(135deg, #4285F4 0%, #1a73e8 100%);
   color: white;
   padding: 1.5rem 2rem;
   display: flex;
   justify-content: center;
   align-items: center;
   position: relative;
-  border-radius: ${theme.borderRadius.lg};
-  margin: 1rem 1rem 2rem;
-  box-shadow: ${theme.shadows.sm};
+  border-radius: 0 0 20px 20px;
+  margin: 0 0 1rem;
+  box-shadow: 0 4px 20px rgba(66, 133, 244, 0.3);
   
   @media (max-width: 768px) {
     padding: 1rem 1.5rem;
-    margin: 0.5rem 0.5rem 1rem;
+    border-radius: 0 0 16px 16px;
   }
 `;
 
@@ -426,11 +439,24 @@ const CalendarContainer = styled.div`
 
 const LoadingSpinner = styled.div`
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   height: 400px;
-  color: #666;
-  font-size: 1.2rem;
+  color: #4285F4;
+  font-size: 1.1rem;
+  font-weight: 500;
+  gap: 1rem;
+`;
+
+const LoadingIcon = styled.div`
+  font-size: 2.5rem;
+  animation: pulse 1.5s ease-in-out infinite;
+  
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+  }
 `;
 
 const Modal = styled.div`
@@ -439,60 +465,129 @@ const Modal = styled.div`
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.6);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  padding: 1rem;
 `;
 
 const ModalContent = styled.div`
   background-color: white;
   padding: 2rem;
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  width: 80%;
-  max-width: 600px;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 500px;
   position: relative;
   z-index: 1001;
+  animation: slideUp 0.3s ease;
 
   @media (max-width: 768px) {
-    width: 90%;
-    margin: 10px;
-    padding: 1.2rem;
-    
-    h2 {
-      font-size: 1.2rem;
-      margin-bottom: 0.8rem;
-    }
+    padding: 1.5rem;
+    border-radius: 16px;
+    margin: 1rem;
+  }
+  
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+`;
+
+const ModalHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 0.8rem;
+    margin-bottom: 1.2rem;
+  }
+`;
+
+const EventTitle = styled.h2`
+  color: #333;
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin: 0;
+  flex: 1;
+  
+  @media (max-width: 768px) {
+    font-size: 1.2rem;
+  }
+`;
+
+const EventTypeTag = styled.span`
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  ${({ eventType }) => {
+    const type = EVENT_TYPES[eventType] || EVENT_TYPES.DEFAULT;
+    return `
+      background-color: ${type.bgColor};
+      color: ${type.color};
+    `;
+  }}
+  
+  @media (max-width: 768px) {
+    align-self: flex-start;
   }
 `;
 
 const EventDetails = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  margin: 1.5rem 0;
+  gap: 1.2rem;
+  margin-bottom: 2rem;
 
   @media (max-width: 768px) {
-    gap: 0.8rem;
-    margin: 1rem 0;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
   }
 `;
 
 const DetailItem = styled.div`
   display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  border-left: 4px solid #4285F4;
 
   @media (max-width: 768px) {
-    gap: 0.2rem;
+    padding: 0.8rem;
+    gap: 0.8rem;
   }
+`;
+
+const DetailIcon = styled.div`
+  font-size: 1.2rem;
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+`;
+
+const DetailContent = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
 `;
 
 const Label = styled.span`
   color: #666;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 
   @media (max-width: 768px) {
     font-size: 0.8rem;
@@ -502,6 +597,7 @@ const Label = styled.span`
 const Value = styled.span`
   color: #333;
   font-size: 1rem;
+  font-weight: 400;
 
   @media (max-width: 768px) {
     font-size: 0.95rem;
@@ -513,21 +609,38 @@ const Description = styled.p`
   font-size: 1rem;
   white-space: pre-wrap;
   margin: 0;
+  line-height: 1.6;
+  
+  @media (max-width: 768px) {
+    font-size: 0.95rem;
+  }
 `;
 
 const CloseButton = styled.button`
   width: 100%;
-  padding: 0.8rem;
-  background-color: #f0f0f0;
-  border: none;
-  border-radius: 5px;
+  padding: 1rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
   color: #666;
   font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
   
   &:hover {
-    background-color: #e0e0e0;
+    background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+    border-color: #dee2e6;
+    transform: translateY(-1px);
+  }
+  
+  @media (max-width: 768px) {
+    padding: 0.8rem;
+    border-radius: 10px;
   }
 `;
 

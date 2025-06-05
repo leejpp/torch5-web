@@ -22,7 +22,7 @@ const Home = () => {
   return (
     <Container>
       <Header>
-        <Title>TOGY 청년부 (4/18 21:45)</Title>
+        <Title>TOGY 청년부</Title>
         {/* <PlusIcon><FaPlus /></PlusIcon> */}
         <PlusIcon>+</PlusIcon>
       </Header>

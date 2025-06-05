@@ -154,95 +154,121 @@ const Prayer = () => {
   return (
     <Container>
       <Header>
-        <TitleSection>
-          <HomeButton to="/admin">← 홈으로</HomeButton>
-          <Title>중보기도 관리</Title>
-        </TitleSection>
+        <Title>중보기도 관리</Title>
       </Header>
 
-      <Form onSubmit={editingPrayer ? handleUpdate : handleSubmit}>
-        <Input
-          type="text"
-          placeholder="이름"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-          disabled={editingPrayer}
-        />
-        {prayerItems.map((item, index) => (
-          <ItemContainer key={index}>
-            <TextArea
-              placeholder={`기도제목 ${index + 1}`}
-              value={item}
-              onChange={(e) => handlePrayerItemChange(index, e.target.value)}
+      <FormSection>
+        <FormTitle>{editingPrayer ? '기도제목 수정' : '새 기도제목 등록'}</FormTitle>
+        <Form onSubmit={editingPrayer ? handleUpdate : handleSubmit}>
+          <InputGroup>
+            <Label>이름</Label>
+            <Input
+              type="text"
+              placeholder="기도받을 분의 이름을 입력하세요"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               required
+              disabled={editingPrayer}
             />
-            {prayerItems.length > 1 && (
-              <RemoveButton type="button" onClick={() => removePrayerItem(index)}>
-                삭제
-              </RemoveButton>
-            )}
-          </ItemContainer>
-        ))}
-        <AddButton type="button" onClick={addPrayerItem}>
-          + 기도제목 추가
-        </AddButton>
-        {error && <ErrorMessage>{error}</ErrorMessage>}
-        {successMessage && <SuccessMessage>{successMessage}</SuccessMessage>}
-        <ButtonContainer>
-          <SubmitButton type="submit" disabled={isSubmitting}>
-            {isSubmitting ? '처리 중...' : (editingPrayer ? '수정하기' : '등록하기')}
-          </SubmitButton>
-          <ClearButton
-            type="button"
-            onClick={() => {
-              setName('');
-              setPrayerItems(['']);
-              setError('');
-              setEditingPrayer(null);
-            }}
-          >
-            {editingPrayer ? '취소' : '초기화'}
-          </ClearButton>
-        </ButtonContainer>
-      </Form>
+          </InputGroup>
+          
+          <ItemsSection>
+            <Label>기도제목</Label>
+            {prayerItems.map((item, index) => (
+              <ItemContainer key={index}>
+                <ItemHeader>
+                  <ItemNumber>{index + 1}</ItemNumber>
+                  {prayerItems.length > 1 && (
+                    <RemoveButton type="button" onClick={() => removePrayerItem(index)}>
+                      ×
+                    </RemoveButton>
+                  )}
+                </ItemHeader>
+                <TextArea
+                  placeholder="기도제목을 입력하세요..."
+                  value={item}
+                  onChange={(e) => handlePrayerItemChange(index, e.target.value)}
+                  required
+                />
+              </ItemContainer>
+            ))}
+            <AddButton type="button" onClick={addPrayerItem}>
+              <AddIcon>+</AddIcon>
+              기도제목 추가
+            </AddButton>
+          </ItemsSection>
 
-      <PrayerList>
-        <ListTitle>기도제목 목록</ListTitle>
-        {prayers.map(prayer => (
-          <PrayerItem key={prayer.id}>
-            <PrayerHeader onClick={() => togglePrayer(prayer.id)}>
-              <HeaderContent>
-                <PrayerName>{prayer.id}</PrayerName>
-                <UpdatedDate>{formatDate(prayer.updatedAt)}</UpdatedDate>
-              </HeaderContent>
-              <ActionButtons onClick={e => e.stopPropagation()}>
-                <EditButton onClick={() => handleEdit(prayer)}>수정</EditButton>
-                <DeleteButton onClick={() => setDeleteConfirm({ isOpen: true, prayerId: prayer.id })}>
-                  삭제
-                </DeleteButton>
-              </ActionButtons>
-              <ToggleIcon isOpen={openPrayerId === prayer.id}>▼</ToggleIcon>
-            </PrayerHeader>
-            <PrayerContent isOpen={openPrayerId === prayer.id}>
-              {prayer.prayerItems.map((item, index) => (
-                <PrayerItemText key={index}>
-                  {item}
-                </PrayerItemText>
-              ))}
-            </PrayerContent>
-          </PrayerItem>
-        ))}
-      </PrayerList>
+          {error && <ErrorMessage>{error}</ErrorMessage>}
+          {successMessage && <SuccessMessage>{successMessage}</SuccessMessage>}
+          
+          <ButtonContainer>
+            <SubmitButton type="submit" disabled={isSubmitting}>
+              {isSubmitting ? '처리 중...' : (editingPrayer ? '수정하기' : '등록하기')}
+            </SubmitButton>
+            <ClearButton
+              type="button"
+              onClick={() => {
+                setName('');
+                setPrayerItems(['']);
+                setError('');
+                setEditingPrayer(null);
+              }}
+            >
+              {editingPrayer ? '취소' : '초기화'}
+            </ClearButton>
+          </ButtonContainer>
+        </Form>
+      </FormSection>
+
+      <ListSection>
+        <ListTitle>등록된 기도제목</ListTitle>
+        {prayers.length === 0 ? (
+          <EmptyState>
+            <EmptyIcon>🙏</EmptyIcon>
+            <EmptyText>등록된 기도제목이 없습니다</EmptyText>
+          </EmptyState>
+        ) : (
+          prayers.map(prayer => (
+            <PrayerCard key={prayer.id}>
+              <CardHeader onClick={() => togglePrayer(prayer.id)}>
+                <PersonInfo>
+                  <PersonName>{prayer.id}</PersonName>
+                  <UpdatedDate>{formatDate(prayer.updatedAt)}</UpdatedDate>
+                </PersonInfo>
+                <CardActions onClick={e => e.stopPropagation()}>
+                  <EditButton onClick={() => handleEdit(prayer)}>
+                    ✏️
+                  </EditButton>
+                  <DeleteButton onClick={() => setDeleteConfirm({ isOpen: true, prayerId: prayer.id })}>
+                    🗑️
+                  </DeleteButton>
+                </CardActions>
+                <ToggleIcon isOpen={openPrayerId === prayer.id}>
+                  {openPrayerId === prayer.id ? '▲' : '▼'}
+                </ToggleIcon>
+              </CardHeader>
+              <PrayerContent isOpen={openPrayerId === prayer.id}>
+                {prayer.prayerItems && prayer.prayerItems.map((item, index) => (
+                  <PrayerItemCard key={index}>
+                    <ItemBadge>{index + 1}</ItemBadge>
+                    <PrayerItemText>{item}</PrayerItemText>
+                  </PrayerItemCard>
+                ))}
+              </PrayerContent>
+            </PrayerCard>
+          ))
+        )}
+      </ListSection>
 
       {deleteConfirm.isOpen && (
-        <DeleteConfirmModal>
-          <ModalContent>
+        <DeleteConfirmModal onClick={() => setDeleteConfirm({ isOpen: false, prayerId: null })}>
+          <ModalContent onClick={e => e.stopPropagation()}>
+            <ModalIcon>⚠️</ModalIcon>
             <h3>기도제목 삭제</h3>
-            <p>정말 이 기도제목을 삭제하시겠습니까?</p>
+            <p>정말 이 기도제목을 삭제하시겠습니까?<br/>삭제된 내용은 복구할 수 없습니다.</p>
             <ModalButtons>
               <DeleteConfirmButton onClick={() => handleDelete(deleteConfirm.prayerId)}>
-                삭제
+                삭제하기
               </DeleteConfirmButton>
               <CancelButton onClick={() => setDeleteConfirm({ isOpen: false, prayerId: null })}>
                 취소
@@ -256,264 +282,523 @@ const Prayer = () => {
 };
 
 const Container = styled.div`
-  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: #f8f9fa;
+  padding-bottom: 3rem;
+  min-height: 100vh;
+
+  @media (max-width: 768px) {
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-bottom: 2rem;
+  }
 `;
 
 const Header = styled.header`
-  margin-bottom: 2rem;
-`;
-
-const TitleSection = styled.div`
+  background-color: #4285F4;
+  color: white;
+  padding: 1.5rem 2rem;
   display: flex;
+  justify-content: center;
   align-items: center;
-  gap: 1rem;
+
+  @media (max-width: 768px) {
+    padding: 1rem 1.5rem;
+  }
 `;
 
-const HomeButton = styled(Link)`
-  color: #666;
-  text-decoration: none;
-  padding: 0.5rem 1rem;
-  border-radius: 5px;
-  font-size: 1rem;
-  
-  &:hover {
-    background-color: #f0f0f0;
-    color: #333;
+const Title = styled.h1`
+  font-size: 1.8rem;
+  font-weight: bold;
+  margin: 0;
+
+  @media (max-width: 768px) {
+    font-size: 1.5rem;
+  }
+`;
+
+const FormSection = styled.section`
+  background-color: white;
+  margin: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+
+  @media (max-width: 768px) {
+    margin: 1rem;
+    border-radius: 8px;
+  }
+`;
+
+const FormTitle = styled.h2`
+  background-color: #f8f9fa;
+  padding: 1.5rem 2rem;
+  margin: 0;
+  font-size: 1.3rem;
+  color: #333;
+  border-bottom: 1px solid #e9ecef;
+
+  @media (max-width: 768px) {
+    padding: 1rem 1.5rem;
+    font-size: 1.1rem;
   }
 `;
 
 const Form = styled.form`
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 2rem;
-  
+  padding: 2rem;
+
   @media (max-width: 768px) {
     padding: 1.5rem;
   }
 `;
 
+const InputGroup = styled.div`
+  margin-bottom: 1.5rem;
+`;
+
+const Label = styled.label`
+  display: block;
+  font-weight: 500;
+  color: #495057;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+`;
+
 const Input = styled.input`
-  padding: 0.8rem;
-  border: 1px solid #ddd;
-  border-radius: 5px;
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
   font-size: 1rem;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
   
   &:focus {
     outline: none;
-    border-color: #FFB6C1;
+    border-color: #4285F4;
+    box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
   }
   
   &:disabled {
-    background-color: #f5f5f5;
+    background-color: #f8f9fa;
+    color: #6c757d;
+    cursor: not-allowed;
   }
+
+  &::placeholder {
+    color: #adb5bd;
+  }
+`;
+
+const ItemsSection = styled.div`
+  margin-bottom: 1.5rem;
 `;
 
 const ItemContainer = styled.div`
-  position: relative;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: #e9ecef;
+  }
+
+  @media (max-width: 768px) {
+    padding: 0.8rem;
+  }
+`;
+
+const ItemHeader = styled.div`
   display: flex;
-  gap: 1rem;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.8rem;
+`;
+
+const ItemNumber = styled.span`
+  background-color: #4285F4;
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 500;
+`;
+
+const RemoveButton = styled.button`
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: #c82333;
+    transform: scale(1.1);
+  }
 `;
 
 const TextArea = styled.textarea`
-  flex: 1;
+  width: 100%;
   padding: 0.8rem;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  font-size: 1rem;
-  min-height: 100px;
+  border: 2px solid #e9ecef;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  min-height: 80px;
   resize: vertical;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
   
   &:focus {
     outline: none;
-    border-color: #FFB6C1;
+    border-color: #4285F4;
+    box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
+  }
+
+  &::placeholder {
+    color: #adb5bd;
   }
 `;
 
-const Button = styled.button`
-  padding: 0.8rem 1.5rem;
-  border: none;
-  border-radius: 5px;
-  font-size: 1rem;
-  cursor: pointer;
-`;
-
-const AddButton = styled(Button)`
-  background-color: #f0f0f0;
-  color: #666;
+const AddButton = styled.button`
   width: 100%;
+  padding: 0.8rem;
+  border: 2px dashed #4285F4;
+  background-color: transparent;
+  color: #4285F4;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
   
   &:hover {
-    background-color: #e0e0e0;
+    background-color: rgba(66, 133, 244, 0.05);
+    border-color: #1a73e8;
+    color: #1a73e8;
   }
 `;
 
-const RemoveButton = styled(Button)`
-  background-color: #ff4444;
-  color: white;
-  padding: 0.4rem 0.8rem;
-  
-  &:hover {
-    background-color: #cc0000;
-  }
+const AddIcon = styled.span`
+  font-size: 1.2rem;
+  font-weight: bold;
 `;
 
 const ButtonContainer = styled.div`
   display: flex;
   gap: 1rem;
+  margin-top: 2rem;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
 `;
 
-const SubmitButton = styled(Button)`
-  flex: 1;
-  background-color: #FFB6C1;
+const SubmitButton = styled.button`
+  background-color: #4285F4;
   color: white;
+  border: none;
+  padding: 0.9rem 2rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  flex: 1;
+  transition: all 0.2s ease;
   
   &:hover {
-    background-color: #FF69B4;
+    background-color: #1a73e8;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(66, 133, 244, 0.3);
   }
   
   &:disabled {
-    background-color: #ddd;
+    background-color: #adb5bd;
     cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  @media (max-width: 768px) {
+    padding: 1rem;
   }
 `;
 
-const ClearButton = styled(Button)`
+const ClearButton = styled.button`
+  background-color: transparent;
+  color: #6c757d;
+  border: 2px solid #e9ecef;
+  padding: 0.9rem 2rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
   flex: 1;
-  background-color: #f0f0f0;
-  color: #666;
+  transition: all 0.2s ease;
   
   &:hover {
-    background-color: #e0e0e0;
+    border-color: #adb5bd;
+    color: #495057;
+  }
+
+  @media (max-width: 768px) {
+    padding: 1rem;
   }
 `;
 
-const ErrorMessage = styled.p`
-  color: #ff4444;
-  margin: 0.5rem 0;
-  text-align: center;
+const ErrorMessage = styled.div`
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 0.8rem 1rem;
+  border-radius: 6px;
+  margin: 1rem 0;
+  border: 1px solid #f5c6cb;
+  font-size: 0.95rem;
 `;
 
-const SuccessMessage = styled.p`
-  color: #4CAF50;
-  margin: 0.5rem 0;
-  text-align: center;
+const SuccessMessage = styled.div`
+  background-color: #d4edda;
+  color: #155724;
+  padding: 0.8rem 1rem;
+  border-radius: 6px;
+  margin: 1rem 0;
+  border: 1px solid #c3e6cb;
+  font-size: 0.95rem;
 `;
 
-const PrayerList = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
-  margin-top: 2rem;
-  
+const ListSection = styled.section`
+  margin: 2rem;
+
   @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-    gap: 1rem;
+    margin: 1rem;
   }
 `;
 
 const ListTitle = styled.h2`
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   color: #333;
-  margin-bottom: 1rem;
-`;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
 
-const PrayerItem = styled.div`
-  background-color: white;
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-bottom: 1rem;
-  overflow: hidden;
-  
   @media (max-width: 768px) {
-    padding: 1.2rem;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
   }
 `;
 
-const PrayerHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem;
-  cursor: pointer;
-  
-  &:hover {
-    background-color: #f8f8f8;
+const EmptyState = styled.div`
+  text-align: center;
+  padding: 3rem 2rem;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  @media (max-width: 768px) {
+    padding: 2rem 1rem;
+    border-radius: 8px;
   }
 `;
 
-const HeaderContent = styled.div`
-  flex: 1;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
+const EmptyIcon = styled.div`
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
 `;
 
-const PrayerName = styled.h3`
-  font-size: 1.2rem;
-  color: #333;
+const EmptyText = styled.p`
+  color: #6c757d;
+  font-size: 1.1rem;
   margin: 0;
 `;
 
-const UpdatedDate = styled.span`
-  color: #666;
-  font-size: 0.9rem;
-`;
+const PrayerCard = styled.div`
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1rem;
+  overflow: hidden;
+  transition: all 0.2s ease;
 
-const ActionButtons = styled.div`
-  display: flex;
-  gap: 0.5rem;
-  margin-right: 1rem;
-`;
-
-const ActionButton = styled.button`
-  padding: 0.3rem 0.8rem;
-  border: none;
-  border-radius: 3px;
-  font-size: 0.9rem;
-  cursor: pointer;
-`;
-
-const EditButton = styled(ActionButton)`
-  background-color: #4CAF50;
-  color: white;
-  
   &:hover {
-    background-color: #45a049;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  }
+
+  @media (max-width: 768px) {
+    border-radius: 8px;
   }
 `;
 
-const DeleteButton = styled(ActionButton)`
-  background-color: #ff4444;
-  color: white;
+const CardHeader = styled.div`
+  display: flex;
+  align-items: center;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
   
   &:hover {
-    background-color: #cc0000;
+    background-color: #f8f9fa;
+  }
+
+  @media (max-width: 768px) {
+    padding: 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+`;
+
+const PersonInfo = styled.div`
+  flex: 1;
+  min-width: 0;
+`;
+
+const PersonName = styled.h3`
+  font-size: 1.2rem;
+  color: #333;
+  margin: 0 0 0.3rem 0;
+  font-weight: 600;
+
+  @media (max-width: 768px) {
+    font-size: 1.1rem;
+  }
+`;
+
+const UpdatedDate = styled.span`
+  color: #6c757d;
+  font-size: 0.85rem;
+`;
+
+const CardActions = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  margin: 0 1rem;
+
+  @media (max-width: 768px) {
+    margin: 0;
+    order: 3;
+    width: 100%;
+    justify-content: flex-end;
+  }
+`;
+
+const EditButton = styled.button`
+  background-color: #28a745;
+  color: white;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: #218838;
+    transform: scale(1.05);
+  }
+`;
+
+const DeleteButton = styled.button`
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: #c82333;
+    transform: scale(1.05);
   }
 `;
 
 const ToggleIcon = styled.span`
-  margin-left: 1rem;
+  color: #6c757d;
+  font-size: 1.2rem;
   transition: transform 0.3s ease;
   transform: ${props => props.isOpen ? 'rotate(180deg)' : 'rotate(0)'};
+
+  @media (max-width: 768px) {
+    order: 2;
+  }
 `;
 
 const PrayerContent = styled.div`
-  padding: ${props => props.isOpen ? '1.5rem' : '0'};
-  max-height: ${props => props.isOpen ? '1000px' : '0'};
+  padding: ${props => props.isOpen ? '0 1.5rem 1.5rem 1.5rem' : '0'};
+  max-height: ${props => props.isOpen ? '2000px' : '0'};
   opacity: ${props => props.isOpen ? '1' : '0'};
   transition: all 0.3s ease;
   overflow: hidden;
-  background-color: #f9f9f9;
-  white-space: pre-wrap;
+
+  @media (max-width: 768px) {
+    padding: ${props => props.isOpen ? '0 1rem 1rem 1rem' : '0'};
+  }
+`;
+
+const PrayerItemCard = styled.div`
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 0.8rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  @media (max-width: 768px) {
+    padding: 0.8rem;
+    gap: 0.6rem;
+  }
+`;
+
+const ItemBadge = styled.span`
+  background-color: #4285F4;
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 500;
+  flex-shrink: 0;
 `;
 
 const PrayerItemText = styled.p`
-  color: #666;
-  margin: 0.5rem 0;
+  color: #495057;
+  margin: 0;
   line-height: 1.6;
-  white-space: pre-wrap;
+  flex: 1;
+  font-size: 0.95rem;
 `;
 
 const DeleteConfirmModal = styled.div`
@@ -527,72 +812,93 @@ const DeleteConfirmModal = styled.div`
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  padding: 1rem;
 `;
 
 const ModalContent = styled.div`
   background-color: white;
   padding: 2rem;
-  border-radius: 10px;
+  border-radius: 12px;
   text-align: center;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   
   h3 {
-    margin-top: 0;
+    margin: 0 0 1rem 0;
+    color: #333;
+    font-size: 1.3rem;
   }
-  
+
+  p {
+    color: #6c757d;
+    margin: 0 0 1.5rem 0;
+    line-height: 1.5;
+  }
+
   @media (max-width: 768px) {
-    width: 95%;
     padding: 1.5rem;
+    border-radius: 8px;
     margin: 1rem;
-    
+
     h3 {
-      font-size: 1.3rem;
+      font-size: 1.2rem;
     }
   }
+`;
+
+const ModalIcon = styled.div`
+  font-size: 3rem;
+  margin-bottom: 1rem;
 `;
 
 const ModalButtons = styled.div`
   display: flex;
-  justify-content: center;
   gap: 1rem;
-  margin-top: 1.5rem;
-  
+  justify-content: center;
+
   @media (max-width: 768px) {
     flex-direction: column;
-    
-    button {
-      width: 100%;
-    }
   }
 `;
 
-const DeleteConfirmButton = styled(Button)`
-  background-color: #ff4444;
+const DeleteConfirmButton = styled.button`
+  background-color: #dc3545;
   color: white;
+  border: none;
+  padding: 0.8rem 2rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
   
   &:hover {
-    background-color: #cc0000;
+    background-color: #c82333;
+  }
+
+  @media (max-width: 768px) {
+    padding: 1rem;
   }
 `;
 
-const CancelButton = styled(Button)`
-  background-color: #f0f0f0;
-  color: #666;
+const CancelButton = styled.button`
+  background-color: transparent;
+  color: #6c757d;
+  border: 2px solid #e9ecef;
+  padding: 0.8rem 2rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
   
   &:hover {
-    background-color: #e0e0e0;
+    border-color: #adb5bd;
+    color: #495057;
   }
-`;
 
-const ItemNumber = styled.span`
-  color: #999;
-  margin-right: 0.5rem;
-  font-size: 0.9rem;
-`;
-
-const Title = styled.h1`
-  font-size: 2rem;
-  color: #333;
-  margin-bottom: 2rem;
+  @media (max-width: 768px) {
+    padding: 1rem;
+  }
 `;
 
 export default Prayer;

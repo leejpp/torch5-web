@@ -128,11 +128,7 @@ const PrayerRequests = () => {
                       ))}
                     </PrayerList>
 
-                    <CardFooter>
-                      <HeartButton>
-                        💙 함께 기도해요
-                      </HeartButton>
-                    </CardFooter>
+
                   </CardContent>
                 </PrayerCard>
               ))}
@@ -529,9 +525,8 @@ const PrayerHeader = styled.div`
   margin-bottom: ${spacing.xl};
   
   ${media['max-md']} {
-    flex-direction: column;
-    gap: ${spacing.lg};
-    align-items: flex-start;
+    margin-bottom: ${spacing.lg};
+    gap: ${spacing.md};
   }
 `;
 
@@ -539,6 +534,12 @@ const PersonInfo = styled.div`
   display: flex;
   align-items: center;
   gap: ${spacing.lg};
+  flex: 1;
+  min-width: 0;
+  
+  ${media['max-md']} {
+    gap: ${spacing.md};
+  }
 `;
 
 const PersonAvatar = styled.div`
@@ -553,12 +554,21 @@ const PersonAvatar = styled.div`
   font-weight: ${typography.fontWeight.bold};
   font-size: ${typography.fontSize.lg};
   box-shadow: ${shadows.md};
+  flex-shrink: 0;
+  
+  ${media['max-md']} {
+    width: 40px;
+    height: 40px;
+    font-size: ${typography.fontSize.base};
+  }
 `;
 
 const PersonDetails = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${spacing.xs};
+  min-width: 0;
+  flex: 1;
 `;
 
 const PersonName = styled.h3`
@@ -566,6 +576,13 @@ const PersonName = styled.h3`
   font-size: ${typography.fontSize.lg};
   font-weight: ${typography.fontWeight.bold};
   margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  
+  ${media['max-md']} {
+    font-size: ${typography.fontSize.base};
+  }
 `;
 
 const TimeStamp = styled.span`
@@ -581,6 +598,13 @@ const PrayerBadge = styled.span`
   font-size: ${typography.fontSize.sm};
   font-weight: ${typography.fontWeight.semibold};
   box-shadow: ${shadows.sm};
+  white-space: nowrap;
+  flex-shrink: 0;
+  
+  ${media['max-md']} {
+    padding: ${spacing.xs} ${spacing.md};
+    font-size: ${typography.fontSize.xs};
+  }
 `;
 
 const PrayerList = styled.div`
@@ -649,41 +673,6 @@ const PrayerText = styled.p`
   }
 `;
 
-const CardFooter = styled.div`
-  border-top: 1px solid ${colors.neutral[200]};
-  padding-top: ${spacing.lg};
-  text-align: center;
-  
-  ${media['max-md']} {
-    padding-top: ${spacing.md};
-  }
-`;
 
-const HeartButton = styled.button`
-  background: ${colors.gradients.primary};
-  color: white;
-  border: none;
-  padding: ${spacing.md} ${spacing.xl};
-  border-radius: ${borderRadius.full};
-  font-size: ${typography.fontSize.sm};
-  font-weight: ${typography.fontWeight.semibold};
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: ${shadows.sm};
-  
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: ${shadows.md};
-  }
-  
-  &:active {
-    transform: translateY(0);
-  }
-  
-  ${media['max-md']} {
-    padding: ${spacing.sm} ${spacing.lg};
-    font-size: ${typography.fontSize.xs};
-  }
-`;
 
 export default PrayerRequests;

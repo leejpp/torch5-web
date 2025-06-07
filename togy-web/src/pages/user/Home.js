@@ -69,18 +69,21 @@ const Home = () => {
           </YearlyThemeCard>
 
           <VisionTitle>우리의 비전</VisionTitle>
-          <VisionGrid>
-            {visionItems.map((item, index) => (
-              <VisionCard key={item.id} delay={index * 0.1}>
-                <VisionCardGradient gradient={item.color} />
-                <VisionCardContent>
-                  <VisionEmoji>{item.emoji}</VisionEmoji>
-                  <VisionNumber>{item.id}</VisionNumber>
-                  <VisionText>{item.text}</VisionText>
-                </VisionCardContent>
-              </VisionCard>
-            ))}
-          </VisionGrid>
+          <VisionCard>
+            <VisionCardContent>
+              <VisionList>
+                {visionItems.map((item, index) => (
+                  <VisionItem key={item.id} delay={index * 0.05}>
+                    <VisionItemNumber>{item.id}</VisionItemNumber>
+                    <VisionItemContent>
+                      <VisionItemEmoji>{item.emoji}</VisionItemEmoji>
+                      <VisionItemText>{item.text}</VisionItemText>
+                    </VisionItemContent>
+                  </VisionItem>
+                ))}
+              </VisionList>
+            </VisionCardContent>
+          </VisionCard>
         </VisionSection>
 
         <QuickActionsSection>
@@ -339,47 +342,37 @@ const VisionTitle = styled.h3`
   }
 `;
 
-const VisionGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: ${spacing.xl};
-  margin-bottom: ${spacing['4xl']};
-  
-  ${media['max-md']} {
-    grid-template-columns: 1fr;
-    gap: ${spacing.md};
-    margin-bottom: ${spacing['2xl']};
-  }
-`;
-
 const VisionCard = styled.div`
-  position: relative;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(15px);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
   border-radius: ${borderRadius['2xl']};
   padding: ${spacing['2xl']};
-  box-shadow: ${shadows.md};
-  transition: all 0.3s ease;
-  animation: ${fadeInUp} 0.8s ease-out ${props => 0.4 + props.delay}s both;
+  box-shadow: ${shadows.glass};
+  animation: ${fadeInUp} 0.8s ease-out 0.4s both;
+  position: relative;
   overflow: hidden;
+  margin-bottom: ${spacing['4xl']};
   
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: ${shadows.xl};
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -200px;
+    width: 200px;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.4),
+      transparent
+    );
+    animation: ${shimmer} 3s infinite;
   }
   
   ${media['max-md']} {
-    padding: ${spacing.lg};
+    padding: ${spacing.xl};
+    margin-bottom: ${spacing['2xl']};
   }
-`;
-
-const VisionCardGradient = styled.div`
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: ${props => props.gradient};
 `;
 
 const VisionCardContent = styled.div`
@@ -387,21 +380,40 @@ const VisionCardContent = styled.div`
   z-index: 1;
 `;
 
-const VisionEmoji = styled.div`
-  font-size: ${typography.fontSize['2xl']};
-  margin-bottom: ${spacing.lg};
-  animation: ${float} 4s ease-in-out infinite;
+const VisionList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${spacing.lg};
   
   ${media['max-md']} {
-    font-size: ${typography.fontSize.xl};
-    margin-bottom: ${spacing.md};
+    gap: ${spacing.md};
   }
 `;
 
-const VisionNumber = styled.div`
-  position: absolute;
-  top: ${spacing.lg};
-  right: ${spacing.lg};
+const VisionItem = styled.div`
+  display: flex;
+  align-items: flex-start;
+  gap: ${spacing.lg};
+  padding: ${spacing.lg};
+  background: linear-gradient(135deg, ${colors.neutral[50]} 0%, ${colors.neutral[100]} 100%);
+  border-radius: ${borderRadius.xl};
+  border-left: 4px solid transparent;
+  border-image: ${colors.gradients.primary} 1;
+  transition: all 0.3s ease;
+  animation: ${fadeInUp} 0.6s ease-out ${props => 0.5 + props.delay}s both;
+  
+  &:hover {
+    transform: translateX(4px);
+    background: linear-gradient(135deg, ${colors.neutral[100]} 0%, ${colors.neutral[200]} 100%);
+  }
+  
+  ${media['max-md']} {
+    padding: ${spacing.md};
+    gap: ${spacing.md};
+  }
+`;
+
+const VisionItemNumber = styled.div`
   width: 32px;
   height: 32px;
   background: ${colors.gradients.primary};
@@ -412,13 +424,41 @@ const VisionNumber = styled.div`
   justify-content: center;
   font-weight: ${typography.fontWeight.bold};
   font-size: ${typography.fontSize.sm};
+  flex-shrink: 0;
+  
+  ${media['max-md']} {
+    width: 28px;
+    height: 28px;
+    font-size: ${typography.fontSize.xs};
+  }
 `;
 
-const VisionText = styled.p`
+const VisionItemContent = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${spacing.md};
+  flex: 1;
+  
+  ${media['max-md']} {
+    gap: ${spacing.sm};
+  }
+`;
+
+const VisionItemEmoji = styled.div`
+  font-size: ${typography.fontSize.xl};
+  flex-shrink: 0;
+  
+  ${media['max-md']} {
+    font-size: ${typography.fontSize.lg};
+  }
+`;
+
+const VisionItemText = styled.p`
   font-size: ${typography.fontSize.base};
   line-height: ${typography.lineHeight.normal};
   color: ${colors.neutral[700]};
   font-weight: ${typography.fontWeight.normal};
+  margin: 0;
   
   ${media['max-md']} {
     font-size: ${typography.fontSize.sm};

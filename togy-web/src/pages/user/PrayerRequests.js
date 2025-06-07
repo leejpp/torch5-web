@@ -127,7 +127,6 @@ const PrayerRequests = () => {
               {prayers.map((prayer, index) => (
                 <PrayerCard key={prayer.id} delay={index * 0.1} isPinned={prayer.isPinned}>
                   <CardGradient isPinned={prayer.isPinned} />
-                  {prayer.isPinned && <PinnedIndicator>📌 고정된 기도제목</PinnedIndicator>}
                   <CardContent>
                     <PrayerHeader>
                       <PersonInfo>
@@ -730,27 +729,6 @@ const PrayerText = styled.p`
 `;
 
 // 핀 기능을 위한 새로운 스타일 컴포넌트들
-const PinnedIndicator = styled.div`
-  position: absolute;
-  top: -8px;
-  right: ${spacing.lg};
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  color: white;
-  padding: ${spacing.xs} ${spacing.sm};
-  border-radius: ${borderRadius.full};
-  font-size: ${typography.fontSize.xs};
-  font-weight: ${typography.fontWeight.bold};
-  box-shadow: ${shadows.md};
-  z-index: 15;
-  animation: ${pulse} 2s ease-in-out infinite;
-  
-  ${media['max-md']} {
-    top: -6px;
-    right: ${spacing.md};
-    padding: ${spacing.xs} ${spacing.xs};
-  }
-`;
-
 const PinInfo = styled.div`
   display: flex;
   align-items: center;

@@ -371,7 +371,6 @@ const Prayer = () => {
             <PrayerList>
               {prayers.map((prayer, index) => (
                 <PrayerCard key={prayer.id} delay={index * 0.1} isPinned={prayer.isPinned}>
-                  {prayer.isPinned && <PinnedIndicator>📌 고정됨</PinnedIndicator>}
                   <CardHeader onClick={() => togglePrayer(prayer.id)}>
                     <PersonInfo>
                       <PersonAvatar isPinned={prayer.isPinned}>
@@ -1417,21 +1416,6 @@ const PinButton = styled.button`
     cursor: not-allowed;
     transform: none;
   }
-`;
-
-const PinnedIndicator = styled.div`
-  position: absolute;
-  top: -8px;
-  right: ${spacing.lg};
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  color: white;
-  padding: ${spacing.xs} ${spacing.sm};
-  border-radius: ${borderRadius.full};
-  font-size: ${typography.fontSize.xs};
-  font-weight: ${typography.fontWeight.bold};
-  box-shadow: ${shadows.md};
-  z-index: 10;
-  animation: ${pulse} 2s ease-in-out infinite;
 `;
 
 const PinStatus = styled.span`

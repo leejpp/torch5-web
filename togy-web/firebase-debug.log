@@ -1,0 +1,44 @@
+[debug] [2025-06-07T09:51:26.678Z] ----------------------------------------------------------------------
+[debug] [2025-06-07T09:51:26.684Z] Command:       /opt/homebrew/Cellar/node/23.5.0/bin/node /opt/homebrew/bin/firebase deploy
+[debug] [2025-06-07T09:51:26.684Z] CLI Version:   13.29.1
+[debug] [2025-06-07T09:51:26.684Z] Platform:      darwin
+[debug] [2025-06-07T09:51:26.684Z] Node Version:  v23.5.0
+[debug] [2025-06-07T09:51:26.685Z] Time:          Sat Jun 07 2025 18:51:26 GMT+0900 (Korean Standard Time)
+[debug] [2025-06-07T09:51:26.685Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-06-07T09:51:26.725Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-06-07T09:51:26.726Z] > authorizing via signed-in user (leeeejp@gmail.com)
+[debug] [2025-06-07T09:51:26.726Z] [iam] checking project togy-web for permissions ["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2025-06-07T09:51:26.726Z] Checked if tokens are valid: false, expires at: 1748594207781
+[debug] [2025-06-07T09:51:26.726Z] Checked if tokens are valid: false, expires at: 1748594207781
+[debug] [2025-06-07T09:51:26.726Z] > refreshing access token with scopes: []
+[debug] [2025-06-07T09:51:26.727Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-06-07T09:51:26.727Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-06-07T09:51:27.071Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-06-07T09:51:27.071Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-06-07T09:51:27.083Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/togy-web:testIamPermissions [none]
+[debug] [2025-06-07T09:51:27.083Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/togy-web:testIamPermissions x-goog-quota-user=projects/togy-web
+[debug] [2025-06-07T09:51:27.083Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/togy-web:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2025-06-07T09:51:28.228Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/togy-web:testIamPermissions 200
+[debug] [2025-06-07T09:51:28.228Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/togy-web:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2025-06-07T09:51:28.229Z] Checked if tokens are valid: true, expires at: 1749293486071
+[debug] [2025-06-07T09:51:28.229Z] Checked if tokens are valid: true, expires at: 1749293486071
+[debug] [2025-06-07T09:51:28.230Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/togy-web [none]
+[debug] [2025-06-07T09:51:28.809Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/togy-web 200
+[debug] [2025-06-07T09:51:28.809Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/togy-web {"projectId":"togy-web","projectNumber":"61696764840","displayName":"togy-web","name":"projects/togy-web","resources":{"hostingSite":"togy-web"},"state":"ACTIVE","etag":"1_7b38d42f-bdcc-47b9-80dc-909380cf22c1"}
+[info] 
+[info] === Deploying to 'togy-web'...
+[info] 
+[info] i  deploying firestore, hosting 
+[info] i  cloud.firestore: checking firestore.rules for compilation errors... 
+[debug] [2025-06-07T09:51:28.815Z] Checked if tokens are valid: true, expires at: 1749293486071
+[debug] [2025-06-07T09:51:28.815Z] Checked if tokens are valid: true, expires at: 1749293486071
+[debug] [2025-06-07T09:51:28.815Z] >>> [apiv2][query] POST https://firebaserules.googleapis.com/v1/projects/togy-web:test [none]
+[debug] [2025-06-07T09:51:28.815Z] >>> [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/togy-web:test [omitted]
+[debug] [2025-06-07T09:51:30.105Z] <<< [apiv2][status] POST https://firebaserules.googleapis.com/v1/projects/togy-web:test 200
+[debug] [2025-06-07T09:51:30.105Z] <<< [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/togy-web:test {}
+[info] ✔  cloud.firestore: rules file firestore.rules compiled successfully 
+[debug] [2025-06-07T09:51:30.108Z] Checked if tokens are valid: true, expires at: 1749293486071
+[debug] [2025-06-07T09:51:30.108Z] Checked if tokens are valid: true, expires at: 1749293486071
+[debug] [2025-06-07T09:51:30.108Z] >>> [apiv2][query] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/togy-web/versions [none]
+[debug] [2025-06-07T09:51:30.108Z] >>> [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/togy-web/versions {"status":"CREATED","labels":{"deployment-tool":"cli-firebase"}}

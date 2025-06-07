@@ -15,18 +15,20 @@ const AdminAuth = ({ children }) => {
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(''); // 이전 오류 메시지 초기화
+    
     try {
       const hashedInput = CryptoJS.SHA256(password).toString(CryptoJS.enc.Hex);
       const adminRef = doc(db, 'admin', 'settings');
       const adminDoc = await getDoc(adminRef);
       
       if (!adminDoc.exists()) {
-        throw new Error('Admin settings not found');
+        throw new Error('관리자 설정을 찾을 수 없습니다. 시스템 관리자에게 문의하세요.');
       }
 
       const adminData = adminDoc.data();
       if (!adminData?.passwords || !Array.isArray(adminData.passwords)) {
-        throw new Error('Invalid admin configuration');
+        throw new Error('관리자 설정에 오류가 있습니다. 시스템 관리자에게 문의하세요.');
       }
 
       if (adminData.passwords.includes(hashedInput)) {
@@ -34,11 +36,21 @@ const AdminAuth = ({ children }) => {
         setPassword('');
         setError('');
       } else {
-        throw new Error('비밀번호가 일치하지 않습니다.');
+        // 비밀번호가 틀렸을 때 input 필드를 비우고 포커스
+        setPassword('');
+        throw new Error('비밀번호가 일치하지 않습니다. 다시 확인해주세요.');
       }
     } catch (error) {
       console.error('Password check error:', error);
-      setError(error.message || '인증 오류가 발생했습니다.');
+      setError(error.message || '인증 과정에서 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+      
+      // 오류 발생 시 input 필드에 포커스
+      setTimeout(() => {
+        const passwordInput = document.querySelector('input[type="password"]');
+        if (passwordInput) {
+          passwordInput.focus();
+        }
+      }, 100);
     } finally {
       setIsLoading(false);
     }
@@ -296,7 +308,13 @@ const ErrorMessage = styled.div`
   font-size: 0.9rem;
   text-align: center;
   border: 1px solid #fca5a5;
-  animation: ${fadeIn} 0.3s ease-out;
+  animation: ${fadeIn} 0.3s ease-out, ${shake} 0.5s ease-in-out;
+  position: relative;
+  
+  &::before {
+    content: '⚠️';
+    margin-right: 0.5rem;
+  }
 `;
 
 const ButtonContainer = styled.div`

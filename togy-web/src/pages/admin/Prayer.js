@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
-import { db } from '../../config/firebase';
+import { db } from '../../firebase/config';
 import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, orderBy, setDoc } from 'firebase/firestore';
 import { colors, typography, spacing, shadows, borderRadius, media } from '../../styles/designSystem';
 

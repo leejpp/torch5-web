@@ -261,7 +261,7 @@ const HeaderContent = styled.div`
   margin: 0 auto;
   
   ${media['max-md']} {
-    padding: ${spacing['2xl']} ${spacing.lg};
+    padding: ${spacing.xl} ${spacing.lg} ${spacing.lg};
   }
 `;
 
@@ -303,7 +303,7 @@ const MainContent = styled.main`
   padding: ${spacing['2xl']} ${spacing.lg};
   
   ${media['max-md']} {
-    padding: ${spacing.xl} ${spacing.md};
+    padding: ${spacing.lg} ${spacing.md};
   }
 `;
 
@@ -516,6 +516,10 @@ const CardContent = styled.div`
   padding: ${spacing['2xl']};
   position: relative;
   z-index: 1;
+  
+  ${media['max-md']} {
+    padding: ${spacing.xl};
+  }
 `;
 
 const PrayerHeader = styled.div`
@@ -581,6 +585,10 @@ const PrayerBadge = styled.span`
 
 const PrayerList = styled.div`
   margin-bottom: ${spacing.xl};
+  
+  ${media['max-md']} {
+    margin-bottom: ${spacing.lg};
+  }
 `;
 
 const PrayerItem = styled.div`
@@ -602,6 +610,12 @@ const PrayerItem = styled.div`
   
   &:last-child {
     margin-bottom: 0;
+  }
+  
+  ${media['max-md']} {
+    padding: ${spacing.md};
+    margin-bottom: ${spacing.md};
+    gap: ${spacing.md};
   }
 `;
 
@@ -639,6 +653,10 @@ const CardFooter = styled.div`
   border-top: 1px solid ${colors.neutral[200]};
   padding-top: ${spacing.lg};
   text-align: center;
+  
+  ${media['max-md']} {
+    padding-top: ${spacing.md};
+  }
 `;
 
 const HeartButton = styled.button`
@@ -660,6 +678,11 @@ const HeartButton = styled.button`
   
   &:active {
     transform: translateY(0);
+  }
+  
+  ${media['max-md']} {
+    padding: ${spacing.sm} ${spacing.lg};
+    font-size: ${typography.fontSize.xs};
   }
 `;
 

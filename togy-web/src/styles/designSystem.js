@@ -47,29 +47,132 @@ export const colors = {
   // Semantic Colors
   success: {
     50: '#f0fdf4',
+    100: '#dcfce7',
+    200: '#bbf7d0',
+    300: '#86efac',
+    400: '#4ade80',
     500: '#22c55e',
     600: '#16a34a',
     700: '#15803d',
+    800: '#166534',
+    900: '#14532d',
   },
   
   warning: {
     50: '#fffbeb',
+    100: '#fef3c7',
+    200: '#fed7aa',
+    300: '#fdba74',
+    400: '#fb923c',
     500: '#f59e0b',
     600: '#d97706',
     700: '#b45309',
+    800: '#92400e',
+    900: '#78350f',
   },
   
   error: {
     50: '#fef2f2',
+    100: '#fee2e2',
+    200: '#fecaca',
+    300: '#fca5a5',
+    400: '#f87171',
     500: '#ef4444',
     600: '#dc2626',
     700: '#b91c1c',
+    800: '#991b1b',
+    900: '#7f1d1d',
+  },
+  
+  // Red Colors (error와 동일하게 유지)
+  red: {
+    50: '#fef2f2',
+    100: '#fee2e2',
+    200: '#fecaca',
+    300: '#fca5a5',
+    400: '#f87171',
+    500: '#ef4444',
+    600: '#dc2626',
+    700: '#b91c1c',
+    800: '#991b1b',
+    900: '#7f1d1d',
+  },
+  
+  // Green Colors
+  green: {
+    50: '#f0fdf4',
+    100: '#dcfce7',
+    200: '#bbf7d0',
+    300: '#86efac',
+    400: '#4ade80',
+    500: '#22c55e',
+    600: '#16a34a',
+    700: '#15803d',
+    800: '#166534',
+    900: '#14532d',
+  },
+  
+  // Blue Colors
+  blue: {
+    50: '#eff6ff',
+    100: '#dbeafe',
+    200: '#bfdbfe',
+    300: '#93c5fd',
+    400: '#60a5fa',
+    500: '#3b82f6',
+    600: '#2563eb',
+    700: '#1d4ed8',
+    800: '#1e40af',
+    900: '#1e3a8a',
+  },
+  
+  // Amber Colors
+  amber: {
+    50: '#fffbeb',
+    100: '#fef3c7',
+    200: '#fde68a',
+    300: '#fcd34d',
+    400: '#fbbf24',
+    500: '#f59e0b',
+    600: '#d97706',
+    700: '#b45309',
+    800: '#92400e',
+    900: '#78350f',
+  },
+  
+  // Orange Colors
+  orange: {
+    50: '#fff7ed',
+    100: '#ffedd5',
+    200: '#fed7aa',
+    300: '#fdba74',
+    400: '#fb923c',
+    500: '#f97316',
+    600: '#ea580c',
+    700: '#c2410c',
+    800: '#9a3412',
+    900: '#7c2d12',
+  },
+  
+  // Accent Colors (추가)
+  accent: {
+    50: '#fef7ff',
+    100: '#fde4ff',
+    200: '#fcbfff',
+    300: '#f987ff',
+    400: '#f441ff',
+    500: '#e809eb',
+    600: '#c002c5',
+    700: '#9f00a2',
+    800: '#820b84',
+    900: '#6b126c',
   },
   
   // Background Gradients
   gradients: {
     primary: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
     secondary: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+    accent: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
     success: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
     warm: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
     cool: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',

@@ -256,7 +256,7 @@ const VisionSection = styled.section`
   padding: ${spacing['4xl']} 0;
   
   ${media['max-md']} {
-    padding: ${spacing['3xl']} 0;
+    padding: ${spacing['2xl']} 0;
   }
 `;
 
@@ -289,8 +289,8 @@ const YearlyThemeCard = styled.div`
   }
   
   ${media['max-md']} {
-    padding: ${spacing['2xl']};
-    margin-bottom: ${spacing['3xl']};
+    padding: ${spacing.xl};
+    margin-bottom: ${spacing.xl};
   }
 `;
 
@@ -347,7 +347,8 @@ const VisionGrid = styled.div`
   
   ${media['max-md']} {
     grid-template-columns: 1fr;
-    gap: ${spacing.lg};
+    gap: ${spacing.md};
+    margin-bottom: ${spacing['2xl']};
   }
 `;
 
@@ -365,6 +366,10 @@ const VisionCard = styled.div`
   &:hover {
     transform: translateY(-5px);
     box-shadow: ${shadows.xl};
+  }
+  
+  ${media['max-md']} {
+    padding: ${spacing.lg};
   }
 `;
 
@@ -386,6 +391,11 @@ const VisionEmoji = styled.div`
   font-size: ${typography.fontSize['2xl']};
   margin-bottom: ${spacing.lg};
   animation: ${float} 4s ease-in-out infinite;
+  
+  ${media['max-md']} {
+    font-size: ${typography.fontSize.xl};
+    margin-bottom: ${spacing.md};
+  }
 `;
 
 const VisionNumber = styled.div`
@@ -406,12 +416,13 @@ const VisionNumber = styled.div`
 
 const VisionText = styled.p`
   font-size: ${typography.fontSize.base};
-  line-height: ${typography.lineHeight.relaxed};
+  line-height: ${typography.lineHeight.normal};
   color: ${colors.neutral[700]};
   font-weight: ${typography.fontWeight.normal};
   
   ${media['max-md']} {
     font-size: ${typography.fontSize.sm};
+    line-height: ${typography.lineHeight.tight};
   }
 `;
 

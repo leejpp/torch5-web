@@ -13,6 +13,8 @@ const Prayer = () => {
   const [openPrayerId, setOpenPrayerId] = useState(null);
   const [editingPrayer, setEditingPrayer] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState({ isOpen: false, prayerId: null });
+  const [isPinning, setIsPinning] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchPrayers();
@@ -96,15 +98,52 @@ const Prayer = () => {
   };
 
   const handleDelete = async (prayerId) => {
-    try {
-      await deleteDoc(doc(db, 'prayerRequests', prayerId));
-      setPrayers(prayers.filter(prayer => prayer.id !== prayerId));
-      fetchPrayers();
+    if (isDeleting) return;
+    
+    const prayerToDelete = prayers.find(p => p.id === prayerId);
+    if (!prayerToDelete) {
+      alert('삭제할 기도제목을 찾을 수 없습니다.');
       setDeleteConfirm({ isOpen: false, prayerId: null });
-      alert('기도제목이 성공적으로 삭제되었습니다.');
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      // Firestore에서 문서 삭제
+      await deleteDoc(doc(db, 'prayerRequests', prayerId));
+      
+      // 로컬 상태에서 즉시 제거 (UI 응답성 향상)
+      setPrayers(prevPrayers => prevPrayers.filter(prayer => prayer.id !== prayerId));
+      
+      // 관련 상태 초기화
+      if (editingPrayer && editingPrayer.id === prayerId) {
+        clearForm();
+      }
+      if (openPrayerId === prayerId) {
+        setOpenPrayerId(null);
+      }
+      
+      setDeleteConfirm({ isOpen: false, prayerId: null });
+      alert(`"${prayerToDelete.id}"님의 기도제목이 성공적으로 삭제되었습니다.`);
     } catch (error) {
       console.error("Error deleting prayer:", error);
-      alert('삭제 중 오류가 발생했습니다.');
+      
+      // 구체적인 에러 메시지 제공
+      let errorMessage = '삭제 중 오류가 발생했습니다.';
+      if (error.code === 'permission-denied') {
+        errorMessage = '삭제 권한이 없습니다. 관리자 권한을 확인해주세요.';
+      } else if (error.code === 'not-found') {
+        errorMessage = '삭제할 기도제목을 찾을 수 없습니다.';
+      } else if (error.code === 'unavailable') {
+        errorMessage = '네트워크 연결을 확인하고 다시 시도해주세요.';
+      }
+      
+      alert(errorMessage);
+      
+      // 실패 시 데이터 다시 가져오기
+      fetchPrayers();
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -150,6 +189,62 @@ const Prayer = () => {
     setEditingPrayer(null);
   };
 
+  // 핀 기능 관련 함수들
+  const getPinnedCount = () => {
+    return prayers.filter(prayer => prayer.isPinned).length;
+  };
+
+  const handleTogglePin = async (prayerId) => {
+    if (isPinning) return;
+    
+    const prayer = prayers.find(p => p.id === prayerId);
+    if (!prayer) return;
+
+    const currentlyPinned = prayer.isPinned;
+    const pinnedCount = getPinnedCount();
+
+    // 핀을 추가하려는데 이미 3개가 고정되어 있다면
+    if (!currentlyPinned && pinnedCount >= 3) {
+      alert('최대 3개의 기도제목만 고정할 수 있습니다.');
+      return;
+    }
+
+    setIsPinning(true);
+    try {
+      const updateData = {
+        isPinned: !currentlyPinned,
+        updatedAt: new Date()
+      };
+
+      // 핀을 설정하는 경우 pinnedAt 추가
+      if (!currentlyPinned) {
+        updateData.pinnedAt = new Date();
+      } else {
+        // 핀을 해제하는 경우 pinnedAt 제거
+        updateData.pinnedAt = null;
+      }
+
+      await updateDoc(doc(db, 'prayerRequests', prayerId), updateData);
+      
+      // 로컬 상태 업데이트
+      setPrayers(prevPrayers => 
+        prevPrayers.map(p => 
+          p.id === prayerId 
+            ? { ...p, ...updateData }
+            : p
+        )
+      );
+
+      const action = !currentlyPinned ? '고정' : '고정 해제';
+      alert(`기도제목이 성공적으로 ${action}되었습니다.`);
+    } catch (error) {
+      console.error("Error toggling pin:", error);
+      alert('핀 설정 중 오류가 발생했습니다.');
+    } finally {
+      setIsPinning(false);
+    }
+  };
+
   return (
     <Container>
       <BackgroundOverlay />
@@ -167,10 +262,18 @@ const Prayer = () => {
             <Subtitle>청년부 기도제목 등록 및 관리</Subtitle>
           </TitleSection>
           
-          <StatsCard>
-            <StatsIcon>📊</StatsIcon>
-            <StatsText>총 {prayers.length}명의 기도제목이 등록되어 있습니다</StatsText>
-          </StatsCard>
+          <StatsContainer>
+            <StatsCard>
+              <StatsIcon>📊</StatsIcon>
+              <StatsText>총 {prayers.length}명의 기도제목이 등록되어 있습니다</StatsText>
+            </StatsCard>
+            {getPinnedCount() > 0 && (
+              <PinStatsCard>
+                <PinStatsIcon>📌</PinStatsIcon>
+                <PinStatsText>{getPinnedCount()}개 항목이 상단 고정되어 있습니다</PinStatsText>
+              </PinStatsCard>
+            )}
+          </StatsContainer>
         </HeaderContent>
       </Header>
 
@@ -267,23 +370,36 @@ const Prayer = () => {
           ) : (
             <PrayerList>
               {prayers.map((prayer, index) => (
-                <PrayerCard key={prayer.id} delay={index * 0.1}>
+                <PrayerCard key={prayer.id} delay={index * 0.1} isPinned={prayer.isPinned}>
+                  {prayer.isPinned && <PinnedIndicator>📌 고정됨</PinnedIndicator>}
                   <CardHeader onClick={() => togglePrayer(prayer.id)}>
                     <PersonInfo>
-                      <PersonAvatar>
+                      <PersonAvatar isPinned={prayer.isPinned}>
                         <AvatarText>{prayer.id.charAt(0)}</AvatarText>
                       </PersonAvatar>
                       <PersonDetails>
                         <PersonName>{prayer.id}</PersonName>
                         <UpdatedDate>{formatDate(prayer.updatedAt)}</UpdatedDate>
+                        {prayer.isPinned && <PinStatus>📌 상단 고정</PinStatus>}
                       </PersonDetails>
                     </PersonInfo>
 
                     <CardActions>
+                      <PinButton 
+                        onClick={(e) => { e.stopPropagation(); handleTogglePin(prayer.id); }}
+                        isPinned={prayer.isPinned}
+                        disabled={isPinning}
+                        title={prayer.isPinned ? '고정 해제' : '고정하기 (최대 3개)'}
+                      >
+                        <ActionIcon>{prayer.isPinned ? '📌' : '📍'}</ActionIcon>
+                      </PinButton>
                       <EditButton onClick={(e) => { e.stopPropagation(); handleEdit(prayer); }}>
                         <ActionIcon>✏️</ActionIcon>
                       </EditButton>
-                      <DeleteButton onClick={(e) => { e.stopPropagation(); setDeleteConfirm({ isOpen: true, prayerId: prayer.id }); }}>
+                      <DeleteButton 
+                        onClick={(e) => { e.stopPropagation(); setDeleteConfirm({ isOpen: true, prayerId: prayer.id }); }}
+                        disabled={isDeleting || isPinning}
+                      >
                         <ActionIcon>🗑️</ActionIcon>
                       </DeleteButton>
                       <ToggleIcon isOpen={openPrayerId === prayer.id}>
@@ -308,20 +424,44 @@ const Prayer = () => {
       </MainContent>
 
       {deleteConfirm.isOpen && (
-        <DeleteModal onClick={() => setDeleteConfirm({ isOpen: false, prayerId: null })}>
+        <DeleteModal onClick={() => !isDeleting && setDeleteConfirm({ isOpen: false, prayerId: null })}>
           <ModalContent onClick={(e) => e.stopPropagation()}>
-            <ModalIcon>⚠️</ModalIcon>
+            <ModalIcon>{isDeleting ? '⏳' : '⚠️'}</ModalIcon>
             <ModalTitle>기도제목 삭제</ModalTitle>
             <ModalDescription>
-              정말로 이 기도제목을 삭제하시겠습니까?<br/>
-              삭제된 데이터는 복구할 수 없습니다.
+              {(() => {
+                const prayer = prayers.find(p => p.id === deleteConfirm.prayerId);
+                const name = prayer?.id || '선택된 항목';
+                return (
+                  <>
+                    <strong>"{name}"</strong>님의 기도제목을 삭제하시겠습니까?<br/>
+                    <DeleteWarning>삭제된 데이터는 복구할 수 없습니다.</DeleteWarning>
+                    {isDeleting && <DeletingText>삭제 중입니다...</DeletingText>}
+                  </>
+                );
+              })()}
             </ModalDescription>
             <ModalButtons>
-              <DeleteConfirmButton onClick={() => handleDelete(deleteConfirm.prayerId)}>
-                <ButtonIcon>🗑️</ButtonIcon>
-                삭제
+              <DeleteConfirmButton 
+                onClick={() => handleDelete(deleteConfirm.prayerId)}
+                disabled={isDeleting}
+              >
+                {isDeleting ? (
+                  <>
+                    <LoadingSpinner />
+                    삭제 중...
+                  </>
+                ) : (
+                  <>
+                    <ButtonIcon>🗑️</ButtonIcon>
+                    삭제
+                  </>
+                )}
               </DeleteConfirmButton>
-              <ModalCancelButton onClick={() => setDeleteConfirm({ isOpen: false, prayerId: null })}>
+              <ModalCancelButton 
+                onClick={() => setDeleteConfirm({ isOpen: false, prayerId: null })}
+                disabled={isDeleting}
+              >
                 <ButtonIcon>❌</ButtonIcon>
                 취소
               </ModalCancelButton>
@@ -507,6 +647,17 @@ const Subtitle = styled.p`
   }
 `;
 
+const StatsContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${spacing.lg};
+  align-items: center;
+  
+  ${media['max-md']} {
+    gap: ${spacing.md};
+  }
+`;
+
 const StatsCard = styled.div`
   display: inline-flex;
   align-items: center;
@@ -519,6 +670,36 @@ const StatsCard = styled.div`
   
   ${media['max-md']} {
     padding: ${spacing.md} ${spacing.lg};
+  }
+`;
+
+const PinStatsCard = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: ${spacing.sm};
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.2) 0%, rgba(245, 158, 11, 0.2) 100%);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: ${borderRadius.xl};
+  padding: ${spacing.lg} ${spacing.xl};
+  animation: ${fadeInUp} 0.8s ease-out 1s both;
+  
+  ${media['max-md']} {
+    padding: ${spacing.md} ${spacing.lg};
+  }
+`;
+
+const PinStatsIcon = styled.span`
+  font-size: ${typography.fontSize.lg};
+`;
+
+const PinStatsText = styled.span`
+  color: rgba(245, 158, 11, 1);
+  font-size: ${typography.fontSize.base};
+  font-weight: ${typography.fontWeight.semibold};
+  
+  ${media['max-md']} {
+    font-size: ${typography.fontSize.sm};
   }
 `;
 
@@ -864,19 +1045,36 @@ const PrayerList = styled.div`
 `;
 
 const PrayerCard = styled.div`
+  position: relative;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   border-radius: ${borderRadius['2xl']};
-  box-shadow: ${shadows.lg};
+  box-shadow: ${props => props.isPinned ? shadows['2xl'] : shadows.lg};
   overflow: hidden;
   transition: all 0.4s ease;
   animation: ${fadeInUp} 0.8s ease-out ${props => 1.4 + props.delay}s both;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: ${props => props.isPinned 
+    ? '2px solid rgba(251, 191, 36, 0.5)'
+    : '1px solid rgba(255, 255, 255, 0.3)'
+  };
   
   &:hover {
     transform: translateY(-4px);
     box-shadow: ${shadows['2xl']};
   }
+  
+  ${props => props.isPinned && `
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+      z-index: 10;
+    }
+  `}
 `;
 
 const CardHeader = styled.div`
@@ -906,11 +1104,16 @@ const PersonAvatar = styled.div`
   width: 50px;
   height: 50px;
   border-radius: ${borderRadius.full};
-  background: ${colors.gradients.primary};
+  background: ${props => props.isPinned 
+    ? 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)'
+    : colors.gradients.primary
+  };
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  box-shadow: ${props => props.isPinned ? shadows.lg : shadows.sm};
+  transition: all 0.3s ease;
   
   ${media['max-md']} {
     width: 40px;
@@ -990,9 +1193,15 @@ const DeleteButton = styled.button`
   justify-content: center;
   transition: all 0.3s ease;
   
-  &:hover {
+  &:hover:not(:disabled) {
     background: rgba(239, 68, 68, 0.2);
     transform: scale(1.1);
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
   }
 `;
 
@@ -1151,11 +1360,88 @@ const ModalCancelButton = styled.button`
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
   
-  &:hover {
+  &:hover:not(:disabled) {
     background: rgba(255, 255, 255, 0.95);
     border-color: ${colors.neutral[400]};
     transform: translateY(-2px);
   }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+`;
+
+const DeleteWarning = styled.span`
+  color: ${colors.red[600]};
+  font-weight: ${typography.fontWeight.semibold};
+  font-size: ${typography.fontSize.sm};
+`;
+
+const DeletingText = styled.div`
+  color: ${colors.primary[600]};
+  font-weight: ${typography.fontWeight.medium};
+  margin-top: ${spacing.md};
+  font-size: ${typography.fontSize.sm};
+`;
+
+// 핀 기능을 위한 새로운 스타일 컴포넌트들
+const PinButton = styled.button`
+  width: 40px;
+  height: 40px;
+  border-radius: ${borderRadius.lg};
+  border: none;
+  background: ${props => props.isPinned 
+    ? 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)'
+    : 'rgba(156, 163, 175, 0.1)'
+  };
+  color: ${props => props.isPinned ? 'white' : colors.neutral[500]};
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: ${props => props.isPinned ? shadows.md : 'none'};
+  
+  &:hover:not(:disabled) {
+    background: ${props => props.isPinned 
+      ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'
+      : 'rgba(156, 163, 175, 0.2)'
+    };
+    transform: scale(1.1);
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+`;
+
+const PinnedIndicator = styled.div`
+  position: absolute;
+  top: -8px;
+  right: ${spacing.lg};
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  color: white;
+  padding: ${spacing.xs} ${spacing.sm};
+  border-radius: ${borderRadius.full};
+  font-size: ${typography.fontSize.xs};
+  font-weight: ${typography.fontWeight.bold};
+  box-shadow: ${shadows.md};
+  z-index: 10;
+  animation: ${pulse} 2s ease-in-out infinite;
+`;
+
+const PinStatus = styled.span`
+  color: #f59e0b;
+  font-size: ${typography.fontSize.xs};
+  font-weight: ${typography.fontWeight.semibold};
+  display: flex;
+  align-items: center;
+  gap: ${spacing.xs};
+  margin-top: ${spacing.xs};
 `;
 
 export default Prayer;

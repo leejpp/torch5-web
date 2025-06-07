@@ -14,13 +14,34 @@ const PrayerRequests = () => {
 
   const fetchPrayers = async () => {
     try {
+      // 일단 모든 데이터를 가져옴 (Firestore는 복합 정렬이 복잡하므로 클라이언트에서 정렬)
       const q = query(collection(db, 'prayerRequests'), orderBy('updatedAt', 'desc'));
       const querySnapshot = await getDocs(q);
       const prayerList = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
-      setPrayers(prayerList);
+      
+      // 핀된 항목을 최상단에 정렬
+      const sortedPrayers = prayerList.sort((a, b) => {
+        // 1순위: 핀 상태 (핀된 항목이 먼저)
+        if (a.isPinned && !b.isPinned) return -1;
+        if (!a.isPinned && b.isPinned) return 1;
+        
+        // 2순위: 핀된 항목들끼리는 pinnedAt 기준으로 정렬 (최근에 핀된 것이 먼저)
+        if (a.isPinned && b.isPinned) {
+          const aPinnedAt = a.pinnedAt?.seconds || 0;
+          const bPinnedAt = b.pinnedAt?.seconds || 0;
+          return bPinnedAt - aPinnedAt;
+        }
+        
+        // 3순위: 핀되지 않은 항목들끼리는 updatedAt 기준으로 정렬 (최근 업데이트가 먼저)
+        const aUpdatedAt = a.updatedAt?.seconds || 0;
+        const bUpdatedAt = b.updatedAt?.seconds || 0;
+        return bUpdatedAt - aUpdatedAt;
+      });
+      
+      setPrayers(sortedPrayers);
     } catch (error) {
       console.error("Error fetching prayers:", error);
     } finally {
@@ -94,25 +115,32 @@ const PrayerRequests = () => {
               <PrayerCount>
                 총 <CountNumber>{prayers.length}</CountNumber>명의 기도제목
               </PrayerCount>
+              {prayers.filter(p => p.isPinned).length > 0 && (
+                <PinInfo>
+                  📌 <PinCount>{prayers.filter(p => p.isPinned).length}</PinCount>개 항목이 상단에 고정되어 있습니다
+                </PinInfo>
+              )}
               <PrayerDescription>사랑으로 서로를 위해 기도해주세요</PrayerDescription>
             </SectionHeader>
 
             <PrayerGrid>
               {prayers.map((prayer, index) => (
-                <PrayerCard key={prayer.id} delay={index * 0.1}>
-                  <CardGradient />
+                <PrayerCard key={prayer.id} delay={index * 0.1} isPinned={prayer.isPinned}>
+                  <CardGradient isPinned={prayer.isPinned} />
+                  {prayer.isPinned && <PinnedIndicator>📌 고정된 기도제목</PinnedIndicator>}
                   <CardContent>
                     <PrayerHeader>
                       <PersonInfo>
-                        <PersonAvatar>
+                        <PersonAvatar isPinned={prayer.isPinned}>
                           {prayer.id.charAt(0)}
                         </PersonAvatar>
                         <PersonDetails>
                           <PersonName>{prayer.id}</PersonName>
                           <TimeStamp>{getTimeAgo(prayer.updatedAt)}</TimeStamp>
+                          {prayer.isPinned && <PinStatus>📌 상단 고정</PinStatus>}
                         </PersonDetails>
                       </PersonInfo>
-                      <PrayerBadge>
+                      <PrayerBadge isPinned={prayer.isPinned}>
                         {prayer.prayerItems.length}개 제목
                       </PrayerBadge>
                     </PrayerHeader>
@@ -488,15 +516,32 @@ const PrayerCard = styled.div`
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   border-radius: ${borderRadius['2xl']};
-  box-shadow: ${shadows.md};
+  box-shadow: ${props => props.isPinned ? shadows['2xl'] : shadows.md};
   transition: all 0.4s ease;
   animation: ${fadeInUp} 0.8s ease-out ${props => props.delay}s both;
   overflow: hidden;
+  border: ${props => props.isPinned 
+    ? '2px solid rgba(251, 191, 36, 0.4)'
+    : '1px solid rgba(255, 255, 255, 0.2)'
+  };
   
   &:hover {
     transform: translateY(-8px);
     box-shadow: ${shadows['2xl']};
   }
+  
+  ${props => props.isPinned && `
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+      z-index: 10;
+    }
+  `}
 `;
 
 const CardGradient = styled.div`
@@ -505,7 +550,11 @@ const CardGradient = styled.div`
   left: 0;
   right: 0;
   height: 4px;
-  background: ${colors.gradients.primary};
+  background: ${props => props.isPinned 
+    ? 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)'
+    : colors.gradients.primary
+  };
+  z-index: 5;
 `;
 
 const CardContent = styled.div`
@@ -545,7 +594,10 @@ const PersonInfo = styled.div`
 const PersonAvatar = styled.div`
   width: 48px;
   height: 48px;
-  background: ${colors.gradients.primary};
+  background: ${props => props.isPinned 
+    ? 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)'
+    : colors.gradients.primary
+  };
   color: white;
   border-radius: ${borderRadius.full};
   display: flex;
@@ -553,8 +605,9 @@ const PersonAvatar = styled.div`
   justify-content: center;
   font-weight: ${typography.fontWeight.bold};
   font-size: ${typography.fontSize.lg};
-  box-shadow: ${shadows.md};
+  box-shadow: ${props => props.isPinned ? shadows.lg : shadows.md};
   flex-shrink: 0;
+  transition: all 0.3s ease;
   
   ${media['max-md']} {
     width: 40px;
@@ -591,13 +644,16 @@ const TimeStamp = styled.span`
 `;
 
 const PrayerBadge = styled.span`
-  background: ${colors.gradients.secondary};
+  background: ${props => props.isPinned 
+    ? 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)'
+    : colors.gradients.secondary
+  };
   color: white;
   padding: ${spacing.sm} ${spacing.lg};
   border-radius: ${borderRadius.full};
   font-size: ${typography.fontSize.sm};
   font-weight: ${typography.fontWeight.semibold};
-  box-shadow: ${shadows.sm};
+  box-shadow: ${props => props.isPinned ? shadows.md : shadows.sm};
   white-space: nowrap;
   flex-shrink: 0;
   
@@ -673,6 +729,60 @@ const PrayerText = styled.p`
   }
 `;
 
+// 핀 기능을 위한 새로운 스타일 컴포넌트들
+const PinnedIndicator = styled.div`
+  position: absolute;
+  top: -8px;
+  right: ${spacing.lg};
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  color: white;
+  padding: ${spacing.xs} ${spacing.sm};
+  border-radius: ${borderRadius.full};
+  font-size: ${typography.fontSize.xs};
+  font-weight: ${typography.fontWeight.bold};
+  box-shadow: ${shadows.md};
+  z-index: 15;
+  animation: ${pulse} 2s ease-in-out infinite;
+  
+  ${media['max-md']} {
+    top: -6px;
+    right: ${spacing.md};
+    padding: ${spacing.xs} ${spacing.xs};
+  }
+`;
 
+const PinInfo = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${spacing.sm};
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(245, 158, 11, 0.1) 100%);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: ${borderRadius.xl};
+  padding: ${spacing.sm} ${spacing.lg};
+  color: #f59e0b;
+  font-size: ${typography.fontSize.sm};
+  font-weight: ${typography.fontWeight.medium};
+  margin-bottom: ${spacing.sm};
+  
+  ${media['max-md']} {
+    padding: ${spacing.xs} ${spacing.md};
+    font-size: ${typography.fontSize.xs};
+  }
+`;
+
+const PinCount = styled.span`
+  color: #f59e0b;
+  font-weight: ${typography.fontWeight.bold};
+`;
+
+const PinStatus = styled.span`
+  color: #f59e0b;
+  font-size: ${typography.fontSize.xs};
+  font-weight: ${typography.fontWeight.semibold};
+  display: flex;
+  align-items: center;
+  gap: ${spacing.xs};
+  margin-top: ${spacing.xs};
+`;
 
 export default PrayerRequests;

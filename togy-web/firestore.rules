@@ -13,14 +13,37 @@ service cloud.firestore {
       allow write: if false;  // 쓰기는 콘솔에서만 가능
     }
     
-    // prayerRequests 컬렉션
+    // prayerRequests 컬렉션 - 핀 기능과 삭제 기능을 위해 규칙 업데이트
     match /prayerRequests/{document=**} {
       allow read: if true;
-      allow create, update, delete: if 
+      
+      // 생성 규칙: 필수 필드들이 있는지 확인
+      allow create: if 
         exists(/databases/$(database)/documents/admin/settings) &&
         request.time != null &&
-        request.resource.data.keys().hasAll(['prayerItems', 'updatedAt']) &&
-        request.resource.data.prayerItems is list;
+        request.resource.data.keys().hasAll(['prayerItems', 'updatedAt', 'createdAt']) &&
+        request.resource.data.prayerItems is list &&
+        // 핀 관련 필드는 선택적
+        (!('isPinned' in request.resource.data) || request.resource.data.isPinned is bool) &&
+        (!('pinnedAt' in request.resource.data) || request.resource.data.pinnedAt != null);
+      
+      // 수정 규칙: 기존 문서가 있고 필요한 필드들이 유효한지 확인
+      allow update: if 
+        exists(/databases/$(database)/documents/admin/settings) &&
+        request.time != null &&
+        resource != null &&
+        // 필수 필드 확인
+        request.resource.data.keys().hasAny(['prayerItems', 'updatedAt']) &&
+        // prayerItems가 있다면 배열이어야 함
+        (!('prayerItems' in request.resource.data) || request.resource.data.prayerItems is list) &&
+        // 핀 관련 필드 유효성 검사
+        (!('isPinned' in request.resource.data) || request.resource.data.isPinned is bool) &&
+        (!('pinnedAt' in request.resource.data) || request.resource.data.pinnedAt != null);
+      
+      // 삭제 규칙: 관리자 권한만 확인 (request.resource.data는 삭제시 null이므로 제외)
+      allow delete: if 
+        exists(/databases/$(database)/documents/admin/settings) &&
+        resource != null;
     }
     
     // voices 컬렉션 추가

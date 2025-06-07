@@ -6,10 +6,11 @@ import startOfWeek from 'date-fns/startOfWeek';
 import getDay from 'date-fns/getDay';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import ko from 'date-fns/locale/ko';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import { Link } from 'react-router-dom';
 import { db } from '../../firebase/config';
 import { collection, query, orderBy, getDocs, addDoc, updateDoc, deleteDoc, doc, writeBatch, where } from 'firebase/firestore';
+import { colors, typography, spacing, shadows, borderRadius, media } from '../../styles/designSystem';
 
 const locales = { 'ko': ko };
 
@@ -322,15 +323,29 @@ const AdminCalendar = () => {
 
   return (
     <Container>
+      <BackgroundOverlay />
+      
       <Header>
-        <TitleSection>
-          <HomeButton to="/admin">← 홈으로</HomeButton>
-          <TitleWrapper>
-            <Title onClick={handleTitleClick}>일정 관리</Title>
-            <CurrentDate>{format(date, 'yyyy년 M월')}</CurrentDate>
-          </TitleWrapper>
-        </TitleSection>
+        <HeaderContent>
+          <AdminBadge>
+            <BadgeIcon>👑</BadgeIcon>
+            <BadgeText>관리자</BadgeText>
+          </AdminBadge>
+          
+          <TitleSection>
+            <HeaderIcon>📅</HeaderIcon>
+            <Title>일정 관리</Title>
+            <Subtitle>청년부 행사 및 모임 일정 관리</Subtitle>
+          </TitleSection>
+          
+          <StatsCard>
+            <StatsIcon>📊</StatsIcon>
+            <StatsText>이번 달 {events.filter(e => format(e.start, 'yyyy-MM') === format(date, 'yyyy-MM')).length}개의 일정이 있습니다</StatsText>
+          </StatsCard>
+        </HeaderContent>
       </Header>
+
+      <MainContent>
       <CalendarContainer
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
@@ -402,6 +417,7 @@ const AdminCalendar = () => {
           />
         )}
       </CalendarContainer>
+      </MainContent>
 
       {isModalOpen && (
         <Modal onClick={(e) => {
@@ -591,76 +607,219 @@ const AdminCalendar = () => {
   );
 };
 
+// 애니메이션
+const fadeInUp = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
+const fadeIn = keyframes`
+  from { opacity: 0; }
+  to { opacity: 1; }
+`;
+
+const float = keyframes`
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+`;
+
+const spin = keyframes`
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+`;
+
+const slideInUp = keyframes`
+  from {
+    transform: translateY(100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+`;
+
+// 스타일 컴포넌트
 const Container = styled.div`
-  width: 100%;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background-color: white;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+`;
+
+const BackgroundOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  z-index: -2;
   
-  @media (max-width: 768px) {
-    padding: 0;
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+      radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 40% 60%, rgba(236, 72, 153, 0.03) 0%, transparent 50%);
   }
 `;
 
 const Header = styled.header`
-  padding: 1rem;
-  border-bottom: 1px solid #eee;
+  background: ${colors.gradients.accent};
+  position: relative;
+  overflow: hidden;
   
-  @media (max-width: 768px) {
-    padding: 0.8rem 1rem;
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+      radial-gradient(circle at 30% 70%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 70% 30%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
   }
+`;
+
+const HeaderContent = styled.div`
+  position: relative;
+  padding: ${spacing['4xl']} ${spacing['2xl']} ${spacing['3xl']};
+  text-align: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  
+  ${media['max-md']} {
+    padding: ${spacing['3xl']} ${spacing.lg} ${spacing['2xl']};
+  }
+`;
+
+const AdminBadge = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: ${spacing.sm};
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: ${borderRadius.full};
+  padding: ${spacing.sm} ${spacing.lg};
+  margin-bottom: ${spacing.xl};
+  animation: ${fadeInUp} 0.8s ease-out;
+`;
+
+const BadgeIcon = styled.span`
+  font-size: ${typography.fontSize.lg};
+`;
+
+const BadgeText = styled.span`
+  color: white;
+  font-size: ${typography.fontSize.sm};
+  font-weight: ${typography.fontWeight.semibold};
 `;
 
 const TitleSection = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+  margin-bottom: ${spacing.xl};
 `;
 
-const HomeButton = styled(Link)`
-  color: #666;
-  text-decoration: none;
-  padding: 0.5rem 1rem;
-  border-radius: 5px;
-  font-size: 1rem;
+const HeaderIcon = styled.div`
+  font-size: ${typography.fontSize['4xl']};
+  margin-bottom: ${spacing.lg};
+  animation: ${float} 3s ease-in-out infinite, ${fadeInUp} 0.8s ease-out 0.2s both;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
   
-  &:hover {
-    background-color: #f0f0f0;
-    color: #333;
+  ${media['max-md']} {
+    font-size: ${typography.fontSize['3xl']};
   }
-`;
-
-const TitleWrapper = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  flex: 1;
 `;
 
 const Title = styled.h1`
-  font-size: 1.5rem;
-  color: #333;
-  margin: 0;
-  cursor: pointer;
+  color: white;
+  font-size: ${typography.fontSize['4xl']};
+  font-weight: ${typography.fontWeight.extrabold};
+  margin-bottom: ${spacing.sm};
+  font-family: ${typography.fontFamily.heading};
+  animation: ${fadeInUp} 0.8s ease-out 0.4s both;
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   
-  &:hover {
-    opacity: 0.8;
-  }
-  
-  &:active {
-    opacity: 0.6;
+  ${media['max-md']} {
+    font-size: ${typography.fontSize['2xl']};
   }
 `;
 
-const CurrentDate = styled.span`
-  color: #666;
-  font-size: 1.2rem;
+const Subtitle = styled.p`
+  color: rgba(255, 255, 255, 0.9);
+  font-size: ${typography.fontSize.xl};
+  font-weight: ${typography.fontWeight.medium};
+  animation: ${fadeInUp} 0.8s ease-out 0.6s both;
+  
+  ${media['max-md']} {
+    font-size: ${typography.fontSize.lg};
+  }
 `;
+
+const StatsCard = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: ${spacing.sm};
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border-radius: ${borderRadius.xl};
+  padding: ${spacing.lg} ${spacing.xl};
+  animation: ${fadeInUp} 0.8s ease-out 0.8s both;
+  
+  ${media['max-md']} {
+    padding: ${spacing.md} ${spacing.lg};
+  }
+`;
+
+const StatsIcon = styled.span`
+  font-size: ${typography.fontSize.lg};
+`;
+
+const StatsText = styled.span`
+  color: white;
+  font-size: ${typography.fontSize.base};
+  font-weight: ${typography.fontWeight.medium};
+  
+  ${media['max-md']} {
+    font-size: ${typography.fontSize.sm};
+  }
+`;
+
+const MainContent = styled.main`
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: ${spacing['3xl']} ${spacing.lg};
+  
+  ${media['max-md']} {
+    padding: ${spacing['2xl']} ${spacing.md};
+  }
+`;
+
+
 
 const CalendarContainer = styled.div`
-  flex: 1;
-  background-color: white;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: ${borderRadius['2xl']};
+  box-shadow: ${shadows.lg};
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  animation: ${fadeInUp} 0.8s ease-out 1s both;
   
   .rbc-calendar {
     width: 100%;

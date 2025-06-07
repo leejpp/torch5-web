@@ -135,6 +135,17 @@ const Calendar = () => {
     return todayEvents.length;
   };
 
+  const getCurrentMonthEventCount = () => {
+    const currentMonth = date.getMonth();
+    const currentYear = date.getFullYear();
+    const monthEvents = events.filter(event => {
+      const eventDate = new Date(event.start);
+      return eventDate.getMonth() === currentMonth && 
+             eventDate.getFullYear() === currentYear;
+    });
+    return monthEvents.length;
+  };
+
   return (
     <Container>
       <BackgroundOverlay />
@@ -163,8 +174,8 @@ const Calendar = () => {
 
           <StatsSection>
             <StatCard>
-              <StatNumber>{events.length}</StatNumber>
-              <StatLabel>전체 일정</StatLabel>
+              <StatNumber>{getCurrentMonthEventCount()}</StatNumber>
+              <StatLabel>이번 달 일정</StatLabel>
             </StatCard>
             <StatCard>
               <StatNumber>{getEventCount()}</StatNumber>

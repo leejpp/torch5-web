@@ -336,6 +336,7 @@ const AdminCalendar = () => {
             <HeaderIcon>📅</HeaderIcon>
             <Title>일정 관리</Title>
             <Subtitle>청년부 행사 및 모임 일정 관리</Subtitle>
+            <CurrentMonth>{format(date, 'yyyy년 M월')}</CurrentMonth>
           </TitleSection>
           
           <StatsCard>
@@ -769,6 +770,24 @@ const Subtitle = styled.p`
   
   ${media['max-md']} {
     font-size: ${typography.fontSize.lg};
+  }
+`;
+
+const CurrentMonth = styled.div`
+  color: rgba(255, 255, 255, 0.95);
+  font-size: ${typography.fontSize.lg};
+  font-weight: ${typography.fontWeight.bold};
+  margin-top: ${spacing.sm};
+  text-align: center;
+  background: rgba(255, 255, 255, 0.1);
+  padding: ${spacing.sm} ${spacing.md};
+  border-radius: ${borderRadius.lg};
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  animation: ${fadeInUp} 0.8s ease-out 0.7s both;
+  
+  ${media['max-md']} {
+    font-size: ${typography.fontSize.base};
+    padding: ${spacing.xs} ${spacing.sm};
   }
 `;
 

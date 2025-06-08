@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import styled, { keyframes } from 'styled-components';
+import styled, { keyframes, css } from 'styled-components';
 import { db } from '../../firebase/config';
-import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, orderBy, setDoc } from 'firebase/firestore';
+import { collection, getDocs, updateDoc, deleteDoc, doc, query, orderBy, setDoc } from 'firebase/firestore';
 import { colors, typography, spacing, shadows, borderRadius, media } from '../../styles/designSystem';
 
 const Prayer = () => {
@@ -310,7 +310,6 @@ const Prayer = () => {
                         </RemoveButton>
                       )}
                       <PrayerInput
-                        type="text"
                         value={item}
                         onChange={(e) => handlePrayerItemChange(index, e.target.value)}
                         placeholder={`기도제목 ${index + 1}을 입력하세요`}
@@ -501,15 +500,6 @@ const float = keyframes`
 const spin = keyframes`
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
-`;
-
-const shimmer = keyframes`
-  0% {
-    background-position: -200px 0;
-  }
-  100% {
-    background-position: calc(200px + 100%) 0;
-  }
 `;
 
 const pulse = keyframes`
@@ -876,13 +866,17 @@ const RemoveIcon = styled.span`
   font-weight: bold;
 `;
 
-const PrayerInput = styled.input`
+const PrayerInput = styled.textarea`
   flex: 1;
   padding: ${spacing.lg};
   border: none;
   border-radius: ${borderRadius.lg};
   font-size: ${typography.fontSize.base};
   background: transparent;
+  resize: vertical;
+  min-height: 60px;
+  font-family: inherit;
+  line-height: 1.5;
   
   &:focus {
     outline: none;
@@ -1051,7 +1045,9 @@ const PrayerCard = styled.div`
   box-shadow: ${props => props.isPinned ? shadows['2xl'] : shadows.lg};
   overflow: hidden;
   transition: all 0.4s ease;
-  animation: ${fadeInUp} 0.8s ease-out ${props => 1.4 + props.delay}s both;
+  ${props => css`
+    animation: ${fadeInUp} 0.8s ease-out ${1.4 + props.delay}s both;
+  `}
   border: ${props => props.isPinned 
     ? '2px solid rgba(251, 191, 36, 0.5)'
     : '1px solid rgba(255, 255, 255, 0.3)'
@@ -1062,7 +1058,7 @@ const PrayerCard = styled.div`
     box-shadow: ${shadows['2xl']};
   }
   
-  ${props => props.isPinned && `
+  ${props => props.isPinned && css`
     &::before {
       content: '';
       position: absolute;

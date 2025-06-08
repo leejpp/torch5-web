@@ -407,10 +407,7 @@ const AdminCalendar = () => {
             longPressThreshold={20}  // 터치 감지 시간을 매우 짧게 설정
             components={{
               dateCellWrapper: props => (
-                <div
-                  onClick={() => handleSelect({ start: props.value })}
-                  style={{ height: '100%' }}
-                >
+                <div style={{ height: '100%' }}>
                   {props.children}
                 </div>
               )
@@ -421,10 +418,8 @@ const AdminCalendar = () => {
       </MainContent>
 
       {isModalOpen && (
-        <Modal onClick={(e) => {
-          e.stopPropagation();
-        }}>
-          <ModalContent>
+        <Modal onClick={() => setIsModalOpen(false)}>
+          <ModalContent onClick={(e) => e.stopPropagation()}>
             <h2>{selectedEvent ? '일정 수정' : '새 일정'}</h2>
             <Form onSubmit={handleSubmit}>
               <InputGroup>

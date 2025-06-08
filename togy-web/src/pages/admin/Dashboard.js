@@ -89,6 +89,24 @@ const Dashboard = () => {
                 <MenuArrow>→</MenuArrow>
               </CardContent>
             </MenuCard>
+
+            <MenuCard to="/admin/cells" delay={0.3}>
+              <CardGradient color="success" />
+              <CardContent>
+                <MenuIconContainer>
+                  <MenuIcon>🔄</MenuIcon>
+                  <IconRing />
+                </MenuIconContainer>
+                <MenuInfo>
+                  <MenuTitle>셀 재편성</MenuTitle>
+                  <MenuDescription>
+                    청년부 셀 구성 최적화<br/>
+                    스마트 알고리즘으로 균형있는 셀 배치
+                  </MenuDescription>
+                </MenuInfo>
+                <MenuArrow>→</MenuArrow>
+              </CardContent>
+            </MenuCard>
           </MenuGrid>
         </DashboardSection>
 

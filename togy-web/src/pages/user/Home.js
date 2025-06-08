@@ -3,7 +3,7 @@ import styled, { keyframes } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../../firebase/config';
 import { collection, query, getDocs, orderBy } from 'firebase/firestore';
-import { colors, typography, spacing, shadows, animations, borderRadius, media } from '../../styles/designSystem';
+import { colors, typography, spacing, shadows, borderRadius, media } from '../../styles/designSystem';
 // 아이콘 라이브러리 임포트 (예: react-icons)
 // import { FaHeart, FaFlask, FaSyncAlt, FaUsers, FaCalendarAlt, FaCommentDots, FaPray, FaPlus } from 'react-icons/fa';
 
@@ -106,37 +106,33 @@ const Home = () => {
       
       <Header>
         <HeaderContent>
-          <WelcomeText>환영합니다!</WelcomeText>
-          <Title>TOGY 청년부</Title>
-          <HeaderIcon>✨</HeaderIcon>
-        </HeaderContent>
-      </Header>
-
-      <MainContent>
-        <VisionSection>
           {isLoading ? (
-            <LoadingCard>
+            <>
               <LoadingIcon>⏳</LoadingIcon>
-              <LoadingText>테마를 불러오는 중...</LoadingText>
-            </LoadingCard>
+              <HeaderLoadingText>테마를 불러오는 중...</HeaderLoadingText>
+            </>
           ) : (
-            <YearlyThemeCard>
+            <>
               <ThemeIcon>📖</ThemeIcon>
-              <YearlyTheme>
+              <YearlyThemeTitle>
                 {yearlyTheme.theme.split('\n').map((line, index) => (
                   <React.Fragment key={index}>
                     {line}
                     {index < yearlyTheme.theme.split('\n').length - 1 && <br />}
                   </React.Fragment>
                 ))}
-              </YearlyTheme>
-              <ThemeSubtext>{yearlyTheme.year}년 연간 주제</ThemeSubtext>
-            </YearlyThemeCard>
+              </YearlyThemeTitle>
+              <ThemeYear>{yearlyTheme.year}년 연간 주제</ThemeYear>
+            </>
           )}
+        </HeaderContent>
+      </Header>
 
-          <VisionTitle>우리의 비전</VisionTitle>
+      <MainContent>
+        <VisionSection>
           <VisionCard>
             <VisionCardContent>
+              <VisionTitle>우리의 비전</VisionTitle>
               <VisionList>
                 {visionItems.map((item, index) => (
                   <VisionItem key={item.id} delay={index * 0.05}>
@@ -153,7 +149,6 @@ const Home = () => {
         </VisionSection>
 
         <QuickActionsSection>
-          <SectionTitle>빠른 메뉴</SectionTitle>
           <QuickActionsGrid>
             {quickActions.map((action, index) => (
               <ActionCard 
@@ -279,37 +274,69 @@ const HeaderContent = styled.div`
   }
 `;
 
-const WelcomeText = styled.p`
-  color: rgba(255, 255, 255, 0.9);
-  font-size: ${typography.fontSize.lg};
-  font-weight: ${typography.fontWeight.medium};
-  margin-bottom: ${spacing.sm};
-  animation: ${fadeInUp} 0.8s ease-out;
-  
-  ${media['max-md']} {
-    font-size: ${typography.fontSize.base};
-  }
-`;
-
-const Title = styled.h1`
-  color: white;
-  font-size: ${typography.fontSize['5xl']};
-  font-weight: ${typography.fontWeight.extrabold};
+const ThemeIcon = styled.div`
+  font-size: ${typography.fontSize['4xl']};
   margin-bottom: ${spacing.lg};
-  font-family: ${typography.fontFamily.heading};
-  animation: ${fadeInUp} 0.8s ease-out 0.2s both;
-  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  animation: ${float} 3s ease-in-out infinite, ${fadeInUp} 0.8s ease-out;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
   
   ${media['max-md']} {
     font-size: ${typography.fontSize['3xl']};
   }
 `;
 
-const HeaderIcon = styled.div`
-  font-size: ${typography.fontSize['2xl']};
-  animation: ${float} 3s ease-in-out infinite, ${fadeInUp} 0.8s ease-out 0.4s both;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+const YearlyThemeTitle = styled.h1`
+  color: white;
+  font-size: ${typography.fontSize['4xl']};
+  font-weight: ${typography.fontWeight.extrabold};
+  margin-bottom: ${spacing.lg};
+  font-family: ${typography.fontFamily.heading};
+  animation: ${fadeInUp} 0.8s ease-out 0.2s both;
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  line-height: ${typography.lineHeight.tight};
+  
+  ${media['max-md']} {
+    font-size: ${typography.fontSize['2xl']};
+    br {
+      display: none;
+    }
+  }
 `;
+
+const ThemeYear = styled.p`
+  color: rgba(255, 255, 255, 0.9);
+  font-size: ${typography.fontSize.xl};
+  font-weight: ${typography.fontWeight.semibold};
+  animation: ${fadeInUp} 0.8s ease-out 0.4s both;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  
+  ${media['max-md']} {
+    font-size: ${typography.fontSize.lg};
+  }
+`;
+
+const LoadingIcon = styled.div`
+  font-size: ${typography.fontSize['4xl']};
+  margin-bottom: ${spacing.lg};
+  animation: ${pulse} 2s ease-in-out infinite;
+  
+  ${media['max-md']} {
+    font-size: ${typography.fontSize['3xl']};
+  }
+`;
+
+const HeaderLoadingText = styled.p`
+  color: rgba(255, 255, 255, 0.9);
+  font-size: ${typography.fontSize.xl};
+  font-weight: ${typography.fontWeight.medium};
+  
+  ${media['max-md']} {
+    font-size: ${typography.fontSize.lg};
+  }
+`;
+
+
 
 const MainContent = styled.main`
   max-width: 1200px;
@@ -329,110 +356,34 @@ const VisionSection = styled.section`
   }
 `;
 
-const LoadingCard = styled.div`
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: ${borderRadius['2xl']};
-  padding: ${spacing['3xl']};
-  text-align: center;
-  margin-bottom: ${spacing['4xl']};
-  box-shadow: ${shadows.glass};
-  animation: ${fadeInUp} 0.8s ease-out;
-  
-  ${media['max-md']} {
-    padding: ${spacing.xl};
-    margin-bottom: ${spacing.xl};
-  }
-`;
 
-const LoadingIcon = styled.div`
-  font-size: ${typography.fontSize['3xl']};
-  margin-bottom: ${spacing.lg};
-  animation: ${pulse} 2s ease-in-out infinite;
-`;
-
-const LoadingText = styled.p`
-  color: ${colors.neutral[600]};
-  font-size: ${typography.fontSize.base};
-  font-weight: ${typography.fontWeight.medium};
-`;
-
-const YearlyThemeCard = styled.div`
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: ${borderRadius['2xl']};
-  padding: ${spacing['3xl']};
-  text-align: center;
-  margin-bottom: ${spacing['4xl']};
-  box-shadow: ${shadows.glass};
-  animation: ${fadeInUp} 0.8s ease-out;
-  position: relative;
-  overflow: hidden;
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -200px;
-    width: 200px;
-    height: 100%;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.4),
-      transparent
-    );
-    animation: ${shimmer} 3s infinite;
-  }
-  
-  ${media['max-md']} {
-    padding: ${spacing.xl};
-    margin-bottom: ${spacing.xl};
-  }
-`;
-
-const ThemeIcon = styled.div`
-  font-size: ${typography.fontSize['3xl']};
-  margin-bottom: ${spacing.lg};
-  animation: ${pulse} 2s ease-in-out infinite;
-`;
-
-const YearlyTheme = styled.h2`
-  font-size: ${typography.fontSize['2xl']};
-  font-weight: ${typography.fontWeight.bold};
-  color: ${colors.neutral[800]};
-  margin-bottom: ${spacing.lg};
-  line-height: ${typography.lineHeight.relaxed};
-  font-family: ${typography.fontFamily.heading};
-  
-  ${media['max-md']} {
-    font-size: ${typography.fontSize.xl};
-    br {
-      display: none;
-    }
-  }
-`;
-
-const ThemeSubtext = styled.p`
-  color: ${colors.neutral[600]};
-  font-size: ${typography.fontSize.sm};
-  font-weight: ${typography.fontWeight.medium};
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-`;
 
 const VisionTitle = styled.h3`
   font-size: ${typography.fontSize['3xl']};
   font-weight: ${typography.fontWeight.bold};
   text-align: center;
-  margin-bottom: ${spacing['3xl']};
+  margin-bottom: ${spacing['2xl']};
   color: ${colors.neutral[800]};
   font-family: ${typography.fontFamily.heading};
   animation: ${fadeInUp} 0.8s ease-out 0.3s both;
+  position: relative;
+  z-index: 2;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -${spacing.md};
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background: ${colors.gradients.primary};
+    border-radius: ${borderRadius.full};
+  }
   
   ${media['max-md']} {
     font-size: ${typography.fontSize['2xl']};
-    margin-bottom: ${spacing['2xl']};
+    margin-bottom: ${spacing.xl};
   }
 `;
 
@@ -561,23 +512,14 @@ const VisionItemText = styled.p`
 `;
 
 const QuickActionsSection = styled.section`
-  padding-bottom: ${spacing['4xl']};
-`;
-
-const SectionTitle = styled.h3`
-  font-size: ${typography.fontSize['3xl']};
-  font-weight: ${typography.fontWeight.bold};
-  text-align: center;
-  margin-bottom: ${spacing['3xl']};
-  color: ${colors.neutral[800]};
-  font-family: ${typography.fontFamily.heading};
-  animation: ${fadeInUp} 0.8s ease-out 0.6s both;
+  padding: ${spacing['2xl']} 0 ${spacing['4xl']};
   
   ${media['max-md']} {
-    font-size: ${typography.fontSize['2xl']};
-    margin-bottom: ${spacing['2xl']};
+    padding: ${spacing.xl} 0 ${spacing['2xl']};
   }
 `;
+
+
 
 const QuickActionsGrid = styled.div`
   display: grid;

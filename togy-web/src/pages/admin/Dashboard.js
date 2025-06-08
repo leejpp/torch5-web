@@ -127,32 +127,6 @@ const Dashboard = () => {
             </MenuCard>
           </MenuGrid>
         </DashboardSection>
-
-        <StatsSection>
-          <StatsCard>
-            <StatsBackground />
-            <StatsContent>
-              <StatsHeader>
-                <StatsIcon>📊</StatsIcon>
-                <StatsTitle>운영 현황</StatsTitle>
-              </StatsHeader>
-              <StatsGrid>
-                <StatItem>
-                  <StatNumber>활성</StatNumber>
-                  <StatLabel>시스템 상태</StatLabel>
-                </StatItem>
-                <StatItem>
-                  <StatNumber>최신</StatNumber>
-                  <StatLabel>디자인 버전</StatLabel>
-                </StatItem>
-                <StatItem>
-                  <StatNumber>안전</StatNumber>
-                  <StatLabel>데이터 보안</StatLabel>
-                </StatItem>
-              </StatsGrid>
-            </StatsContent>
-          </StatsCard>
-        </StatsSection>
       </MainContent>
     </Container>
   );
@@ -190,14 +164,7 @@ const pulse = keyframes`
   }
 `;
 
-const shimmer = keyframes`
-  0% {
-    background-position: -200px 0;
-  }
-  100% {
-    background-position: calc(200px + 100%) 0;
-  }
-`;
+
 
 const ringExpand = keyframes`
   0% {
@@ -540,111 +507,6 @@ const MenuArrow = styled.div`
   }
 `;
 
-const StatsSection = styled.section`
-  animation: ${fadeInUp} 0.8s ease-out 1.5s both;
-`;
 
-const StatsCard = styled.div`
-  position: relative;
-  overflow: hidden;
-  border-radius: ${borderRadius['2xl']};
-`;
-
-const StatsBackground = styled.div`
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: ${colors.gradients.secondary};
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -200px;
-    width: 200px;
-    height: 100%;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.2),
-      transparent
-    );
-    animation: ${shimmer} 3s infinite;
-  }
-`;
-
-const StatsContent = styled.div`
-  position: relative;
-  z-index: 1;
-  padding: ${spacing['3xl']};
-  
-  ${media['max-md']} {
-    padding: ${spacing['2xl']};
-  }
-`;
-
-const StatsHeader = styled.div`
-  display: flex;
-  align-items: center;
-  gap: ${spacing.lg};
-  margin-bottom: ${spacing['2xl']};
-  justify-content: center;
-  
-  ${media['max-md']} {
-    margin-bottom: ${spacing.xl};
-  }
-`;
-
-const StatsIcon = styled.div`
-  font-size: ${typography.fontSize['2xl']};
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
-`;
-
-const StatsTitle = styled.h3`
-  color: white;
-  font-size: ${typography.fontSize.xl};
-  font-weight: ${typography.fontWeight.bold};
-  margin: 0;
-  font-family: ${typography.fontFamily.heading};
-`;
-
-const StatsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: ${spacing.xl};
-  
-  ${media['max-md']} {
-    grid-template-columns: 1fr;
-    gap: ${spacing.lg};
-  }
-`;
-
-const StatItem = styled.div`
-  text-align: center;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border-radius: ${borderRadius.xl};
-  padding: ${spacing.xl};
-  border: 1px solid rgba(255, 255, 255, 0.2);
-`;
-
-const StatNumber = styled.div`
-  color: white;
-  font-size: ${typography.fontSize.xl};
-  font-weight: ${typography.fontWeight.bold};
-  margin-bottom: ${spacing.sm};
-  
-  ${media['max-md']} {
-    font-size: ${typography.fontSize.lg};
-  }
-`;
-
-const StatLabel = styled.div`
-  color: rgba(255, 255, 255, 0.8);
-  font-size: ${typography.fontSize.sm};
-  font-weight: ${typography.fontWeight.medium};
-`;
 
 export default Dashboard;

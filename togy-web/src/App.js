@@ -18,9 +18,16 @@ import CalendarAdmin from './pages/admin/Calendar';
 import YearlyThemes from './pages/admin/YearlyThemes';
 import CellReorganization from './pages/admin/CellReorganization';
 
+// Talant Pages
+import TalantDashboard from './pages/talant/Dashboard';
+import TalantInput from './pages/talant/Input';
+import TalantHistory from './pages/talant/History';
+import RankPage from './pages/talant/Rank';
+
 // Layouts
 import UserLayout from './layouts/UserLayout';
 import AdminLayout from './layouts/AdminLayout';
+import TalantLayout from './layouts/TalantLayout';
 
 const GlobalStyle = createGlobalStyle`
   * {
@@ -87,6 +94,14 @@ const App = () => {
             <Route path="calendar" element={<CalendarAdmin />} />
             <Route path="yearlythemes" element={<YearlyThemes />} />
             <Route path="cells" element={<CellReorganization />} />
+          </Route>
+
+          {/* Talant Routes */}
+          <Route path="/talant" element={<TalantLayout />}>
+            <Route index element={<TalantDashboard />} />
+            <Route path="input" element={<TalantInput />} />
+            <Route path="history" element={<TalantHistory />} />
+            <Route path="rank" element={<RankPage />} />
           </Route>
         </Routes>
       </Router>

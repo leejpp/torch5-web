@@ -40,7 +40,10 @@ const YearlyThemes = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.year.trim() || !formData.theme.trim() || isSubmitting) return;
+    const yearStr = String(formData.year || '').trim();
+    const themeStr = String(formData.theme || '').trim();
+    
+    if (!yearStr || !themeStr || isSubmitting) return;
 
     const filteredDirection = formData.direction.filter(item => item.trim() !== '');
     if (filteredDirection.length === 0) {
@@ -51,8 +54,8 @@ const YearlyThemes = () => {
     setIsSubmitting(true);
     try {
       const themeData = {
-        year: formData.year.trim(),
-        theme: formData.theme.trim(),
+        year: yearStr,
+        theme: themeStr,
         direction: filteredDirection,
         createdAt: new Date()
       };
@@ -81,9 +84,9 @@ const YearlyThemes = () => {
   const handleEdit = (theme) => {
     setEditingTheme(theme);
     setFormData({
-      year: theme.year,
-      theme: theme.theme,
-      direction: [...theme.direction]
+      year: String(theme.year || ''),
+      theme: theme.theme || '',
+      direction: [...(theme.direction || [''])]
     });
     setShowForm(true);
   };

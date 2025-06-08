@@ -1,33 +1,33 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { createGlobalStyle, ThemeProvider } from 'styled-components';
 import { theme } from './styles/theme';
 
-// Pages
-import Home from './pages/user/Home';
-import Notice from './pages/user/Notice';
-import PrayerRequests from './pages/user/PrayerRequests';
-import Voices from './pages/user/Voices';
-import Calendar from './pages/user/Calendar';
-
-// Admin Pages
-import Dashboard from './pages/admin/Dashboard';
-import PrayerAdmin from './pages/admin/Prayer';
-import VoicesAdmin from './pages/admin/Voices';
-import CalendarAdmin from './pages/admin/Calendar';
-import YearlyThemes from './pages/admin/YearlyThemes';
-import CellReorganization from './pages/admin/CellReorganization';
-
-// Talant Pages
-import TalantDashboard from './pages/talant/Dashboard';
-import TalantInput from './pages/talant/Input';
-import TalantHistory from './pages/talant/History';
-import RankPage from './pages/talant/Rank';
-
-// Layouts
+// Layouts (항상 필요하므로 직접 import)
 import UserLayout from './layouts/UserLayout';
 import AdminLayout from './layouts/AdminLayout';
 import TalantLayout from './layouts/TalantLayout';
+
+// Lazy Loading으로 페이지들 최적화
+const Home = React.lazy(() => import('./pages/user/Home'));
+const Notice = React.lazy(() => import('./pages/user/Notice'));
+const PrayerRequests = React.lazy(() => import('./pages/user/PrayerRequests'));
+const Voices = React.lazy(() => import('./pages/user/Voices'));
+const Calendar = React.lazy(() => import('./pages/user/Calendar'));
+
+// Admin Pages
+const Dashboard = React.lazy(() => import('./pages/admin/Dashboard'));
+const PrayerAdmin = React.lazy(() => import('./pages/admin/Prayer'));
+const VoicesAdmin = React.lazy(() => import('./pages/admin/Voices'));
+const CalendarAdmin = React.lazy(() => import('./pages/admin/Calendar'));
+const YearlyThemes = React.lazy(() => import('./pages/admin/YearlyThemes'));
+const CellReorganization = React.lazy(() => import('./pages/admin/CellReorganization'));
+
+// Talant Pages
+const TalantDashboard = React.lazy(() => import('./pages/talant/Dashboard'));
+const TalantInput = React.lazy(() => import('./pages/talant/Input'));
+const TalantHistory = React.lazy(() => import('./pages/talant/History'));
+const RankPage = React.lazy(() => import('./pages/talant/Rank'));
 
 const GlobalStyle = createGlobalStyle`
   * {
@@ -65,6 +65,20 @@ const GlobalStyle = createGlobalStyle`
   }
 `;
 
+// Loading 컴포넌트
+const LoadingSpinner = () => (
+  <div style={{
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '50vh',
+    fontSize: '1.2rem',
+    color: '#666'
+  }}>
+    <div>⏳ 페이지를 불러오는 중...</div>
+  </div>
+);
+
 const App = () => {
   return (
     <ThemeProvider theme={theme}>
@@ -76,7 +90,8 @@ const App = () => {
           v7_relativeSplatPath: true
         }}
       >
-        <Routes>
+        <Suspense fallback={<LoadingSpinner />}>
+          <Routes>
           {/* User Routes */}
           <Route path="/" element={<UserLayout />}>
             <Route index element={<Home />} />
@@ -104,6 +119,7 @@ const App = () => {
             <Route path="rank" element={<RankPage />} />
           </Route>
         </Routes>
+        </Suspense>
       </Router>
     </ThemeProvider>
   );

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
 import { collection, query, orderBy, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
@@ -20,6 +20,7 @@ const pulse = keyframes`
   50% { transform: scale(1.05); }
 `;
 
+// eslint-disable-next-line no-unused-vars
 const shimmer = keyframes`
   0% { background-position: -200px 0; }
   100% { background-position: calc(200px + 100%) 0; }
@@ -703,25 +704,58 @@ const History = () => {
     }
   };
 
-  const groupedHistory = groupByDate(filteredHistory);
-  const hasActiveFilters = nameFilter || monthFilter || specificDateFilter;
+  // 메모화된 값들
+  const groupedHistory = useMemo(() => groupByDate(filteredHistory), [filteredHistory]);
+  const hasActiveFilters = useMemo(() => 
+    nameFilter || monthFilter || specificDateFilter, 
+    [nameFilter, monthFilter, specificDateFilter]
+  );
+  
+  // 메모화된 콜백 함수들
+  const handleNameFilterChange = useCallback((e) => {
+    setNameFilter(e.target.value);
+  }, []);
+  
+  const handleDateFilterTypeChange = useCallback((e) => {
+    setDateFilterType(e.target.value);
+  }, []);
+  
+  const handleMonthFilterChange = useCallback((e) => {
+    setMonthFilter(e.target.value);
+  }, []);
+  
+  const handleSpecificDateFilterChange = useCallback((e) => {
+    setSpecificDateFilter(e.target.value);
+  }, []);
+  
+  const toggleFilters = useCallback(() => {
+    setShowFilters(!showFilters);
+  }, [showFilters]);
+  
+  const navigateToInput = useCallback(() => {
+    navigate('/talant/input');
+  }, [navigate]);
+  
+  const navigateToDashboard = useCallback(() => {
+    navigate('/talant');
+  }, [navigate]);
 
   return (
     <Container>
       <Header>
         <HeaderContent>
           <HeaderTop>
-            <BackButton onClick={() => navigate('/talant')}>
+            <BackButton onClick={navigateToDashboard}>
               ← 대시보드
             </BackButton>
             <Title>달란트 내역</Title>
-            <InputButton onClick={() => navigate('/talant/input')}>
+            <InputButton onClick={navigateToInput}>
               <span>달란트 입력</span>
               <span>📋</span>
             </InputButton>
           </HeaderTop>
           
-          <FilterToggle onClick={() => setShowFilters(!showFilters)}>
+          <FilterToggle onClick={toggleFilters}>
             <span>🔍</span>
             <span>필터 {showFilters ? '숨기기' : '보기'}</span>
             <span>{showFilters ? '▲' : '▼'}</span>
@@ -732,7 +766,7 @@ const History = () => {
             <FilterLabel>이름</FilterLabel>
             <Select
               value={nameFilter}
-              onChange={(e) => setNameFilter(e.target.value)}
+              onChange={handleNameFilterChange}
             >
               <option value="">전체 이름</option>
               {STUDENTS.map(student => (
@@ -745,7 +779,7 @@ const History = () => {
             <FilterLabel>기간 필터</FilterLabel>
             <Select
               value={dateFilterType}
-              onChange={(e) => setDateFilterType(e.target.value)}
+              onChange={handleDateFilterTypeChange}
             >
               <option value="month">월별</option>
               <option value="specific">특정 날짜</option>
@@ -757,7 +791,7 @@ const History = () => {
               <FilterLabel>월 선택</FilterLabel>
               <Select
                 value={monthFilter}
-                onChange={(e) => setMonthFilter(e.target.value)}
+                onChange={handleMonthFilterChange}
               >
                 <option value="">전체 월</option>
                 {availableMonths.map(month => (
@@ -773,7 +807,7 @@ const History = () => {
               <DateInput
                 type="date"
                 value={specificDateFilter}
-                onChange={(e) => setSpecificDateFilter(e.target.value)}
+                onChange={handleSpecificDateFilterChange}
               />
             </FilterGroup>
           )}
@@ -871,4 +905,4 @@ const History = () => {
   );
 };
 
-export default History; 
+export default memo(History); 

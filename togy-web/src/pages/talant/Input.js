@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
 import { theme } from '../../styles/theme';
@@ -734,4 +734,4 @@ const TalantInput = () => {
   );
 };
 
-export default TalantInput; 
+export default memo(TalantInput); 

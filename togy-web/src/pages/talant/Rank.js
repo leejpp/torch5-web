@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, memo } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { collection, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase/config';
@@ -583,7 +583,7 @@ const RankPage = () => {
   // 초기 로드
   useEffect(() => {
     updateRanking();
-  }, []);
+  }, [updateRanking]);
 
   return (
     <Container>
@@ -710,4 +710,4 @@ const RankPage = () => {
   );
 };
 
-export default RankPage; 
+export default memo(RankPage); 

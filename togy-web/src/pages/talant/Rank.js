@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
 import { collection, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase/config';
@@ -54,69 +53,19 @@ const Header = styled.div`
   text-align: center;
 `;
 
-const HeaderTop = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-  gap: 15px;
-  
-  @media (max-width: 768px) {
-    flex-direction: column;
-    gap: 15px;
-  }
-`;
-
-const BackButton = styled.button`
-  background: linear-gradient(135deg, ${theme.colors.primary} 0%, #9F77FF 100%);
-  color: white;
-  border: none;
-  padding: 12px 20px;
-  border-radius: ${theme.borderRadius.lg};
-  cursor: pointer;
-  font-size: ${theme.typography.fontSize.sm};
-  font-weight: ${theme.typography.fontWeight.semibold};
-  transition: ${theme.transitions.default};
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  box-shadow: ${theme.shadows.sm};
-  flex-shrink: 0;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: ${theme.shadows.md};
-  }
-
-  @media (max-width: 768px) {
-    padding: 10px 16px;
-    font-size: ${theme.typography.fontSize.xs};
-  }
-`;
-
 const Title = styled.h1`
   color: ${theme.colors.neutral[1]};
   font-size: ${theme.typography.fontSize['2xl']};
   font-weight: ${theme.typography.fontWeight.bold};
-  margin: 0;
+  margin: 0 0 20px 0;
   text-align: center;
   background: linear-gradient(135deg, ${theme.colors.primary} 0%, #9F77FF 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  flex: 1;
 
   @media (max-width: 768px) {
     font-size: ${theme.typography.fontSize.xl};
-  }
-`;
-
-const HeaderSpacer = styled.div`
-  width: 120px;
-  flex-shrink: 0;
-
-  @media (max-width: 768px) {
-    display: none;
   }
 `;
 
@@ -495,7 +444,6 @@ const Toast = styled.div`
 `;
 
 const RankPage = () => {
-  const navigate = useNavigate();
   const [ranking, setRanking] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -580,20 +528,18 @@ const RankPage = () => {
       const timestampText = `집계 기준일: ${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} (${days[now.getDay()]}) ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
       
       setTimestamp(timestampText);
-      setPreviousRanking([...ranking]); // 이전 랭킹 저장
+      setPreviousRanking(prev => [...prev]); // 이전 랭킹 저장
       setRanking(rankingData);
       setLoading(false);
       
-      if (!loading) {
-        showToast('랭킹이 업데이트되었습니다.');
-      }
+      showToast('랭킹이 업데이트되었습니다.');
     } catch (error) {
       console.error('랭킹 업데이트 에러:', error);
       showToast('랭킹 업데이트 중 오류가 발생했습니다.');
     } finally {
       setRefreshing(false);
     }
-  }, [refreshing, ranking, loading, calculateRanking, showToast]);
+  }, [refreshing, calculateRanking, showToast]);
 
   // 학생 상세 정보 팝업
   const showStudentPopup = useCallback(async (name) => {
@@ -637,19 +583,12 @@ const RankPage = () => {
   // 초기 로드
   useEffect(() => {
     updateRanking();
-  }, [updateRanking]);
+  }, []);
 
   return (
     <Container>
       <Header>
-        <HeaderTop>
-          <BackButton onClick={() => navigate('/talant')}>
-            <span>←</span>
-            대시보드
-          </BackButton>
-          <Title>🏆 달란트 랭킹</Title>
-          <HeaderSpacer />
-        </HeaderTop>
+        <Title>🏆 달란트 랭킹</Title>
         <Subtitle>주일학교 학생들의 달란트 점수 순위를 확인하세요</Subtitle>
         
         <Controls>

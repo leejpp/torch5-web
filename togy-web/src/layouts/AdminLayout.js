@@ -23,6 +23,7 @@ const AdminLayout = () => {
               <NavLink to="/admin/prayer" $isActive={location.pathname === '/admin/prayer'}>중보기도</NavLink>
               <NavLink to="/admin/voices" $isActive={location.pathname === '/admin/voices'}>마음의 소리</NavLink>
               <NavLink to="/admin/calendar" $isActive={location.pathname === '/admin/calendar'}>일정관리</NavLink>
+              <NavLink to="/admin/yearlythemes" $isActive={location.pathname === '/admin/yearlythemes'}>연간테마</NavLink>
               <NavLink to="/admin/cells" $isActive={location.pathname === '/admin/cells'}>셀 재편성</NavLink>
             </Nav>
           </HeaderContent>

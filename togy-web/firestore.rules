@@ -10,7 +10,7 @@ service cloud.firestore {
     // yearlyThemes 컬렉션 추가
     match /yearlyThemes/{document=**} {
       allow read: if true;  // 모든 사용자가 읽기 가능
-      allow write: if false;  // 쓰기는 콘솔에서만 가능
+      allow write: if exists(/databases/$(database)/documents/admin/settings);  // 관리자 권한이 있을 때 쓰기 가능
     }
     
     // prayerRequests 컬렉션 - 핀 기능과 삭제 기능을 위해 규칙 업데이트

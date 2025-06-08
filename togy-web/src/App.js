@@ -15,6 +15,7 @@ import Dashboard from './pages/admin/Dashboard';
 import PrayerAdmin from './pages/admin/Prayer';
 import VoicesAdmin from './pages/admin/Voices';
 import CalendarAdmin from './pages/admin/Calendar';
+import YearlyThemes from './pages/admin/YearlyThemes';
 import CellReorganization from './pages/admin/CellReorganization';
 
 // Layouts
@@ -84,6 +85,7 @@ const App = () => {
             <Route path="prayer" element={<PrayerAdmin />} />
             <Route path="voices" element={<VoicesAdmin />} />
             <Route path="calendar" element={<CalendarAdmin />} />
+            <Route path="yearlythemes" element={<YearlyThemes />} />
             <Route path="cells" element={<CellReorganization />} />
           </Route>
         </Routes>

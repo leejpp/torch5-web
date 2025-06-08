@@ -90,7 +90,25 @@ const Dashboard = () => {
               </CardContent>
             </MenuCard>
 
-            <MenuCard to="/admin/cells" delay={0.3}>
+            <MenuCard to="/admin/yearlythemes" delay={0.3}>
+              <CardGradient color="warm" />
+              <CardContent>
+                <MenuIconContainer>
+                  <MenuIcon>📖</MenuIcon>
+                  <IconRing />
+                </MenuIconContainer>
+                <MenuInfo>
+                  <MenuTitle>연간 테마 관리</MenuTitle>
+                  <MenuDescription>
+                    청년부 연간 주제와 비전 관리<br/>
+                    테마 등록, 수정, 삭제 관리
+                  </MenuDescription>
+                </MenuInfo>
+                <MenuArrow>→</MenuArrow>
+              </CardContent>
+            </MenuCard>
+
+            <MenuCard to="/admin/cells" delay={0.4}>
               <CardGradient color="success" />
               <CardContent>
                 <MenuIconContainer>

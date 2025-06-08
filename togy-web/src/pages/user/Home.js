@@ -1,20 +1,77 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
+import { db } from '../../firebase/config';
+import { collection, query, getDocs, orderBy } from 'firebase/firestore';
 import { colors, typography, spacing, shadows, animations, borderRadius, media } from '../../styles/designSystem';
 // 아이콘 라이브러리 임포트 (예: react-icons)
 // import { FaHeart, FaFlask, FaSyncAlt, FaUsers, FaCalendarAlt, FaCommentDots, FaPray, FaPlus } from 'react-icons/fa';
 
 const Home = () => {
   const navigate = useNavigate();
-
-  const visionItems = [
+  const [yearlyTheme, setYearlyTheme] = useState({
+    theme: '말씀이 삶이 되고, 삶이 예배가 되어\n영적 성장을 이루는 삶',
+    year: '2025'
+  });
+  const [visionItems, setVisionItems] = useState([
     { id: 1, text: '서로를 위해 기도하는 청년 공동체', emoji: '🙏', color: colors.gradients.primary },
     { id: 2, text: '주님께서 맡겨 주신 사명을 이루어 주 영광 위해 사는 청년부', emoji: '✨', color: colors.gradients.secondary },
     { id: 3, text: '영,혼,육,가정,경제의 균형 있는 성장으로 예수님을 닮아가는 청년부', emoji: '⚖️', color: colors.gradients.success },
     { id: 4, text: '천하보다 소중한 한 영혼을 살리는 삶', emoji: '💎', color: colors.gradients.warm },
     { id: 5, text: '하나님 안에서의 친목하는 청년부', emoji: '🤝', color: colors.gradients.cool }
-  ];
+  ]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchYearlyThemes();
+  }, []);
+
+  const fetchYearlyThemes = async () => {
+    try {
+      const q = query(collection(db, 'yearlyThemes'), orderBy('year', 'desc'));
+      const querySnapshot = await getDocs(q);
+      
+      if (!querySnapshot.empty) {
+        const themes = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        
+        // 가장 최신 테마를 사용
+        const latestTheme = themes[0];
+        if (latestTheme.theme) {
+          setYearlyTheme({
+            theme: latestTheme.theme,
+            year: latestTheme.year || '2025'
+          });
+        }
+        
+        // direction 배열이 있으면 비전 아이템들로 업데이트
+        if (latestTheme.direction && Array.isArray(latestTheme.direction)) {
+          const updatedVisionItems = latestTheme.direction.map((item, index) => ({
+            id: index + 1,
+            text: typeof item === 'string' ? item : item.text || item,
+            emoji: [
+              '🙏', '✨', '⚖️', '💎', '🤝', 
+              '🌟', '💚', '🔥', '🙌', '❤️'
+            ][index % 10],
+            color: [
+              colors.gradients.primary,
+              colors.gradients.secondary,
+              colors.gradients.success,
+              colors.gradients.warm,
+              colors.gradients.cool
+            ][index % 5]
+          }));
+          setVisionItems(updatedVisionItems);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching yearly themes:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const quickActions = [
     { 
@@ -41,9 +98,7 @@ const Home = () => {
     }
   ];
 
-  const handleNavigation = (path) => {
-    navigate(path);
-  };
+
 
   return (
     <Container>
@@ -59,14 +114,25 @@ const Home = () => {
 
       <MainContent>
         <VisionSection>
-          <YearlyThemeCard>
-            <ThemeIcon>📖</ThemeIcon>
-            <YearlyTheme>
-              말씀이 삶이 되고, 삶이 예배가 되어<br/>
-              영적 성장을 이루는 삶
-            </YearlyTheme>
-            <ThemeSubtext>2025년 연간 주제</ThemeSubtext>
-          </YearlyThemeCard>
+          {isLoading ? (
+            <LoadingCard>
+              <LoadingIcon>⏳</LoadingIcon>
+              <LoadingText>테마를 불러오는 중...</LoadingText>
+            </LoadingCard>
+          ) : (
+            <YearlyThemeCard>
+              <ThemeIcon>📖</ThemeIcon>
+              <YearlyTheme>
+                {yearlyTheme.theme.split('\n').map((line, index) => (
+                  <React.Fragment key={index}>
+                    {line}
+                    {index < yearlyTheme.theme.split('\n').length - 1 && <br />}
+                  </React.Fragment>
+                ))}
+              </YearlyTheme>
+              <ThemeSubtext>{yearlyTheme.year}년 연간 주제</ThemeSubtext>
+            </YearlyThemeCard>
+          )}
 
           <VisionTitle>우리의 비전</VisionTitle>
           <VisionCard>
@@ -261,6 +327,34 @@ const VisionSection = styled.section`
   ${media['max-md']} {
     padding: ${spacing['2xl']} 0;
   }
+`;
+
+const LoadingCard = styled.div`
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: ${borderRadius['2xl']};
+  padding: ${spacing['3xl']};
+  text-align: center;
+  margin-bottom: ${spacing['4xl']};
+  box-shadow: ${shadows.glass};
+  animation: ${fadeInUp} 0.8s ease-out;
+  
+  ${media['max-md']} {
+    padding: ${spacing.xl};
+    margin-bottom: ${spacing.xl};
+  }
+`;
+
+const LoadingIcon = styled.div`
+  font-size: ${typography.fontSize['3xl']};
+  margin-bottom: ${spacing.lg};
+  animation: ${pulse} 2s ease-in-out infinite;
+`;
+
+const LoadingText = styled.p`
+  color: ${colors.neutral[600]};
+  font-size: ${typography.fontSize.base};
+  font-weight: ${typography.fontWeight.medium};
 `;
 
 const YearlyThemeCard = styled.div`

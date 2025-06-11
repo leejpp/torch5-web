@@ -559,11 +559,15 @@ const History = () => {
     }, duration);
   }, []);
 
-  // 시간 포맷 함수
+  // 시간 포맷 함수 (날짜, 요일 포함)
   const formatTime = (date) => {
     const hours = date.getHours();
     const minutes = date.getMinutes();
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const dayOfWeek = KOREAN_DAYS[date.getDay()];
+    
+    return `${month}/${day}(${dayOfWeek}) ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
   };
 
   // 데이터 로드

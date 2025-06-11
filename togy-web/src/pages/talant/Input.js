@@ -533,20 +533,24 @@ const TalantInput = () => {
     }
 
     try {
-      const selectedDateObj = new Date(selectedDate);
+      // 선택한 날짜에 현재 시간을 조합하여 정확한 날짜 생성
+      const now = new Date();
+      const [year, month, day] = selectedDate.split('-').map(Number);
+      const selectedDateWithTime = new Date(year, month - 1, day, now.getHours(), now.getMinutes(), now.getSeconds());
       
       const talantData = {
         name: name,
         reason: reason,
         talant: talant.toString(),
-        receivedDate: Timestamp.fromDate(selectedDateObj),
-        createdAt: Timestamp.fromDate(new Date())
+        receivedDate: Timestamp.fromDate(selectedDateWithTime),
+        createdAt: Timestamp.fromDate(selectedDateWithTime)
       };
       
       await addDoc(collection(db, 'talant_history'), talantData);
       
       addLogEntry(name, talant, reason);
-      setResultMessage(`입력 완료!\n\n이름: ${name}\n사유: ${reason}\n달란트: ${talant}`);
+      const formattedDate = `${year}년 ${month}월 ${day}일`;
+      setResultMessage(`입력 완료!\n\n이름: ${name}\n사유: ${reason}\n달란트: ${talant}\n날짜: ${formattedDate}`);
       setShowResultModal(true);
     } catch (error) {
       console.error("달란트 저장 오류:", error);

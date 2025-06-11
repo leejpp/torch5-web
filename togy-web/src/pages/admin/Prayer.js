@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled, { keyframes, css } from 'styled-components';
 import { db } from '../../firebase/config';
-import { collection, getDocs, updateDoc, deleteDoc, doc, query, orderBy, setDoc } from 'firebase/firestore';
+import { collection, getDocs, updateDoc, deleteDoc, doc, query, orderBy, setDoc, deleteField } from 'firebase/firestore';
 import { colors, typography, spacing, shadows, borderRadius, media } from '../../styles/designSystem';
 
 const Prayer = () => {
@@ -211,35 +211,67 @@ const Prayer = () => {
 
     setIsPinning(true);
     try {
-      const updateData = {
-        isPinned: !currentlyPinned,
-        updatedAt: new Date()
-      };
+      let updateData;
 
-      // 핀을 설정하는 경우 pinnedAt 추가
+      // 핀을 설정하는 경우
       if (!currentlyPinned) {
-        updateData.pinnedAt = new Date();
+        updateData = {
+          isPinned: true,
+          pinnedAt: new Date(),
+          updatedAt: new Date()
+        };
       } else {
-        // 핀을 해제하는 경우 pinnedAt 제거
-        updateData.pinnedAt = null;
+        // 핀을 해제하는 경우 - pinnedAt 필드 완전 삭제
+        updateData = {
+          isPinned: false,
+          pinnedAt: deleteField(),
+          updatedAt: new Date()
+        };
       }
 
       await updateDoc(doc(db, 'prayerRequests', prayerId), updateData);
       
       // 로컬 상태 업데이트
       setPrayers(prevPrayers => 
-        prevPrayers.map(p => 
-          p.id === prayerId 
-            ? { ...p, ...updateData }
-            : p
-        )
+        prevPrayers.map(p => {
+          if (p.id === prayerId) {
+            const updatedPrayer = { ...p };
+            updatedPrayer.isPinned = !currentlyPinned;
+            updatedPrayer.updatedAt = new Date();
+            
+            if (!currentlyPinned) {
+              // 핀 설정
+              updatedPrayer.pinnedAt = new Date();
+            } else {
+              // 핀 해제 - pinnedAt 필드 제거
+              delete updatedPrayer.pinnedAt;
+            }
+            
+            return updatedPrayer;
+          }
+          return p;
+        })
       );
 
       const action = !currentlyPinned ? '고정' : '고정 해제';
       alert(`기도제목이 성공적으로 ${action}되었습니다.`);
     } catch (error) {
       console.error("Error toggling pin:", error);
-      alert('핀 설정 중 오류가 발생했습니다.');
+      
+      // 구체적인 에러 메시지 제공
+      let errorMessage = '핀 설정 중 오류가 발생했습니다.';
+      if (error.code === 'permission-denied') {
+        errorMessage = '핀 설정 권한이 없습니다. 관리자 권한을 확인해주세요.';
+      } else if (error.code === 'not-found') {
+        errorMessage = '해당 기도제목을 찾을 수 없습니다.';
+      } else if (error.code === 'unavailable') {
+        errorMessage = '네트워크 연결을 확인하고 다시 시도해주세요.';
+      }
+      
+      alert(errorMessage);
+      
+      // 실패 시 데이터 다시 가져오기
+      fetchPrayers();
     } finally {
       setIsPinning(false);
     }

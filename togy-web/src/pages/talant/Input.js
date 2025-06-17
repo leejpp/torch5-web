@@ -536,14 +536,19 @@ const TalantInput = () => {
       // 선택한 날짜에 현재 시간을 조합하여 정확한 날짜 생성
       const now = new Date();
       const [year, month, day] = selectedDate.split('-').map(Number);
-      const selectedDateWithTime = new Date(year, month - 1, day, now.getHours(), now.getMinutes(), now.getSeconds());
+      
+      // receivedDate는 선택한 날짜의 시작 시간(00:00:00)
+      const receivedDate = new Date(year, month - 1, day, 0, 0, 0);
+      
+      // createdAt은 현재 시간
+      const createdAt = new Date();
       
       const talantData = {
         name: name,
         reason: reason,
         talant: talant.toString(),
-        receivedDate: Timestamp.fromDate(selectedDateWithTime),
-        createdAt: Timestamp.fromDate(selectedDateWithTime)
+        receivedDate: Timestamp.fromDate(receivedDate),
+        createdAt: Timestamp.fromDate(createdAt)
       };
       
       await addDoc(collection(db, 'talant_history'), talantData);

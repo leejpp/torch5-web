@@ -559,7 +559,7 @@ const History = () => {
     }, duration);
   }, []);
 
-  // 시간 포맷 함수 (날짜, 요일 포함)
+  // 시간 포맷 함수 (입력 시간 표시)
   const formatTime = (date) => {
     const hours = date.getHours();
     const minutes = date.getMinutes();
@@ -633,12 +633,12 @@ const History = () => {
     setFilteredHistory(filtered);
   }, [allHistory, nameFilter, dateFilterType, monthFilter, specificDateFilter]);
 
-  // 날짜별로 그룹화 (입력 시간 기준)
+  // 날짜별로 그룹화 (달란트 받은 날짜 기준)
   const groupByDate = (history) => {
     const groups = {};
     
     history.forEach(item => {
-      const date = item.createdAt;
+      const date = item.receivedDate;
       const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
       
       if (!groups[dateKey]) {
@@ -760,8 +760,8 @@ const History = () => {
           </HeaderTop>
           
           <FilterToggle onClick={toggleFilters}>
-            <span>🔍</span>
-            <span>필터 {showFilters ? '숨기기' : '보기'}</span>
+            <span>필터</span>
+            <span>{showFilters ? '숨기기' : '보기'}</span>
             <span>{showFilters ? '▲' : '▼'}</span>
           </FilterToggle>
           

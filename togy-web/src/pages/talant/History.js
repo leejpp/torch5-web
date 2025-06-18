@@ -59,6 +59,11 @@ const HeaderTop = styled.div`
   margin-bottom: 16px;
 `;
 
+const ButtonGroup = styled.div`
+  display: flex;
+  gap: 8px;
+`;
+
 const BackButton = styled.button`
   background: #3182F6;
   color: white;
@@ -71,6 +76,21 @@ const BackButton = styled.button`
   transition: all 0.2s ease;
   &:hover {
     background: #2B6CB0;
+  }
+`;
+
+const BoardButton = styled.button`
+  background: #7C3AED;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  &:hover {
+    background: #6D28D9;
   }
 `;
 
@@ -694,9 +714,14 @@ const History = () => {
       <Header>
         <HeaderContent>
           <HeaderTop>
-            <BackButton onClick={navigateToDashboard}>
-              ← 대시보드
-            </BackButton>
+            <ButtonGroup>
+              <BackButton onClick={navigateToDashboard}>
+                ← 대시보드
+              </BackButton>
+              <BoardButton onClick={() => navigate('/talant/board')}>
+                📊 현황판
+              </BoardButton>
+            </ButtonGroup>
             <Title>달란트 내역</Title>
             <InputButton onClick={navigateToInput}>
               <span>달란트 입력</span>

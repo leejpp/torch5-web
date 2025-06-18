@@ -367,13 +367,22 @@ const TalantDashboard = () => {
       delay: 0.1
     },
     {
+      title: '달란트 현황판',
+      description: '학생별 월간 달란트 현황을 달력 형태로 한눈에 확인합니다',
+      icon: '📅',
+      gradient: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)',
+      color: '#8B5CF6',
+      path: '/talant/board',
+      delay: 0.2
+    },
+    {
       title: '달란트 랭킹',
       description: '학생들의 달란트 순위를 확인하고 공유합니다',
       icon: '🏆',
       gradient: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
       color: '#F59E0B',
       path: '/talant/rank',
-      delay: 0.2
+      delay: 0.3
     }
   ];
 

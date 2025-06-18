@@ -33,31 +33,18 @@ const slideInLeft = keyframes`
 
 const Container = styled.div`
   min-height: 100vh;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  
-  &:before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: 
-      radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
-      radial-gradient(circle at 80% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 50%);
-    z-index: -1;
-  }
+  background: #FAFAFC;
+  font-family: 'Pretendard', 'Noto Sans KR', 'Apple SD Gothic Neo', Arial, sans-serif;
+  color: #222;
 `;
 
 const Header = styled.div`
   position: sticky;
   top: 0;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  padding: ${theme.spacing.lg};
-  box-shadow: ${theme.shadows.lg};
+  background: white;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   z-index: 100;
-  border-bottom: 1px solid rgba(59, 130, 246, 0.1);
 `;
 
 const HeaderContent = styled.div`
@@ -69,73 +56,42 @@ const HeaderTop = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: ${theme.spacing.lg};
-  gap: ${theme.spacing.sm};
+  margin-bottom: 16px;
 `;
 
 const BackButton = styled.button`
-  background: linear-gradient(135deg, ${theme.colors.primary} 0%, #2563EB 100%);
+  background: #3182F6;
   color: white;
   border: none;
-  padding: ${theme.spacing.sm} ${theme.spacing.lg};
-  border-radius: ${theme.borderRadius.lg};
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
-  font-size: ${theme.typography.fontSize.sm};
-  font-weight: ${theme.typography.fontWeight.semibold};
-  transition: ${theme.transitions.default};
-  display: flex;
-  align-items: center;
-  gap: ${theme.spacing.xs};
-  box-shadow: ${theme.shadows.sm};
-  flex-shrink: 0;
-
+  transition: all 0.2s ease;
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: ${theme.shadows.md};
-  }
-  
-  @media (max-width: 480px) {
-    padding: ${theme.spacing.xs} ${theme.spacing.md};
-    font-size: ${theme.typography.fontSize.xs};
+    background: #2B6CB0;
   }
 `;
 
 const Title = styled.h1`
-  color: ${theme.colors.neutral[1]};
-  font-size: ${theme.typography.fontSize['2xl']};
-  font-weight: ${theme.typography.fontWeight.bold};
-  font-family: ${theme.typography.fontFamily};
+  font-size: 20px;
+  font-weight: 700;
   margin: 0;
-  
-  @media (max-width: 480px) {
-    font-size: ${theme.typography.fontSize.xl};
-  }
 `;
 
 const InputButton = styled.button`
-  background: linear-gradient(135deg, #10B981 0%, #047857 100%);
+  background: #10B981;
   color: white;
   border: none;
-  padding: ${theme.spacing.sm} ${theme.spacing.lg};
-  border-radius: ${theme.borderRadius.lg};
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
-  font-size: ${theme.typography.fontSize.sm};
-  font-weight: ${theme.typography.fontWeight.semibold};
-  display: flex;
-  align-items: center;
-  gap: ${theme.spacing.xs};
-  transition: ${theme.transitions.default};
-  box-shadow: ${theme.shadows.sm};
-  flex-shrink: 0;
-
+  transition: all 0.2s ease;
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: ${theme.shadows.md};
-  }
-  
-  @media (max-width: 480px) {
-    padding: ${theme.spacing.xs} ${theme.spacing.md};
-    font-size: ${theme.typography.fontSize.xs};
+    background: #059669;
   }
 `;
 
@@ -355,121 +311,94 @@ const HistoryList = styled.div`
   gap: 8px;
 `;
 
+const HistoryGroup = styled.div`
+  margin-bottom: 24px;
+`;
+
+const HistoryDateHeader = styled.div`
+  font-size: 16px;
+  font-weight: 600;
+  color: #4B5563;
+  margin-bottom: 8px;
+  padding: 0 16px;
+`;
+
 const HistoryItem = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 8px 12px;
-  background: ${theme.colors.neutral[5]};
-  border-radius: ${theme.borderRadius.md};
-  transition: all 0.3s ease;
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  margin: 0 16px 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
   position: relative;
-  overflow: hidden;
-
-  ${props => props.$deleting && `
-    opacity: 0.5;
-    transform: scale(0.98);
-    pointer-events: none;
-  `}
-
   &:hover {
-    transform: translateY(-1px);
-    box-shadow: ${theme.shadows.md};
-    background: white;
-  }
-
-  &:before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 3px;
-    background: linear-gradient(135deg, ${theme.colors.primary} 0%, #9F77FF 100%);
-  }
-
-  @media (max-width: 768px) {
-    flex-wrap: wrap;
-    gap: 6px;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
 `;
 
-const HistoryInfo = styled.div`
-  flex: 1;
+const HistoryItemMain = styled.div`
   display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-  }
-`;
-
-const HistoryMeta = styled.div`
-  display: flex;
-  align-items: center;
+  justify-content: space-between;
+  align-items: flex-start;
   gap: 8px;
-  flex-shrink: 0;
 `;
 
-const HistoryName = styled.span`
-  color: ${theme.colors.neutral[1]};
-  font-weight: ${theme.typography.fontWeight.semibold};
-  font-size: ${theme.typography.fontSize.sm};
-  white-space: nowrap;
-`;
-
-const HistoryReason = styled.span`
-  color: ${theme.colors.neutral[3]};
-  font-size: ${theme.typography.fontSize.xs};
+const HistoryNameReason = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 `;
 
-const HistoryTime = styled.span`
-  color: ${theme.colors.neutral[3]};
-  font-size: ${theme.typography.fontSize.xs};
-  background: rgba(59, 130, 246, 0.1);
-  padding: 3px 8px;
-  border-radius: ${theme.borderRadius.md};
-  border: 1px solid rgba(59, 130, 246, 0.2);
-  white-space: nowrap;
-  font-weight: ${theme.typography.fontWeight.medium};
+const HistoryName = styled.div`
+  font-size: 16px;
+  font-weight: 700;
+  color: #222;
 `;
 
-const HistoryAmount = styled.div`
-  color: ${theme.colors.success};
-  font-weight: ${theme.typography.fontWeight.bold};
-  font-size: ${theme.typography.fontSize.base};
-  flex-shrink: 0;
-  margin-right: 10px;
+const HistoryReason = styled.div`
+  background: none;
+  color: #333;
+  font-size: 15px;
+  font-weight: 500;
+  margin-top: 2px;
+  word-break: break-all;
+`;
+
+const HistoryTalant = styled.div`
+  font-size: 22px;
+  font-weight: 800;
+  color: #3182F6;
+  min-width: 48px;
+  text-align: right;
+`;
+
+const HistoryDate = styled.div`
+  font-size: 12px;
+  color: #A0AEC0;
+  margin-top: 10px;
+  text-align: left;
 `;
 
 const DeleteButton = styled.button`
   background: transparent;
-  border: 1px solid ${theme.colors.error};
-  color: ${theme.colors.error};
-  padding: 4px 8px;
-  border-radius: ${theme.borderRadius.sm};
-  font-size: ${theme.typography.fontSize.xs};
+  border: none;
+  padding: 4px;
   cursor: pointer;
-  transition: ${theme.transitions.default};
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  flex-shrink: 0;
-
-  &:hover:not(:disabled) {
-    background: ${theme.colors.error};
-    color: white;
+  font-size: 16px;
+  color: #E5E7EB;
+  transition: all 0.2s ease;
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  border-radius: 4px;
+  
+  &:hover {
+    color: #EF4444;
+    background: rgba(239, 68, 68, 0.1);
   }
-
+  
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -560,14 +489,28 @@ const History = () => {
   }, []);
 
   // 시간 포맷 함수 (입력 시간 표시)
-  const formatTime = (date) => {
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-    const month = date.getMonth() + 1;
-    const day = date.getDate();
-    const dayOfWeek = KOREAN_DAYS[date.getDay()];
+  const formatDate = (timestamp) => {
+    if (!timestamp) return '';
     
-    return `${month}/${day}(${dayOfWeek}) ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+    let date;
+    if (timestamp.toDate) {
+      // Firestore Timestamp 객체인 경우
+      date = timestamp.toDate();
+    } else if (timestamp instanceof Date) {
+      // 일반 Date 객체인 경우
+      date = timestamp;
+    } else {
+      // 문자열이나 숫자 타임스탬프인 경우
+      date = new Date(timestamp);
+    }
+
+    return date.toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   // 데이터 로드
@@ -640,10 +583,12 @@ const History = () => {
     history.forEach(item => {
       const date = item.receivedDate;
       const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+      const displayDate = `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일 (${KOREAN_DAYS[date.getDay()]})`;
       
       if (!groups[dateKey]) {
         groups[dateKey] = {
           date: new Date(date.getFullYear(), date.getMonth(), date.getDate()),
+          displayDate: displayDate,
           items: []
         };
       }
@@ -864,39 +809,30 @@ const History = () => {
             </SectionTitle>
           </SectionHeader>
 
-          {groupedHistory.map((group) => (
-            <DateCard key={group.date.getTime()}>
-              <DateHeader>
-                {`${group.date.getFullYear()}년 ${group.date.getMonth() + 1}월 ${group.date.getDate()}일 (${KOREAN_DAYS[group.date.getDay()]})`}
-              </DateHeader>
-              
-              <HistoryList>
-                {group.items.map((item) => (
-                  <HistoryItem key={item.id} $deleting={deletingIds.has(item.id)}>
-                    <HistoryInfo>
-                      <HistoryMeta>
-                        <HistoryName>{item.name}</HistoryName>
-                        <HistoryTime>{formatTime(item.createdAt)}</HistoryTime>
-                      </HistoryMeta>
+          {groupedHistory.map((group, index) => (
+            <HistoryGroup key={index}>
+              <HistoryDateHeader>{group.displayDate}</HistoryDateHeader>
+              {group.items.map((item) => (
+                <HistoryItem key={item.id}>
+                  <HistoryItemMain>
+                    <HistoryNameReason>
+                      <HistoryName>{item.name}</HistoryName>
                       <HistoryReason>{item.reason}</HistoryReason>
-                    </HistoryInfo>
-                    
-                    <HistoryAmount>+{item.talant}</HistoryAmount>
-                    
-                    <DeleteButton
-                      onClick={() => handleDelete(item.id)}
-                      disabled={deletingIds.has(item.id)}
-                    >
-                      {deletingIds.has(item.id) ? (
-                        <SpinIcon>🔄</SpinIcon>
-                      ) : (
-                        '🗑️'
-                      )}
-                    </DeleteButton>
-                  </HistoryItem>
-                ))}
-              </HistoryList>
-            </DateCard>
+                    </HistoryNameReason>
+                    <HistoryTalant>+{item.talant}</HistoryTalant>
+                  </HistoryItemMain>
+                  <HistoryDate>
+                    입력: {formatDate(item.createdAt)}
+                  </HistoryDate>
+                  <DeleteButton
+                    onClick={() => handleDelete(item.id)}
+                    disabled={deletingIds.has(item.id)}
+                  >
+                    {deletingIds.has(item.id) ? '⏳' : '🗑️'}
+                  </DeleteButton>
+                </HistoryItem>
+              ))}
+            </HistoryGroup>
           ))}
         </>
       )}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
 import { db } from '../../firebase/config';
@@ -10,12 +10,9 @@ import {
   TossPrimaryButton,
   TossSecondaryButton,
   TossTextButton,
-  TossCard,
   TossTitle,
   TossFlex,
-  TossColors,
-  TossAnimations,
-  TossLoadingSpinner
+  TossColors
 } from '../../components/common/TossDesignSystem';
 import { STUDENT_LIST, TALANT_CATEGORIES } from '../../utils/talantUtils';
 
@@ -229,17 +226,7 @@ const StudentBoard = styled.div`
   animation: ${fadeInUp} 0.6s ease-out;
 `;
 
-const StudentTitle = styled.h2`
-  font-size: 18px;
-  font-weight: 700;
-  color: #222;
-  margin-bottom: 12px;
-  padding: 12px 16px;
-  background: linear-gradient(135deg, #3182F6 0%, #1D4ED8 100%);
-  color: white;
-  border-radius: 12px 12px 0 0;
-  text-align: center;
-`;
+
 
 const StickerIcon = styled.div`
   font-size: 14px;
@@ -296,63 +283,7 @@ const ModalContent = styled.div`
   line-height: 1.6;
 `;
 
-const ModalButtons = styled.div`
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin-bottom: 16px;
-`;
 
-const ModalButton = styled.button`
-  padding: 12px 8px;
-  border: none;
-  border-radius: 8px;
-  background: #3182F6;
-  color: white;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 600;
-  transition: all 0.2s ease;
-  min-height: 76px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-
-  &:hover {
-    background: #2B6CB0;
-  }
-
-  &.etc {
-    background: #F59E0B;
-    
-    &:hover {
-      background: #D97706;
-    }
-  }
-`;
-
-const CustomReasonInput = styled.input`
-  width: 100%;
-  padding: 12px 16px;
-  border: 2px solid rgba(59, 130, 246, 0.2);
-  border-radius: 8px;
-  font-size: 16px;
-  outline: none;
-  transition: all 0.2s ease;
-  margin-bottom: 16px;
-  box-sizing: border-box;
-
-  &:focus {
-    border-color: #3B82F6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-  }
-
-  &::placeholder {
-    color: #A0AEC0;
-  }
-`;
 
 const ActionButtons = styled.div`
   display: flex;
@@ -415,7 +346,6 @@ const TalantBoard = () => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [selectedCell, setSelectedCell] = useState(null);
-  const [customReason, setCustomReason] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
   // 현재 월의 일수 계산
@@ -432,7 +362,7 @@ const TalantBoard = () => {
     if (students.length > 0) {
       loadTalantData();
     }
-  }, [students, currentDate]);
+  }, [students, currentDate, loadTalantData]);
 
   const loadStudents = async () => {
     try {
@@ -443,7 +373,7 @@ const TalantBoard = () => {
     }
   };
 
-  const loadTalantData = async () => {
+  const loadTalantData = useCallback(async () => {
     try {
       setLoading(true);
       const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
@@ -480,7 +410,7 @@ const TalantBoard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentDate]);
 
   const handleCellClick = (studentName, day, reason) => {
     if (isProcessing) return; // 처리 중이면 클릭 무시
@@ -490,7 +420,6 @@ const TalantBoard = () => {
     
     setSelectedCell({ studentName, day, reason, existingData });
     setShowModal(true);
-    setCustomReason('');
   };
 
   const handleAddTalant = async () => {
@@ -548,11 +477,6 @@ const TalantBoard = () => {
     if (dayOfWeek === 0) return 'sunday'; // 일요일
     if (dayOfWeek === 6) return 'saturday'; // 토요일
     return null;
-  };
-  
-  const isWeekend = (day) => {
-    const weekendType = getWeekendType(day);
-    return weekendType !== null;
   };
 
   const generateDaysArray = () => {

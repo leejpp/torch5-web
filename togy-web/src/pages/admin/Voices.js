@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
-import { Link } from 'react-router-dom';
 import { db } from '../../firebase/config';
 import { collection, query, orderBy, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { colors, typography, spacing, shadows, borderRadius, media } from '../../styles/designSystem';

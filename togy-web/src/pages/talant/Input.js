@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import styled, { keyframes } from 'styled-components';
+import styled from 'styled-components';
 import { theme } from '../../styles/theme';
 import { db } from '../../firebase/config';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
@@ -12,56 +12,13 @@ import {
   PrimaryButton, 
   SecondaryButton, 
   PageTitle, 
-  Card, 
   LoadingSpinner, 
-  SuccessMessage, 
   ErrorMessage,
   fadeInUp 
 } from '../../components/common/TalantStyles';
-import { TALANT_CATEGORIES, STUDENT_LIST, showToast } from '../../utils/talantUtils';
-
-// 애니메이션 (공통 컴포넌트에서 가져옴)
-const spin = keyframes`
-  to { transform: rotate(360deg); }
-`;
+import { TALANT_CATEGORIES, STUDENT_LIST } from '../../utils/talantUtils';
 
 // Container, Header, HeaderContent, HeaderTop은 TalantStyles에서 import됨
-
-const BackButton = styled.button`
-  background: #3182F6;
-  color: white;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  &:hover {
-    background: #2B6CB0;
-  }
-`;
-
-const HeaderTitle = styled.h1`
-  font-size: 20px;
-  font-weight: 700;
-  margin: 0;
-`;
-
-const HistoryButton = styled.button`
-  background: #10B981;
-  color: white;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  &:hover {
-    background: #059669;
-  }
-`;
 
 const DateSelect = styled.input`
   padding: 12px 16px;
@@ -417,7 +374,6 @@ const TalantInput = () => {
 
     try {
       // 선택한 날짜에 현재 시간을 조합하여 정확한 날짜 생성
-      const now = new Date();
       const [year, month, day] = selectedDate.split('-').map(Number);
       
       // receivedDate는 선택한 날짜의 시작 시간(00:00:00)

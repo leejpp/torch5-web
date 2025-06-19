@@ -7,7 +7,6 @@ import getDay from 'date-fns/getDay';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import ko from 'date-fns/locale/ko';
 import styled, { keyframes } from 'styled-components';
-import { Link } from 'react-router-dom';
 import { db } from '../../firebase/config';
 import { collection, query, orderBy, getDocs, addDoc, updateDoc, deleteDoc, doc, writeBatch, where } from 'firebase/firestore';
 import { colors, typography, spacing, shadows, borderRadius, media } from '../../styles/designSystem';
@@ -260,18 +259,7 @@ const AdminCalendar = () => {
     setTimeout(() => setMessage({ type: '', content: '' }), 3000);
   };
 
-  // 일정 더보기 핸들러 추가
-  const handleShowMore = (events, date) => {
-    setShowMoreEvents({
-      isOpen: true,
-      date,
-      events
-    });
-  };
 
-  const handleTitleClick = () => {
-    setDate(new Date());
-  };
 
   const handleTouchStart = (e) => {
     setTouchStart(e.touches[0].clientX);
@@ -295,31 +283,7 @@ const AdminCalendar = () => {
     setTouchStart(null);
   };
 
-  const CustomToolbar = ({ onNavigate }) => (
-    <ToolbarWrapper>
-      <ToolbarButton onClick={() => onNavigate('PREV')}>◀</ToolbarButton>
-      <ToolbarButton onClick={() => onNavigate('NEXT')}>▶</ToolbarButton>
-    </ToolbarWrapper>
-  );
 
-  const ToolbarWrapper = styled.div`
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    margin-bottom: 1rem;
-  `;
-
-  const ToolbarButton = styled.button`
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 5px;
-    background-color: #f0f0f0;
-    cursor: pointer;
-    
-    &:hover {
-      background-color: #e0e0e0;
-    }
-  `;
 
   return (
     <Container>
@@ -615,33 +579,12 @@ const fadeInUp = keyframes`
   }
 `;
 
-const fadeIn = keyframes`
-  from { opacity: 0; }
-  to { opacity: 1; }
-`;
-
 const float = keyframes`
   0%, 100% {
     transform: translateY(0px);
   }
   50% {
     transform: translateY(-10px);
-  }
-`;
-
-const spin = keyframes`
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-`;
-
-const slideInUp = keyframes`
-  from {
-    transform: translateY(100px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
   }
 `;
 

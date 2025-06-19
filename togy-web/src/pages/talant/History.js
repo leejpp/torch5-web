@@ -9,19 +9,11 @@ import {
   CommonHeader, 
   HeaderContent, 
   HeaderTop, 
-  PrimaryButton, 
-  SecondaryButton,
-  TertiaryButton,
-  PageTitle,
-  Card,
-  fadeIn
+    fadeIn
 } from '../../components/common/TalantStyles';
 import { 
   formatDate, 
-  formatTime, 
   getAvailableMonths, 
-  groupByDate, 
-  getMonthName, 
   showToast,
   STUDENT_LIST
 } from '../../utils/talantUtils';
@@ -332,29 +324,7 @@ const SectionTitle = styled.h2`
   margin: 0;
 `;
 
-const DateCard = styled.div`
-  background: white;
-  border-radius: ${theme.borderRadius.lg};
-  box-shadow: ${theme.shadows.md};
-  margin-bottom: 20px;
-  overflow: hidden;
-  animation: ${fadeIn} 0.5s ease-out;
-`;
 
-const DateHeader = styled.div`
-  background: linear-gradient(135deg, ${theme.colors.primary} 0%, #9F77FF 100%);
-  color: white;
-  padding: 15px 20px;
-  font-weight: ${theme.typography.fontWeight.semibold};
-  font-size: ${theme.typography.fontSize.base};
-`;
-
-const HistoryList = styled.div`
-  padding: 15px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-`;
 
 const HistoryGroup = styled.div`
   margin-bottom: 24px;
@@ -481,13 +451,7 @@ const LoadingMessage = styled.div`
   }
 `;
 
-const SpinIcon = styled.div`
-  animation: spin 1s linear infinite;
-  
-  @keyframes spin {
-    100% { transform: rotate(360deg); }
-  }
-`;
+
 
 const Toast = styled.div`
   position: fixed;
@@ -619,7 +583,7 @@ const History = () => {
     });
 
     return () => unsubscribe();
-  }, [monthFilter, handleShowToast]);
+  }, [monthFilter, handleShowToast, currentMonthData]);
 
   // 필터링 로직
   useEffect(() => {

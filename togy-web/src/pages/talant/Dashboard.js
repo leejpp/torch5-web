@@ -4,15 +4,11 @@ import styled, { keyframes } from 'styled-components';
 import { theme } from '../../styles/theme';
 import {
   TossContainer,
-  TossHeader,
-  TossHeaderContent,
-  TossPrimaryButton,
   TossCard,
   TossCardBody,
   TossTitle,
   TossSubtitle,
   TossGrid,
-  TossFlex,
   TossColors,
   TossAnimations,
   TossBadge

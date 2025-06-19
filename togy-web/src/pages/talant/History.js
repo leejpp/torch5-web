@@ -54,6 +54,11 @@ const slideInLeft = keyframes`
 const ButtonGroup = styled.div`
   display: flex;
   gap: 8px;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 4px;
+  }
 `;
 
 const BackButton = styled.button`
@@ -66,8 +71,15 @@ const BackButton = styled.button`
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
+  flex: 1;
+  
   &:hover {
     background: #2B6CB0;
+  }
+  
+  @media (max-width: 768px) {
+    padding: 12px 16px;
+    min-height: 44px;
   }
 `;
 
@@ -81,8 +93,15 @@ const BoardButton = styled.button`
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
+  flex: 1;
+  
   &:hover {
     background: #6D28D9;
+  }
+  
+  @media (max-width: 768px) {
+    padding: 12px 16px;
+    min-height: 44px;
   }
 `;
 
@@ -90,6 +109,11 @@ const Title = styled.h1`
   font-size: 20px;
   font-weight: 700;
   margin: 0;
+  
+  @media (max-width: 768px) {
+    text-align: center;
+    order: -1; /* 모바일에서 제목을 맨 위로 */
+  }
 `;
 
 const InputButton = styled.button`
@@ -102,8 +126,17 @@ const InputButton = styled.button`
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  
   &:hover {
     background: #059669;
+  }
+  
+  @media (max-width: 768px) {
+    justify-content: center;
+    padding: 12px 16px;
   }
 `;
 

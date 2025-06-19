@@ -49,6 +49,12 @@ export const HeaderTop = styled.div`
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
 `;
 
 // 공통 버튼들

@@ -562,18 +562,23 @@ const TalantBoard = () => {
   return (
     <TossBoardContainer>
       <TossBoardHeader>
-        <TossHeaderContent style={{ maxWidth: '1400px', flexWrap: 'wrap', gap: '16px' }}>
-          <TossFlex gap="8px">
-            <TossPrimaryButton onClick={() => navigate('/talant')}>
-              ← 뒤로
-            </TossPrimaryButton>
-            <TossSecondaryButton onClick={() => navigate('/talant/history')}>
-              📊 내역
-            </TossSecondaryButton>
-          </TossFlex>
+        <TossHeaderContent style={{ maxWidth: '1400px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
+          {/* 왼쪽: 뒤로가기 버튼 */}
+          <TossPrimaryButton onClick={() => navigate('/talant')}>
+            ← 뒤로
+          </TossPrimaryButton>
           
+          {/* 중앙: 제목 */}
           <TossBoardTitle>달란트 현황판</TossBoardTitle>
           
+          {/* 오른쪽: 내역 버튼 */}
+          <TossSecondaryButton onClick={() => navigate('/talant/history')}>
+            📊 내역
+          </TossSecondaryButton>
+        </TossHeaderContent>
+        
+        {/* 월 선택 컨트롤을 별도 행으로 분리 */}
+        <TossHeaderContent style={{ maxWidth: '1400px', justifyContent: 'center', paddingTop: '16px' }}>
           <TossMonthSelector>
             <TossTextButton onClick={() => changeMonth(-1)}>
               ← 이전

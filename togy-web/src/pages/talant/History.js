@@ -617,17 +617,35 @@ const History = () => {
 
   // 날짜별로 그룹화 함수 (공통 유틸 사용하되 UI에 맞게 확장)
   const groupHistoryByDate = (history) => {
-    const grouped = groupByDate(history.map(item => ({ ...item, date: item.receivedDate })));
+    // 직접 날짜별로 그룹핑 (더 안전한 방법)
+    const grouped = {};
+    
+    history.forEach(item => {
+      const date = item.receivedDate;
+      // 날짜가 유효하지 않은 경우 건너뛰기
+      if (!date || isNaN(date.getTime())) {
+        console.warn('Invalid date found in history item:', item);
+        return;
+      }
+      
+      const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+      
+      if (!grouped[dateKey]) {
+        grouped[dateKey] = [];
+      }
+      grouped[dateKey].push(item);
+    });
     
     // UI에 맞게 변환
-    return Object.keys(grouped).map(dateStr => {
-      const date = new Date(dateStr);
+    return Object.keys(grouped).map(dateKey => {
+      const [year, month, day] = dateKey.split('-');
+      const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
       const displayDate = `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일 (${KOREAN_DAYS[date.getDay()]})`;
       
       return {
         date,
         displayDate,
-        items: grouped[dateStr].sort((a, b) => b.createdAt - a.createdAt)
+        items: grouped[dateKey].sort((a, b) => b.createdAt - a.createdAt)
       };
     }).sort((a, b) => b.date - a.date);
   };

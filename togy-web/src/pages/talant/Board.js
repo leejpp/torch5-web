@@ -3,6 +3,21 @@ import { useNavigate } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
 import { db } from '../../firebase/config';
 import { collection, query, where, getDocs, addDoc, deleteDoc, doc, Timestamp } from 'firebase/firestore';
+import {
+  TossContainer,
+  TossHeader,
+  TossHeaderContent,
+  TossPrimaryButton,
+  TossSecondaryButton,
+  TossTextButton,
+  TossCard,
+  TossTitle,
+  TossFlex,
+  TossColors,
+  TossAnimations,
+  TossLoadingSpinner
+} from '../../components/common/TossDesignSystem';
+import { STUDENT_LIST, TALANT_CATEGORIES } from '../../utils/talantUtils';
 
 // 애니메이션
 const fadeInUp = keyframes`
@@ -27,104 +42,37 @@ const pulse = keyframes`
   }
 `;
 
-// 스타일 컴포넌트
-const Container = styled.div`
-  min-height: 100vh;
-  background: #FAFAFC;
-  font-family: 'Pretendard', 'Noto Sans KR', 'Apple SD Gothic Neo', Arial, sans-serif;
-  color: #222;
+// 토스 스타일 업데이트된 컴포넌트들
+const TossBoardContainer = styled(TossContainer)`
+  padding-bottom: 40px;
 `;
 
-const Header = styled.div`
-  position: sticky;
-  top: 0;
-  background: white;
-  padding: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  z-index: 100;
+const TossBoardHeader = styled(TossHeader)`
+  padding: 0 20px;
 `;
 
-const HeaderContent = styled.div`
-  max-width: 1400px;
-  margin: 0 auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 12px;
-`;
-
-const ButtonGroup = styled.div`
-  display: flex;
-  gap: 8px;
-`;
-
-const BackButton = styled.button`
-  background: #3182F6;
-  color: white;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  &:hover {
-    background: #2B6CB0;
-  }
-`;
-
-const HistoryButton = styled.button`
-  background: #10B981;
-  color: white;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  &:hover {
-    background: #059669;
-  }
-`;
-
-const HeaderTitle = styled.h1`
+const TossBoardTitle = styled(TossTitle)`
   font-size: 20px;
-  font-weight: 700;
   margin: 0;
-  color: #222;
+  color: ${TossColors.grey900};
 `;
 
-const MonthSelector = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 12px;
-`;
-
-const MonthButton = styled.button`
-  background: rgba(49, 130, 246, 0.1);
-  color: #3182F6;
-  border: 1px solid rgba(49, 130, 246, 0.2);
-  padding: 8px 12px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
+const TossMonthSelector = styled(TossFlex)`
+  gap: 16px;
   
-  &:hover {
-    background: #3182F6;
-    color: white;
+  @media (max-width: 768px) {
+    flex-direction: row;
+    justify-content: center;
   }
 `;
 
-const CurrentMonth = styled.div`
-  font-size: 16px;
+const TossCurrentMonth = styled.div`
+  font-size: 18px;
   font-weight: 700;
-  color: #222;
-  min-width: 120px;
+  color: ${TossColors.grey900};
+  min-width: 140px;
   text-align: center;
+  padding: 8px 0;
 `;
 
 const BoardContainer = styled.div`
@@ -451,17 +399,13 @@ const ActionButton = styled.button`
   }
 `;
 
-// Input 페이지와 동일한 데이터 사용
-const STUDENTS = ['임동하', '장지민', '황희', '김종진', '방시온', '정예담', '방온유', '정예준'];
-const TALANT_CATEGORIES = [
-  { name: '출석', value: 3, icon: '✅' },
-  { name: '오후출석', value: 3, icon: '🌅' },
-  { name: '문화교실', value: 3, icon: '🎨' },
-  { name: '말씀암송', value: 1, icon: '📖' },
-  { name: '성경읽기', value: 1, icon: '📚' },
-  { name: '기도문기도', value: 5, icon: '🙏' },
-  { name: '손가락기도', value: 10, icon: '👋' },
-];
+// 공통 유틸에서 가져온 데이터 사용
+const STUDENTS = STUDENT_LIST;
+const BOARD_TALANT_CATEGORIES = TALANT_CATEGORIES.map(cat => ({ 
+  name: cat.reason, 
+  value: cat.value, 
+  icon: cat.emoji 
+}));
 
 const TalantBoard = () => {
   const navigate = useNavigate();
@@ -556,7 +500,7 @@ const TalantBoard = () => {
       setIsProcessing(true);
       const { studentName, day, reason } = selectedCell;
       const selectedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-      const categoryData = TALANT_CATEGORIES.find(c => c.name === reason);
+      const categoryData = BOARD_TALANT_CATEGORIES.find(c => c.name === reason);
       
       await addDoc(collection(db, 'talant_history'), {
         name: studentName,
@@ -616,33 +560,33 @@ const TalantBoard = () => {
   };
 
   return (
-    <Container>
-      <Header>
-        <HeaderContent>
-          <ButtonGroup>
-            <BackButton onClick={() => navigate('/talant')}>
+    <TossBoardContainer>
+      <TossBoardHeader>
+        <TossHeaderContent style={{ maxWidth: '1400px', flexWrap: 'wrap', gap: '16px' }}>
+          <TossFlex gap="8px">
+            <TossPrimaryButton onClick={() => navigate('/talant')}>
               ← 뒤로
-            </BackButton>
-            <HistoryButton onClick={() => navigate('/talant/history')}>
+            </TossPrimaryButton>
+            <TossSecondaryButton onClick={() => navigate('/talant/history')}>
               📊 내역
-            </HistoryButton>
-          </ButtonGroup>
+            </TossSecondaryButton>
+          </TossFlex>
           
-          <HeaderTitle>달란트 현황판</HeaderTitle>
+          <TossBoardTitle>달란트 현황판</TossBoardTitle>
           
-          <MonthSelector>
-            <MonthButton onClick={() => changeMonth(-1)}>
-              ←
-            </MonthButton>
-            <CurrentMonth>
+          <TossMonthSelector>
+            <TossTextButton onClick={() => changeMonth(-1)}>
+              ← 이전
+            </TossTextButton>
+            <TossCurrentMonth>
               {currentDate.getFullYear()}년 {monthNames[currentDate.getMonth()]}
-            </CurrentMonth>
-            <MonthButton onClick={() => changeMonth(1)}>
-              →
-            </MonthButton>
-          </MonthSelector>
-        </HeaderContent>
-      </Header>
+            </TossCurrentMonth>
+            <TossTextButton onClick={() => changeMonth(1)}>
+              다음 →
+            </TossTextButton>
+          </TossMonthSelector>
+        </TossHeaderContent>
+      </TossBoardHeader>
 
       <BoardContainer>
         {loading ? (
@@ -657,7 +601,7 @@ const TalantBoard = () => {
                   {/* 왼쪽 고정 컬럼 (사유) */}
                   <LeftColumn>
                     <ReasonHeader>{student}</ReasonHeader>
-                    {TALANT_CATEGORIES.map((category) => (
+                    {BOARD_TALANT_CATEGORIES.map((category) => (
                       <ReasonCell key={category.name}>
                         {category.icon} {category.name}
                       </ReasonCell>
@@ -684,7 +628,7 @@ const TalantBoard = () => {
                     
                     {/* 날짜별 데이터 */}
                     <DaysBody>
-                      {TALANT_CATEGORIES.map((category) => (
+                      {BOARD_TALANT_CATEGORIES.map((category) => (
                         <DaysRow key={category.name}>
                           {generateDaysArray().map((day) => {
                             const key = `${student}-${day}-${category.name}`;
@@ -698,10 +642,10 @@ const TalantBoard = () => {
                                 onClick={() => handleCellClick(student, day, category.name)}
                               >
                                 {cellData && cellData.map((item, idx) => {
-                                  const category = TALANT_CATEGORIES.find(c => c.name === item.reason);
+                                  const categoryInfo = BOARD_TALANT_CATEGORIES.find(c => c.name === item.reason);
                                   return (
                                     <StickerIcon key={idx}>
-                                      {category?.icon || '⭐'}
+                                      {categoryInfo?.icon || '⭐'}
                                     </StickerIcon>
                                   );
                                 })}
@@ -778,7 +722,7 @@ const TalantBoard = () => {
           )}
         </Modal>
       </ModalBackdrop>
-    </Container>
+    </TossBoardContainer>
   );
 };
 

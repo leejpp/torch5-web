@@ -1,14 +1,32 @@
 import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
-import { collection, query, orderBy, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
+import { collection, query, where, orderBy, limit, onSnapshot, getDocs, deleteDoc, doc, Timestamp } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { theme } from '../../styles/theme';
+import { 
+  CommonContainer, 
+  CommonHeader, 
+  HeaderContent, 
+  HeaderTop, 
+  PrimaryButton, 
+  SecondaryButton,
+  TertiaryButton,
+  PageTitle,
+  Card,
+  fadeIn
+} from '../../components/common/TalantStyles';
+import { 
+  formatDate, 
+  formatTime, 
+  getAvailableMonths, 
+  groupByDate, 
+  getMonthName, 
+  showToast,
+  STUDENT_LIST
+} from '../../utils/talantUtils';
 
-const fadeIn = keyframes`
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-`;
+// fadeIn은 이제 공통 컴포넌트에서 가져옴
 
 const float = keyframes`
   0%, 100% { transform: translateY(0px); }
@@ -31,33 +49,7 @@ const slideInLeft = keyframes`
   to { transform: translateX(0); opacity: 1; }
 `;
 
-const Container = styled.div`
-  min-height: 100vh;
-  background: #FAFAFC;
-  font-family: 'Pretendard', 'Noto Sans KR', 'Apple SD Gothic Neo', Arial, sans-serif;
-  color: #222;
-`;
-
-const Header = styled.div`
-  position: sticky;
-  top: 0;
-  background: white;
-  padding: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  z-index: 100;
-`;
-
-const HeaderContent = styled.div`
-  max-width: 1200px;
-  margin: 0 auto;
-`;
-
-const HeaderTop = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-`;
+// Container, Header, HeaderContent, HeaderTop은 TalantStyles에서 import됨
 
 const ButtonGroup = styled.div`
   display: flex;
@@ -482,7 +474,7 @@ const Toast = styled.div`
   opacity: ${props => props.$show ? 1 : 0};
 `;
 
-const STUDENTS = ['임동하', '장지민', '황희', '김종진', '방시온', '정예담', '방온유', '정예준'];
+// STUDENTS는 이제 STUDENT_LIST로 공통 유틸에서 가져옴
 
 const KOREAN_DAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
@@ -499,43 +491,69 @@ const History = () => {
   const [toast, setToast] = useState({ show: false, message: '' });
   const [deletingIds, setDeletingIds] = useState(new Set());
   const [showFilters, setShowFilters] = useState(false);
+  const [currentMonthData, setCurrentMonthData] = useState(true); // 현재 월 데이터만 로드 여부
 
-  // 토스트 메시지 표시
-  const showToast = useCallback((message, duration = 3000) => {
-    setToast({ show: true, message });
-    setTimeout(() => {
-      setToast({ show: false, message: '' });
-    }, duration);
+  // 토스트 메시지 표시 (공통 유틸 사용)
+  const handleShowToast = useCallback((message, duration = 3000) => {
+    showToast(setToast, message, duration);
   }, []);
 
-  // 시간 포맷 함수 (입력 시간 표시)
-  const formatDate = (timestamp) => {
-    if (!timestamp) return '';
-    
-    let date;
-    if (timestamp.toDate) {
-      // Firestore Timestamp 객체인 경우
-      date = timestamp.toDate();
-    } else if (timestamp instanceof Date) {
-      // 일반 Date 객체인 경우
-      date = timestamp;
-    } else {
-      // 문자열이나 숫자 타임스탬프인 경우
-      date = new Date(timestamp);
-    }
-
-    return date.toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  // 데이터 로드
+  // 초기 로드 시 현재 월 설정
   useEffect(() => {
-    const q = query(collection(db, 'talant_history'), orderBy('createdAt', 'desc'));
+    const now = new Date();
+    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    setMonthFilter(currentMonth);
+  }, []);
+
+  // 사용 가능한 월 목록 로드 (가벼운 쿼리)
+  useEffect(() => {
+    const loadAvailableMonths = async () => {
+      try {
+        // 모든 월을 가져오기 위해 receivedDate만 조회
+        const q = query(
+          collection(db, 'talant_history'),
+          orderBy('receivedDate', 'desc')
+        );
+        
+        const snapshot = await getDocs(q);
+        const dates = snapshot.docs.map(doc => doc.data().receivedDate?.toDate() || new Date());
+        const months = getAvailableMonths(dates.map(date => ({ date })));
+        setAvailableMonths(months);
+      } catch (error) {
+        console.error('Error loading available months:', error);
+      }
+    };
+    
+    loadAvailableMonths();
+  }, []);
+
+  // 월별 데이터 로드
+  useEffect(() => {
+    if (!monthFilter && currentMonthData) return; // 월 필터가 없고 현재 월 데이터 모드가 아니면 스킵
+
+    setLoading(true);
+    let q;
+
+    if (monthFilter) {
+      // 선택된 월의 데이터만 로드
+      const [year, month] = monthFilter.split('-').map(Number);
+      const startDate = new Date(year, month - 1, 1);
+      const endDate = new Date(year, month, 0, 23, 59, 59);
+
+      q = query(
+        collection(db, 'talant_history'),
+        where('receivedDate', '>=', Timestamp.fromDate(startDate)),
+        where('receivedDate', '<=', Timestamp.fromDate(endDate)),
+        orderBy('receivedDate', 'desc')
+      );
+    } else {
+      // 전체 데이터 로드 (필터가 '전체 월'인 경우)
+      q = query(
+        collection(db, 'talant_history'),
+        orderBy('createdAt', 'desc'),
+        limit(100) // 성능을 위해 최근 100개만 로드
+      );
+    }
     
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const historyData = snapshot.docs.map(doc => {
@@ -550,24 +568,25 @@ const History = () => {
         };
       });
       
+      // 클라이언트 측에서 createdAt으로 추가 정렬
+      historyData.sort((a, b) => {
+        // 먼저 receivedDate로 정렬 (내림차순)
+        const dateCompare = b.receivedDate - a.receivedDate;
+        if (dateCompare !== 0) return dateCompare;
+        // 같은 날짜면 createdAt으로 정렬 (내림차순)
+        return b.createdAt - a.createdAt;
+      });
+      
       setAllHistory(historyData);
-      
-      // 사용 가능한 월 목록 생성
-      const months = [...new Set(historyData.map(item => {
-        const date = item.receivedDate;
-        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      }))].sort().reverse();
-      
-      setAvailableMonths(months);
       setLoading(false);
     }, (error) => {
       console.error('Error loading history:', error);
-      showToast('데이터 로드 중 오류가 발생했습니다.');
+      handleShowToast('데이터 로드 중 오류가 발생했습니다.');
       setLoading(false);
     });
 
     return () => unsubscribe();
-  }, [showToast]);
+  }, [monthFilter, handleShowToast]);
 
   // 필터링 로직
   useEffect(() => {
@@ -596,32 +615,21 @@ const History = () => {
     setFilteredHistory(filtered);
   }, [allHistory, nameFilter, dateFilterType, monthFilter, specificDateFilter]);
 
-  // 날짜별로 그룹화 (달란트 받은 날짜 기준)
-  const groupByDate = (history) => {
-    const groups = {};
+  // 날짜별로 그룹화 함수 (공통 유틸 사용하되 UI에 맞게 확장)
+  const groupHistoryByDate = (history) => {
+    const grouped = groupByDate(history.map(item => ({ ...item, date: item.receivedDate })));
     
-    history.forEach(item => {
-      const date = item.receivedDate;
-      const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+    // UI에 맞게 변환
+    return Object.keys(grouped).map(dateStr => {
+      const date = new Date(dateStr);
       const displayDate = `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일 (${KOREAN_DAYS[date.getDay()]})`;
       
-      if (!groups[dateKey]) {
-        groups[dateKey] = {
-          date: new Date(date.getFullYear(), date.getMonth(), date.getDate()),
-          displayDate: displayDate,
-          items: []
-        };
-      }
-      
-      groups[dateKey].items.push(item);
-    });
-    
-    // 각 그룹 내에서도 입력 시간 순으로 정렬
-    Object.values(groups).forEach(group => {
-      group.items.sort((a, b) => b.createdAt - a.createdAt);
-    });
-    
-    return Object.values(groups).sort((a, b) => b.date - a.date);
+      return {
+        date,
+        displayDate,
+        items: grouped[dateStr].sort((a, b) => b.createdAt - a.createdAt)
+      };
+    }).sort((a, b) => b.date - a.date);
   };
 
   // 삭제 함수
@@ -631,10 +639,10 @@ const History = () => {
       
       try {
         await deleteDoc(doc(db, 'talant_history', id));
-        showToast('기록이 삭제되었습니다.');
+        handleShowToast('기록이 삭제되었습니다.');
       } catch (error) {
         console.error('Error deleting:', error);
-        showToast('삭제 중 오류가 발생했습니다.');
+        handleShowToast('삭제 중 오류가 발생했습니다.');
       } finally {
         setDeletingIds(prev => {
           const newSet = new Set(prev);
@@ -650,7 +658,7 @@ const History = () => {
     setNameFilter('');
     setMonthFilter('');
     setSpecificDateFilter('');
-    showToast('모든 필터가 제거되었습니다.');
+    handleShowToast('모든 필터가 제거되었습니다.');
   };
 
   // 활성 필터 제거
@@ -658,15 +666,15 @@ const History = () => {
     switch (filterType) {
       case 'name':
         setNameFilter('');
-        showToast('이름 필터가 제거되었습니다.');
+        handleShowToast('이름 필터가 제거되었습니다.');
         break;
       case 'month':
         setMonthFilter('');
-        showToast('기간 필터가 제거되었습니다.');
+        handleShowToast('기간 필터가 제거되었습니다.');
         break;
       case 'specific':
         setSpecificDateFilter('');
-        showToast('날짜 필터가 제거되었습니다.');
+        handleShowToast('날짜 필터가 제거되었습니다.');
         break;
       default:
         break;
@@ -674,7 +682,7 @@ const History = () => {
   };
 
   // 메모화된 값들
-  const groupedHistory = useMemo(() => groupByDate(filteredHistory), [filteredHistory]);
+  const groupedHistory = useMemo(() => groupHistoryByDate(filteredHistory), [filteredHistory]);
   const hasActiveFilters = useMemo(() => 
     nameFilter || monthFilter || specificDateFilter, 
     [nameFilter, monthFilter, specificDateFilter]
@@ -691,6 +699,9 @@ const History = () => {
   
   const handleMonthFilterChange = useCallback((e) => {
     setMonthFilter(e.target.value);
+    if (e.target.value === '') {
+      setCurrentMonthData(false); // 전체 월 선택 시 현재 월 모드 해제
+    }
   }, []);
   
   const handleSpecificDateFilterChange = useCallback((e) => {
@@ -710,8 +721,8 @@ const History = () => {
   }, [navigate]);
 
   return (
-    <Container>
-      <Header>
+    <CommonContainer>
+      <CommonHeader>
         <HeaderContent>
           <HeaderTop>
             <ButtonGroup>
@@ -743,7 +754,7 @@ const History = () => {
               onChange={handleNameFilterChange}
             >
               <option value="">전체 이름</option>
-              {STUDENTS.map(student => (
+                              {STUDENT_LIST.map(student => (
                 <option key={student} value={student}>{student}</option>
               ))}
             </Select>
@@ -767,10 +778,14 @@ const History = () => {
                 value={monthFilter}
                 onChange={handleMonthFilterChange}
               >
-                <option value="">전체 월</option>
-                {availableMonths.map(month => (
-                  <option key={month} value={month}>{month}</option>
-                ))}
+                <option value="">최근 100개</option>
+                {availableMonths.map(month => {
+                  const [year, monthNum] = month.split('-');
+                  const displayMonth = `${year}년 ${parseInt(monthNum)}월`;
+                  return (
+                    <option key={month} value={month}>{displayMonth}</option>
+                  );
+                })}
               </Select>
             </FilterGroup>
           )}
@@ -813,7 +828,7 @@ const History = () => {
           </ActiveFilters>
         )}
         </HeaderContent>
-      </Header>
+      </CommonHeader>
 
       <ContentArea>
         {loading ? (
@@ -830,7 +845,11 @@ const History = () => {
         <>
           <SectionHeader>
             <SectionTitle>
-              {hasActiveFilters ? `필터링된 내역 (${filteredHistory.length}개)` : `전체 내역 (${allHistory.length}개)`}
+              {monthFilter 
+                ? `${monthFilter} 내역 (${filteredHistory.length}개)`
+                : hasActiveFilters 
+                  ? `필터링된 내역 (${filteredHistory.length}개)` 
+                  : `최근 내역 (${allHistory.length}개)`}
             </SectionTitle>
           </SectionHeader>
 
@@ -866,7 +885,7 @@ const History = () => {
           {toast.message}
         </Toast>
       </ContentArea>
-    </Container>
+    </CommonContainer>
   );
 };
 

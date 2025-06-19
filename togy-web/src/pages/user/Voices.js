@@ -22,25 +22,6 @@ const Voices = () => {
       
       await addDoc(collection(db, 'voices'), docData);
 
-      const discordMessage = {
-        embeds: [{
-          title: "💌 새로운 마음의 소리가 도착했습니다!",
-          description: message.trim(),
-          color: 0x4285F4,
-          footer: {
-            text: "TOGY 청년부"
-          }
-        }]
-      };
-
-      await fetch("https://discord.com/api/webhooks/1328644931329331232/TpYknhG9Ch6UN9uApn9Gman6bHdhlb3E2DwxkZLJ9FSCA6XPay7y8tCc6kq5TMWuy9lt", {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(discordMessage)
-      });
-
       setMessage('');
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);

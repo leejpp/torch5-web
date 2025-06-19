@@ -23,12 +23,12 @@ const CalendarAdmin = React.lazy(() => import('./pages/admin/Calendar'));
 const YearlyThemes = React.lazy(() => import('./pages/admin/YearlyThemes'));
 const CellReorganization = React.lazy(() => import('./pages/admin/CellReorganization'));
 
-// Talant Pages
+// Talant Pages (Lazy Loading 최적화)
 const TalantDashboard = React.lazy(() => import('./pages/talant/Dashboard'));
 const TalantInput = React.lazy(() => import('./pages/talant/Input'));
 const TalantHistory = React.lazy(() => import('./pages/talant/History'));
 const TalantBoard = React.lazy(() => import('./pages/talant/Board'));
-const RankPage = React.lazy(() => import('./pages/talant/Rank'));
+const TalantRank = React.lazy(() => import('./pages/talant/Rank'));
 
 const GlobalStyle = createGlobalStyle`
   * {
@@ -118,7 +118,7 @@ const App = () => {
             <Route path="input" element={<TalantInput />} />
             <Route path="history" element={<TalantHistory />} />
             <Route path="board" element={<TalantBoard />} />
-            <Route path="rank" element={<RankPage />} />
+            <Route path="rank" element={<TalantRank />} />
           </Route>
         </Routes>
         </Suspense>

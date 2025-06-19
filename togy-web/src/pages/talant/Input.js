@@ -4,51 +4,28 @@ import styled, { keyframes } from 'styled-components';
 import { theme } from '../../styles/theme';
 import { db } from '../../firebase/config';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
+import { 
+  CommonContainer, 
+  CommonHeader, 
+  HeaderContent, 
+  HeaderTop, 
+  PrimaryButton, 
+  SecondaryButton, 
+  PageTitle, 
+  Card, 
+  LoadingSpinner, 
+  SuccessMessage, 
+  ErrorMessage,
+  fadeInUp 
+} from '../../components/common/TalantStyles';
+import { TALANT_CATEGORIES, STUDENT_LIST, showToast } from '../../utils/talantUtils';
 
-// 애니메이션
-const fadeInUp = keyframes`
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-`;
-
+// 애니메이션 (공통 컴포넌트에서 가져옴)
 const spin = keyframes`
   to { transform: rotate(360deg); }
 `;
 
-// 모바일 최적화된 스타일 컴포넌트
-const Container = styled.div`
-  min-height: 100vh;
-  background: #FAFAFC;
-  font-family: 'Pretendard', 'Noto Sans KR', 'Apple SD Gothic Neo', Arial, sans-serif;
-  color: #222;
-`;
-
-const Header = styled.div`
-  position: sticky;
-  top: 0;
-  background: white;
-  padding: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  z-index: 100;
-`;
-
-const HeaderContent = styled.div`
-  max-width: 1200px;
-  margin: 0 auto;
-`;
-
-const HeaderTop = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-`;
+// Container, Header, HeaderContent, HeaderTop은 TalantStyles에서 import됨
 
 const BackButton = styled.button`
   background: #3182F6;
@@ -122,17 +99,7 @@ const LogDisplay = styled.div`
   font-family: 'Pretendard', 'Noto Sans KR', 'Apple SD Gothic Neo', Arial, sans-serif;
 `;
 
-const ErrorMessage = styled.div`
-  background: rgba(239, 68, 68, 0.1);
-  border-radius: 10px;
-  padding: 12px 16px;
-  font-size: 14px;
-  color: #EF4444;
-  border: 1px solid rgba(239, 68, 68, 0.2);
-  margin-top: 12px;
-  animation: ${fadeInUp} 0.5s ease-out;
-  font-family: 'Pretendard', 'Noto Sans KR', 'Apple SD Gothic Neo', Arial, sans-serif;
-`;
+// ErrorMessage는 TalantStyles에서 import됨
 
 const PersonGrid = styled.div`
   max-width: 1200px;
@@ -240,21 +207,7 @@ const TalantButton = styled.button`
   }
 `;
 
-const LoadingSpinner = styled.div`
-  display: inline-block;
-  width: 16px;
-  height: 16px;
-  border: 2px solid rgba(255,255,255,.3);
-  border-radius: 50%;
-  border-top-color: white;
-  animation: ${spin} 1s ease-in-out infinite;
-  margin-right: 4px;
-  
-  @media (max-width: 480px) {
-    width: 12px;
-    height: 12px;
-  }
-`;
+// LoadingSpinner는 TalantStyles에서 import됨
 
 // 모달 스타일
 const ModalBackdrop = styled.div`
@@ -406,16 +359,10 @@ const TalantInput = () => {
   const [loadingButtons, setLoadingButtons] = useState(new Set());
   const [lastSubmissionTime, setLastSubmissionTime] = useState(0);
 
-  // 데이터 정의
-  const people = ['임동하', '장지민', '황희', '김종진', '방시온', '정예담', '방온유', '정예준'];
+  // 데이터 정의 (유틸리티에서 가져옴)
+  const people = STUDENT_LIST;
   const categories = [
-    { name: '출석', value: 3, icon: '✅' },
-    { name: '오후출석', value: 3, icon: '🌅' },
-    { name: '문화교실', value: 3, icon: '🎨' },
-    { name: '말씀암송', value: 1, icon: '📖' },
-    { name: '성경읽기', value: 1, icon: '📚' },
-    { name: '기도문기도', value: 5, icon: '🙏' },
-    { name: '손가락기도', value: 10, icon: '👋' },
+    ...TALANT_CATEGORIES.map(cat => ({ name: cat.reason, value: cat.value, icon: cat.emoji })),
     { name: '기타', value: 'custom', icon: '➕' }
   ];
 
@@ -555,18 +502,18 @@ const TalantInput = () => {
   }, [showCustomModal, showResultModal, submitCustomTalant]);
 
   return (
-    <Container>
-      <Header>
+    <CommonContainer>
+      <CommonHeader>
         <HeaderContent>
           <HeaderTop>
-            <BackButton onClick={() => navigate('/talant')}>
+            <PrimaryButton onClick={() => navigate('/talant')}>
               ← 대시보드
-            </BackButton>
-            <HeaderTitle>달란트 입력</HeaderTitle>
-            <HistoryButton onClick={() => navigate('/talant/history')}>
+            </PrimaryButton>
+            <PageTitle>달란트 입력</PageTitle>
+            <SecondaryButton onClick={() => navigate('/talant/history')}>
               <span>전체 내역</span>
               <span>📋</span>
-            </HistoryButton>
+            </SecondaryButton>
           </HeaderTop>
           
           <DateSelect
@@ -583,7 +530,7 @@ const TalantInput = () => {
             <ErrorMessage>{errorMessage}</ErrorMessage>
           )}
         </HeaderContent>
-      </Header>
+      </CommonHeader>
 
       <PersonGrid>
         {people.map((person, index) => (
@@ -675,7 +622,7 @@ const TalantInput = () => {
           </ResultModal>
         </>
       )}
-    </Container>
+    </CommonContainer>
   );
 };
 

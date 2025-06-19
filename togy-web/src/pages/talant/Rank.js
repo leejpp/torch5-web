@@ -1,8 +1,25 @@
 import React, { useState, useEffect, useCallback, memo } from 'react';
 import styled, { keyframes } from 'styled-components';
-import { collection, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, orderBy, limit, onSnapshot, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { theme } from '../../styles/theme';
+import {
+  TossContainer,
+  TossHeader,
+  TossHeaderContent,
+  TossPrimaryButton,
+  TossSecondaryButton,
+  TossCard,
+  TossCardBody,
+  TossTitle,
+  TossSubtitle,
+  TossFlex,
+  TossColors,
+  TossAnimations,
+  TossLoadingSpinner,
+  TossBadge
+} from '../../components/common/TossDesignSystem';
+import { calculateRanking, showToast } from '../../utils/talantUtils';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -34,85 +51,35 @@ const crown = keyframes`
   50% { transform: rotate(5deg); }
 `;
 
-const Container = styled.div`
-  min-height: 100vh;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+// 토스 스타일 랭킹 컴포넌트들
+const TossRankContainer = styled(TossContainer)`
   padding: 20px;
   padding-bottom: 100px;
 `;
 
-const Header = styled.div`
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: ${theme.borderRadius.xl};
-  padding: 30px;
-  margin-bottom: 30px;
-  box-shadow: ${theme.shadows.lg};
-  animation: ${fadeIn} 0.8s ease-out;
+const TossRankHeader = styled(TossCard)`
   text-align: center;
+  margin-bottom: 30px;
+  animation: ${TossAnimations.fadeInUp} 0.8s ease-out;
 `;
 
-const Title = styled.h1`
-  color: ${theme.colors.neutral[1]};
-  font-size: ${theme.typography.fontSize['2xl']};
-  font-weight: ${theme.typography.fontWeight.bold};
-  margin: 0 0 20px 0;
-  text-align: center;
-  background: linear-gradient(135deg, ${theme.colors.primary} 0%, #9F77FF 100%);
+const TossGradientTitle = styled(TossTitle)`
+  background: linear-gradient(135deg, ${TossColors.primary} 0%, #9F77FF 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-
+  margin-bottom: 12px;
+  
   @media (max-width: 768px) {
-    font-size: ${theme.typography.fontSize.xl};
+    font-size: 24px;
   }
 `;
 
-const Subtitle = styled.p`
-  color: ${theme.colors.neutral[3]};
-  font-size: ${theme.typography.fontSize.base};
-  margin: 0 0 25px 0;
-`;
-
-const Controls = styled.div`
-  display: flex;
-  gap: 15px;
+const TossRankControls = styled(TossFlex)`
   justify-content: center;
   flex-wrap: wrap;
-`;
-
-const Button = styled.button`
-  background: ${props => props.variant === 'primary' ? 
-    `linear-gradient(135deg, ${theme.colors.primary} 0%, #9F77FF 100%)` : 
-    'linear-gradient(135deg, #10B981 0%, #047857 100%)'};
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: ${theme.borderRadius.lg};
-  font-size: ${theme.typography.fontSize.base};
-  font-weight: ${theme.typography.fontWeight.medium};
-  cursor: pointer;
-  transition: ${theme.transitions.default};
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  box-shadow: ${theme.shadows.md};
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: ${theme.shadows.lg};
-  }
-
-  &:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-    transform: none;
-  }
-
-  .icon {
-    animation: ${props => props.loading ? spin : 'none'} 1s linear infinite;
-  }
+  gap: 16px;
+  margin: 20px 0;
 `;
 
 const Timestamp = styled.div`
@@ -472,48 +439,64 @@ const RankPage = () => {
     return '-';
   }, [previousRanking]);
 
-  // 랭킹 데이터 계산
+  // 랭킹 데이터 계산 (한 번만 호출하는 방식으로 변경)
   const calculateRanking = useCallback(async () => {
     try {
       const q = query(collection(db, 'talant_history'));
+      const snapshot = await getDocs(q);
       
-      return new Promise((resolve, reject) => {
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-          if (snapshot.empty) {
-            resolve([]);
-            return;
-          }
+      if (snapshot.empty) {
+        return [];
+      }
 
-          const userScores = {};
-          
-          snapshot.forEach(doc => {
-            const data = doc.data();
-            const name = data.name;
-            const talant = parseInt(data.talant) || 0;
-            
-            if (!userScores[name]) {
-              userScores[name] = 0;
-            }
-            
-            userScores[name] += talant;
-          });
-
-          const rankingData = Object.entries(userScores)
-            .map(([name, score]) => ({ name, score }))
-            .sort((a, b) => b.score - a.score);
-          
-          resolve(rankingData);
-        }, (error) => {
-          reject(error);
-        });
+      const userScores = {};
+      
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const name = data.name;
+        const talant = parseInt(data.talant) || 0;
+        
+        if (!userScores[name]) {
+          userScores[name] = 0;
+        }
+        
+        userScores[name] += talant;
       });
+
+      const rankingData = Object.entries(userScores)
+        .map(([name, score]) => ({ name, score }))
+        .sort((a, b) => b.score - a.score);
+      
+      return rankingData;
     } catch (error) {
       console.error('랭킹 계산 에러:', error);
       throw error;
     }
   }, []);
 
-  // 랭킹 업데이트
+  // 랭킹 업데이트 (초기 로드용)
+  const loadInitialRanking = useCallback(async () => {
+    try {
+      setLoading(true);
+      
+      const rankingData = await calculateRanking();
+      
+      // 타임스탬프 업데이트
+      const now = new Date();
+      const days = ['일', '월', '화', '수', '목', '금', '토'];
+      const timestampText = `집계 기준일: ${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} (${days[now.getDay()]}) ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      
+      setTimestamp(timestampText);
+      setPreviousRanking([]); // 초기 로드시에는 이전 랭킹 없음
+      setRanking(rankingData);
+      setLoading(false);
+    } catch (error) {
+      console.error('랭킹 로드 에러:', error);
+      setLoading(false);
+    }
+  }, [calculateRanking]);
+
+  // 랭킹 새로고침 (버튼 클릭용)
   const updateRanking = useCallback(async () => {
     if (refreshing) return;
     
@@ -528,9 +511,8 @@ const RankPage = () => {
       const timestampText = `집계 기준일: ${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} (${days[now.getDay()]}) ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
       
       setTimestamp(timestampText);
-      setPreviousRanking(prev => [...prev]); // 이전 랭킹 저장
+      setPreviousRanking([...ranking]); // 이전 랭킹 저장
       setRanking(rankingData);
-      setLoading(false);
       
       showToast('랭킹이 업데이트되었습니다.');
     } catch (error) {
@@ -539,7 +521,7 @@ const RankPage = () => {
     } finally {
       setRefreshing(false);
     }
-  }, [refreshing, calculateRanking, showToast]);
+  }, [refreshing, calculateRanking, showToast, ranking]);
 
   // 학생 상세 정보 팝업
   const showStudentPopup = useCallback(async (name) => {
@@ -582,29 +564,27 @@ const RankPage = () => {
 
   // 초기 로드
   useEffect(() => {
-    updateRanking();
-  }, [updateRanking]);
+    loadInitialRanking();
+  }, [loadInitialRanking]);
 
   return (
-    <Container>
-      <Header>
-        <Title>🏆 달란트 랭킹</Title>
-        <Subtitle>주일학교 학생들의 달란트 점수 순위를 확인하세요</Subtitle>
+    <TossRankContainer>
+      <TossRankHeader>
+        <TossGradientTitle>🏆 달란트 랭킹</TossGradientTitle>
+        <TossSubtitle>주일학교 학생들의 달란트 점수 순위를 확인하세요</TossSubtitle>
         
-        <Controls>
-          <Button 
-            variant="primary"
+        <TossRankControls>
+          <TossPrimaryButton 
             onClick={updateRanking}
             disabled={refreshing}
-            loading={refreshing}
           >
             <span className="icon">🔄</span>
             {refreshing ? '로딩 중...' : '랭킹 새로고침'}
-          </Button>
-        </Controls>
+          </TossPrimaryButton>
+        </TossRankControls>
         
         {timestamp && <Timestamp>{timestamp}</Timestamp>}
-      </Header>
+      </TossRankHeader>
 
       <div>
         {loading ? (
@@ -706,7 +686,7 @@ const RankPage = () => {
       <Toast $show={toast.show}>
         {toast.message}
       </Toast>
-    </Container>
+    </TossRankContainer>
   );
 };
 

@@ -357,13 +357,6 @@ const TalantBoard = () => {
     loadStudents();
   }, []);
 
-  // 달란트 데이터 로드
-  useEffect(() => {
-    if (students.length > 0) {
-      loadTalantData();
-    }
-  }, [students, currentDate, loadTalantData]);
-
   const loadStudents = async () => {
     try {
       // Input 페이지와 동일한 학생 리스트 사용
@@ -411,6 +404,13 @@ const TalantBoard = () => {
       setLoading(false);
     }
   }, [currentDate]);
+
+  // 달란트 데이터 로드
+  useEffect(() => {
+    if (students.length > 0) {
+      loadTalantData();
+    }
+  }, [students, currentDate, loadTalantData]);
 
   const handleCellClick = (studentName, day, reason) => {
     if (isProcessing) return; // 처리 중이면 클릭 무시

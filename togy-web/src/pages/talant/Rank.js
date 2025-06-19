@@ -5,21 +5,14 @@ import { db } from '../../firebase/config';
 import { theme } from '../../styles/theme';
 import {
   TossContainer,
-  TossHeader,
-  TossHeaderContent,
   TossPrimaryButton,
-  TossSecondaryButton,
   TossCard,
-  TossCardBody,
   TossTitle,
   TossSubtitle,
   TossFlex,
   TossColors,
-  TossAnimations,
-  TossLoadingSpinner,
-  TossBadge
+  TossAnimations
 } from '../../components/common/TossDesignSystem';
-import { calculateRanking, showToast } from '../../utils/talantUtils';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -36,10 +29,7 @@ const pulse = keyframes`
   50% { transform: scale(1.05); }
 `;
 
-const spin = keyframes`
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-`;
+
 
 const slideUp = keyframes`
   from { transform: translateY(100px); opacity: 0; }

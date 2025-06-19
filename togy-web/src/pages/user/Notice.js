@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../../firebase/config';
 import styled from 'styled-components';
-import { Link } from 'react-router-dom';
-import UserLayout from '../../layouts/UserLayout';
 import { collection, query, orderBy, getDocs } from 'firebase/firestore';
 
 const Notice = () => {

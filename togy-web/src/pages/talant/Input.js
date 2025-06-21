@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { theme } from '../../styles/theme';
 import { db } from '../../firebase/config';
-import { collection, addDoc, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, doc, getDoc, setDoc, updateDoc, Timestamp } from 'firebase/firestore';
 import { 
   CommonContainer, 
   CommonHeader, 
@@ -356,6 +356,29 @@ const TalantInput = () => {
     return true;
   }, [lastSubmissionTime]);
 
+  // user_stats 업데이트 함수
+  const updateUserStats = useCallback(async (studentName, talantValue) => {
+    try {
+      const userStatsRef = doc(db, 'user_stats', studentName);
+      const userStatsDoc = await getDoc(userStatsRef);
+      
+      if (userStatsDoc.exists()) {
+        // 기존 문서가 있으면 값을 더함
+        const currentTotal = userStatsDoc.data().total || 0;
+        await updateDoc(userStatsRef, {
+          total: currentTotal + talantValue
+        });
+      } else {
+        // 새 문서 생성
+        await setDoc(userStatsRef, {
+          total: talantValue
+        });
+      }
+    } catch (error) {
+      console.error('user_stats 업데이트 오류:', error);
+    }
+  }, []);
+
   // 달란트 제출 함수
   const submitTalant = useCallback(async (name, reason, talant, buttonKey = null) => {
     if (!selectedDate) {
@@ -390,7 +413,11 @@ const TalantInput = () => {
         createdAt: Timestamp.fromDate(createdAt)
       };
       
+      // talant_history에 기록 추가
       await addDoc(collection(db, 'talant_history'), talantData);
+      
+      // user_stats에 누적 개수 업데이트
+      await updateUserStats(name, talant);
       
       addLogEntry(name, talant, reason);
       const formattedDate = `${year}년 ${month}월 ${day}일`;
@@ -412,7 +439,7 @@ const TalantInput = () => {
         }, 1000);
       }
     }
-  }, [selectedDate, preventDuplicateSubmission, addLogEntry, showError]);
+  }, [selectedDate, preventDuplicateSubmission, addLogEntry, showError, updateUserStats]);
 
   // 커스텀 모달 열기
   const openCustomModal = useCallback((person) => {

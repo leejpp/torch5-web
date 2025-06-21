@@ -429,33 +429,32 @@ const RankPage = () => {
     return '-';
   }, [previousRanking]);
 
-  // 랭킹 데이터 계산 (한 번만 호출하는 방식으로 변경)
+  // user_stats 컬렉션을 활용한 효율적인 랭킹 데이터 계산
   const calculateRanking = useCallback(async () => {
     try {
-      const q = query(collection(db, 'talant_history'));
+      // user_stats 컬렉션에서 모든 누적 데이터를 직접 가져오기
+      const q = query(collection(db, 'user_stats'));
       const snapshot = await getDocs(q);
       
       if (snapshot.empty) {
         return [];
       }
 
-      const userScores = {};
+      const rankingData = [];
       
       snapshot.forEach(doc => {
         const data = doc.data();
-        const name = data.name;
-        const talant = parseInt(data.talant) || 0;
+        const name = doc.id; // 문서 ID가 학생 이름
+        const score = data.total || 0;
         
-        if (!userScores[name]) {
-          userScores[name] = 0;
+        // 점수가 0보다 큰 학생만 랭킹에 포함
+        if (score > 0) {
+          rankingData.push({ name, score });
         }
-        
-        userScores[name] += talant;
       });
 
-      const rankingData = Object.entries(userScores)
-        .map(([name, score]) => ({ name, score }))
-        .sort((a, b) => b.score - a.score);
+      // 점수 기준 내림차순 정렬
+      rankingData.sort((a, b) => b.score - a.score);
       
       return rankingData;
     } catch (error) {

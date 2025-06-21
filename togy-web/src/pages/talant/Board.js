@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
 import { db } from '../../firebase/config';
-import { collection, query, where, getDocs, addDoc, deleteDoc, doc, Timestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, deleteDoc, doc, getDoc, setDoc, updateDoc, Timestamp } from 'firebase/firestore';
 import {
   TossContainer,
   TossHeader,
@@ -422,6 +422,29 @@ const TalantBoard = () => {
     setShowModal(true);
   };
 
+  // user_stats 업데이트 함수
+  const updateUserStats = useCallback(async (studentName, talantValue) => {
+    try {
+      const userStatsRef = doc(db, 'user_stats', studentName);
+      const userStatsDoc = await getDoc(userStatsRef);
+      
+      if (userStatsDoc.exists()) {
+        // 기존 문서가 있으면 값을 더함
+        const currentTotal = userStatsDoc.data().total || 0;
+        await updateDoc(userStatsRef, {
+          total: currentTotal + talantValue
+        });
+      } else {
+        // 새 문서 생성
+        await setDoc(userStatsRef, {
+          total: talantValue
+        });
+      }
+    } catch (error) {
+      console.error('user_stats 업데이트 오류:', error);
+    }
+  }, []);
+
   const handleAddTalant = async () => {
     if (!selectedCell || isProcessing) return;
 
@@ -430,14 +453,19 @@ const TalantBoard = () => {
       const { studentName, day, reason } = selectedCell;
       const selectedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
       const categoryData = BOARD_TALANT_CATEGORIES.find(c => c.name === reason);
+      const talantValue = categoryData?.value || 1;
       
+      // talant_history에 기록 추가
       await addDoc(collection(db, 'talant_history'), {
         name: studentName,
         reason: reason,
-        talant: (categoryData?.value || 1).toString(),
+        talant: talantValue.toString(),
         receivedDate: Timestamp.fromDate(selectedDate),
         createdAt: Timestamp.now()
       });
+
+      // user_stats에 누적 개수 업데이트
+      await updateUserStats(studentName, talantValue);
 
       setShowModal(false);
       await loadTalantData();
@@ -454,7 +482,23 @@ const TalantBoard = () => {
     
     try {
       setIsProcessing(true);
-      await deleteDoc(doc(db, 'talant_history', talantId));
+      
+      // 삭제할 기록의 정보를 먼저 가져와서 user_stats에서 차감
+      const talantDocRef = doc(db, 'talant_history', talantId);
+      const talantDoc = await getDoc(talantDocRef);
+      
+      if (talantDoc.exists()) {
+        const talantData = talantDoc.data();
+        const studentName = talantData.name;
+        const talantValue = parseInt(talantData.talant) || 0;
+        
+        // talant_history에서 삭제
+        await deleteDoc(talantDocRef);
+        
+        // user_stats에서 해당 개수만큼 차감
+        await updateUserStats(studentName, -talantValue);
+      }
+      
       setShowModal(false);
       await loadTalantData();
     } catch (error) {

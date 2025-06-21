@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
-import { collection, query, where, orderBy, limit, onSnapshot, getDocs, deleteDoc, doc, Timestamp } from 'firebase/firestore';
+import { collection, query, where, orderBy, limit, onSnapshot, getDocs, deleteDoc, doc, getDoc, setDoc, updateDoc, Timestamp } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { theme } from '../../styles/theme';
 import { 
@@ -647,14 +647,52 @@ const History = () => {
     }).sort((a, b) => b.date - a.date);
   };
 
+  // user_stats 업데이트 함수
+  const updateUserStats = useCallback(async (studentName, talantValue) => {
+    try {
+      const userStatsRef = doc(db, 'user_stats', studentName);
+      const userStatsDoc = await getDoc(userStatsRef);
+      
+      if (userStatsDoc.exists()) {
+        // 기존 문서가 있으면 값을 더함
+        const currentTotal = userStatsDoc.data().total || 0;
+        await updateDoc(userStatsRef, {
+          total: currentTotal + talantValue
+        });
+      } else {
+        // 새 문서 생성
+        await setDoc(userStatsRef, {
+          total: talantValue
+        });
+      }
+    } catch (error) {
+      console.error('user_stats 업데이트 오류:', error);
+    }
+  }, []);
+
   // 삭제 함수
-  const handleDelete = async (id) => {
+  const handleDelete = useCallback(async (id) => {
     if (window.confirm('정말로 이 기록을 삭제하시겠습니까?')) {
       setDeletingIds(prev => new Set([...prev, id]));
       
       try {
-        await deleteDoc(doc(db, 'talant_history', id));
-        handleShowToast('기록이 삭제되었습니다.');
+        // 삭제할 기록의 정보를 먼저 가져와서 user_stats에서 차감
+        const talantDocRef = doc(db, 'talant_history', id);
+        const talantDoc = await getDoc(talantDocRef);
+        
+        if (talantDoc.exists()) {
+          const talantData = talantDoc.data();
+          const studentName = talantData.name;
+          const talantValue = parseInt(talantData.talant) || 0;
+          
+          // talant_history에서 삭제
+          await deleteDoc(talantDocRef);
+          
+          // user_stats에서 해당 개수만큼 차감
+          await updateUserStats(studentName, -talantValue);
+          
+          handleShowToast('기록이 삭제되었습니다.');
+        }
       } catch (error) {
         console.error('Error deleting:', error);
         handleShowToast('삭제 중 오류가 발생했습니다.');
@@ -666,7 +704,7 @@ const History = () => {
         });
       }
     }
-  };
+  }, [handleShowToast, updateUserStats]);
 
   // 필터 초기화
   const clearFilters = () => {

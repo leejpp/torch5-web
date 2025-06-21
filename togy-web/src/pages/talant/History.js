@@ -13,9 +13,9 @@ import {
 } from '../../components/common/TalantStyles';
 import { 
   formatDate, 
+  formatTime,
   getAvailableMonths, 
-  showToast,
-  STUDENT_LIST
+  showToast
 } from '../../utils/talantUtils';
 
 // fadeIn은 이제 공통 컴포넌트에서 가져옴
@@ -475,6 +475,54 @@ const Toast = styled.div`
 
 const KOREAN_DAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
+// 안전한 날짜 파싱 함수
+const safeParseDateValue = (dateValue) => {
+  if (!dateValue) {
+    return new Date();
+  }
+  
+  // Firebase Timestamp
+  if (typeof dateValue.toDate === 'function') {
+    return dateValue.toDate();
+  }
+  
+  // Date 객체
+  if (dateValue instanceof Date) {
+    return dateValue;
+  }
+  
+  // 문자열인 경우
+  if (typeof dateValue === 'string') {
+    // 한국어 날짜 문자열 처리 (예: "2025년 6월 22일 오전 8시 37분 05초 UTC+9")
+    const koreanMatch = dateValue.match(/(\d{4})년\s*(\d{1,2})월\s*(\d{1,2})일\s*(오전|오후)?\s*(\d{1,2})시\s*(\d{1,2})분/);
+    if (koreanMatch) {
+      const [, year, month, day, ampm, hour, minute] = koreanMatch;
+      let adjustedHour = parseInt(hour);
+      
+      if (ampm === '오후' && adjustedHour !== 12) {
+        adjustedHour += 12;
+      } else if (ampm === '오전' && adjustedHour === 12) {
+        adjustedHour = 0;
+      }
+      
+      return new Date(
+        parseInt(year),
+        parseInt(month) - 1,
+        parseInt(day),
+        adjustedHour,
+        parseInt(minute),
+        0
+      );
+    }
+    
+    // 일반 문자열 날짜 파싱
+    const parsed = new Date(dateValue);
+    return isNaN(parsed.getTime()) ? new Date() : parsed;
+  }
+  
+  return new Date();
+};
+
 const History = () => {
   const navigate = useNavigate();
   const [allHistory, setAllHistory] = useState([]);
@@ -485,37 +533,48 @@ const History = () => {
   const [monthFilter, setMonthFilter] = useState('');
   const [specificDateFilter, setSpecificDateFilter] = useState('');
   const [availableMonths, setAvailableMonths] = useState([]);
+  const [availableNames, setAvailableNames] = useState([]);
   const [toast, setToast] = useState({ show: false, message: '' });
   const [deletingIds, setDeletingIds] = useState(new Set());
   const [showFilters, setShowFilters] = useState(false);
-  const [currentMonthData, setCurrentMonthData] = useState(true); // 현재 월 데이터만 로드 여부
 
   // 토스트 메시지 표시 (공통 유틸 사용)
   const handleShowToast = useCallback((message, duration = 3000) => {
     showToast(setToast, message, duration);
   }, []);
 
-  // 초기 로드 시 현재 월 설정
-  useEffect(() => {
-    const now = new Date();
-    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    setMonthFilter(currentMonth);
-  }, []);
-
   // 사용 가능한 월 목록 로드 (가벼운 쿼리)
   useEffect(() => {
     const loadAvailableMonths = async () => {
       try {
-        // 모든 월을 가져오기 위해 receivedDate만 조회
+        // 모든 데이터를 가져와서 월 목록 생성
         const q = query(
           collection(db, 'talant_history'),
           orderBy('receivedDate', 'desc')
         );
         
         const snapshot = await getDocs(q);
-        const dates = snapshot.docs.map(doc => doc.data().receivedDate?.toDate() || new Date());
-        const months = getAvailableMonths(dates.map(date => ({ date })));
+        const historyData = snapshot.docs.map(doc => {
+          const data = doc.data();
+          const dateValue = safeParseDateValue(data.receivedDate);
+          
+          return {
+            date: dateValue,
+            name: data.name || ''
+          };
+        });
+        
+        const months = getAvailableMonths(historyData);
         setAvailableMonths(months);
+        
+        // 이름 목록 생성 (중복 제거)
+        const names = [...new Set(historyData.map(item => item.name).filter(name => name))];
+        setAvailableNames(names.sort());
+        
+        // 초기에 현재 월로 설정
+        const now = new Date();
+        const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        setMonthFilter(currentMonth);
       } catch (error) {
         console.error('Error loading available months:', error);
       }
@@ -526,8 +585,6 @@ const History = () => {
 
   // 월별 데이터 로드
   useEffect(() => {
-    if (!monthFilter && currentMonthData) return; // 월 필터가 없고 현재 월 데이터 모드가 아니면 스킵
-
     setLoading(true);
     let q;
 
@@ -544,10 +601,10 @@ const History = () => {
         orderBy('receivedDate', 'desc')
       );
     } else {
-      // 전체 데이터 로드 (필터가 '전체 월'인 경우)
+      // 전체 데이터 로드 (필터가 '최근 100개'인 경우)
       q = query(
         collection(db, 'talant_history'),
-        orderBy('createdAt', 'desc'),
+        orderBy('receivedDate', 'desc'),
         limit(100) // 성능을 위해 최근 100개만 로드
       );
     }
@@ -555,17 +612,21 @@ const History = () => {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const historyData = snapshot.docs.map(doc => {
         const data = doc.data();
+        
+        const receivedDateValue = safeParseDateValue(data.receivedDate);
+        const createdAtValue = safeParseDateValue(data.createdAt);
+        
         return {
           id: doc.id,
           name: data.name || '',
           reason: data.reason || '',
           talant: data.talant || '0',
-          receivedDate: data.receivedDate?.toDate() || new Date(),
-          createdAt: data.createdAt?.toDate() || new Date()
+          receivedDate: receivedDateValue,
+          createdAt: createdAtValue
         };
       });
       
-      // 클라이언트 측에서 createdAt으로 추가 정렬
+      // 클라이언트 측에서 추가 정렬
       historyData.sort((a, b) => {
         // 먼저 receivedDate로 정렬 (내림차순)
         const dateCompare = b.receivedDate - a.receivedDate;
@@ -583,9 +644,9 @@ const History = () => {
     });
 
     return () => unsubscribe();
-  }, [monthFilter, handleShowToast, currentMonthData]);
+  }, [monthFilter, handleShowToast]);
 
-  // 필터링 로직
+  // 필터링 로직 (이름과 특정 날짜 필터만 적용, 월 필터는 이미 쿼리에서 적용됨)
   useEffect(() => {
     let filtered = [...allHistory];
 
@@ -594,14 +655,8 @@ const History = () => {
       filtered = filtered.filter(item => item.name === nameFilter);
     }
 
-    // 날짜 필터
-    if (dateFilterType === 'month' && monthFilter) {
-      filtered = filtered.filter(item => {
-        const date = item.receivedDate;
-        const itemMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-        return itemMonth === monthFilter;
-      });
-    } else if (dateFilterType === 'specific' && specificDateFilter) {
+    // 특정 날짜 필터 (월 필터는 쿼리에서 이미 적용됨)
+    if (dateFilterType === 'specific' && specificDateFilter) {
       filtered = filtered.filter(item => {
         const date = item.receivedDate;
         const itemDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -610,7 +665,7 @@ const History = () => {
     }
 
     setFilteredHistory(filtered);
-  }, [allHistory, nameFilter, dateFilterType, monthFilter, specificDateFilter]);
+  }, [allHistory, nameFilter, dateFilterType, specificDateFilter]);
 
   // 날짜별로 그룹화 함수 (공통 유틸 사용하되 UI에 맞게 확장)
   const groupHistoryByDate = (history) => {
@@ -752,9 +807,6 @@ const History = () => {
   
   const handleMonthFilterChange = useCallback((e) => {
     setMonthFilter(e.target.value);
-    if (e.target.value === '') {
-      setCurrentMonthData(false); // 전체 월 선택 시 현재 월 모드 해제
-    }
   }, []);
   
   const handleSpecificDateFilterChange = useCallback((e) => {
@@ -807,8 +859,8 @@ const History = () => {
               onChange={handleNameFilterChange}
             >
               <option value="">전체 이름</option>
-                              {STUDENT_LIST.map(student => (
-                <option key={student} value={student}>{student}</option>
+              {availableNames.map(name => (
+                <option key={name} value={name}>{name}</option>
               ))}
             </Select>
           </FilterGroup>
@@ -919,7 +971,7 @@ const History = () => {
                     <HistoryTalant>+{item.talant}</HistoryTalant>
                   </HistoryItemMain>
                   <HistoryDate>
-                    입력: {formatDate(item.createdAt)}
+                    입력: {formatDate(item.createdAt)} {formatTime(item.createdAt)}
                   </HistoryDate>
                   <DeleteButton
                     onClick={() => handleDelete(item.id)}

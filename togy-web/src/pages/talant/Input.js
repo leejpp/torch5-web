@@ -383,7 +383,6 @@ const TalantInput = () => {
   const checkDuplicateEntry = useCallback(async (name, reason, selectedDate) => {
     try {
       const [year, month, day] = selectedDate.split('-').map(Number);
-      const targetDate = new Date(year, month - 1, day);
       const targetDateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
       
       // 해당 날짜의 모든 데이터를 가져와서 클라이언트에서 필터링

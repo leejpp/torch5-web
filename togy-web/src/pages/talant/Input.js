@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { theme } from '../../styles/theme';
 import { db } from '../../firebase/config';
-import { collection, addDoc, doc, getDoc, setDoc, updateDoc, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, doc, getDoc, setDoc, updateDoc, Timestamp, query, where, getDocs } from 'firebase/firestore';
 import { 
   CommonContainer, 
   CommonHeader, 
@@ -379,6 +379,42 @@ const TalantInput = () => {
     }
   }, []);
 
+  // 중복 데이터 체크 함수
+  const checkDuplicateEntry = useCallback(async (name, reason, selectedDate) => {
+    try {
+      const [year, month, day] = selectedDate.split('-').map(Number);
+      const targetDate = new Date(year, month - 1, day);
+      const targetDateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      
+      // 해당 날짜의 모든 데이터를 가져와서 클라이언트에서 필터링
+      const startDate = new Date(year, month - 1, day, 0, 0, 0);
+      const endDate = new Date(year, month - 1, day, 23, 59, 59);
+      
+      const q = query(
+        collection(db, 'talant_history'),
+        where('receivedDate', '>=', Timestamp.fromDate(startDate)),
+        where('receivedDate', '<=', Timestamp.fromDate(endDate))
+      );
+      
+      const querySnapshot = await getDocs(q);
+      
+      // 클라이언트에서 이름과 사유로 필터링
+      const duplicateFound = querySnapshot.docs.some(doc => {
+        const data = doc.data();
+        return data.name === name && data.reason === reason;
+      });
+      
+      if (duplicateFound) {
+        console.log(`🚨 중복 발견: ${name} - ${reason} - ${targetDateStr}`);
+      }
+      
+      return duplicateFound;
+    } catch (error) {
+      console.error('중복 체크 오류:', error);
+      return false; // 오류 시 중복 아님으로 처리
+    }
+  }, []);
+
   // 달란트 제출 함수
   const submitTalant = useCallback(async (name, reason, talant, buttonKey = null) => {
     if (!selectedDate) {
@@ -396,6 +432,16 @@ const TalantInput = () => {
     }
 
     try {
+      // 중복 데이터 체크
+      const isDuplicate = await checkDuplicateEntry(name, reason, selectedDate);
+      if (isDuplicate) {
+        const [year, month, day] = selectedDate.split('-').map(Number);
+        const formattedDate = `${year}년 ${month}월 ${day}일`;
+        setResultMessage(`⚠️ 중복 데이터 발견!\n\n${name}님은 ${formattedDate}에\n이미 "${reason}" 달란트를 받았습니다.\n\n중복 입력을 방지했습니다.`);
+        setShowResultModal(true);
+        return;
+      }
+
       // 선택한 날짜에 현재 시간을 조합하여 정확한 날짜 생성
       const [year, month, day] = selectedDate.split('-').map(Number);
       
@@ -421,7 +467,7 @@ const TalantInput = () => {
       
       addLogEntry(name, talant, reason);
       const formattedDate = `${year}년 ${month}월 ${day}일`;
-      setResultMessage(`입력 완료!\n\n이름: ${name}\n사유: ${reason}\n달란트: ${talant}\n날짜: ${formattedDate}`);
+      setResultMessage(`✅ 입력 완료!\n\n이름: ${name}\n사유: ${reason}\n달란트: ${talant}\n날짜: ${formattedDate}`);
       setShowResultModal(true);
     } catch (error) {
       console.error("달란트 저장 오류:", error);
@@ -439,7 +485,7 @@ const TalantInput = () => {
         }, 1000);
       }
     }
-  }, [selectedDate, preventDuplicateSubmission, addLogEntry, showError, updateUserStats]);
+  }, [selectedDate, preventDuplicateSubmission, addLogEntry, showError, updateUserStats, checkDuplicateEntry]);
 
   // 커스텀 모달 열기
   const openCustomModal = useCallback((person) => {

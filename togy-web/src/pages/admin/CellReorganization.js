@@ -10,6 +10,7 @@ const CellReorganization = () => {
     newMembers: ''
   });
   const [cellLeaders, setCellLeaders] = useState([]);
+  const [evangelistPairs, setEvangelistPairs] = useState([{ newcomer: '', evangelist: '' }]);
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState(null);
 
@@ -48,6 +49,26 @@ const CellReorganization = () => {
     }
   };
 
+  // 새신자-전도자 페어 추가
+  const addEvangelistPair = () => {
+    setEvangelistPairs([...evangelistPairs, { newcomer: '', evangelist: '' }]);
+  };
+
+  // 새신자-전도자 페어 제거
+  const removeEvangelistPair = (index) => {
+    if (evangelistPairs.length > 1) {
+      const newPairs = evangelistPairs.filter((_, i) => i !== index);
+      setEvangelistPairs(newPairs);
+    }
+  };
+
+  // 새신자-전도자 페어 업데이트
+  const updateEvangelistPair = (index, field, value) => {
+    const newPairs = [...evangelistPairs];
+    newPairs[index][field] = value;
+    setEvangelistPairs(newPairs);
+  };
+
   const createNewCells = async () => {
     setIsLoading(true);
     setResult(null);
@@ -72,6 +93,21 @@ const CellReorganization = () => {
       const uniqueLeaders = new Set(validLeaders);
       if (uniqueLeaders.size !== validLeaders.length) {
         throw new Error("셀 리더는 중복될 수 없습니다. 다른 이름을 입력해주세요.");
+      }
+
+      // 새신자-전도자 페어 검증
+      const validPairs = evangelistPairs.filter(pair => 
+        pair.newcomer.trim() && pair.evangelist.trim()
+      );
+      
+      // 페어 중복 검사 (한 사람이 여러 페어에 등장하면 안됨)
+      const allPairMembers = [];
+      validPairs.forEach(pair => {
+        allPairMembers.push(pair.newcomer.trim(), pair.evangelist.trim());
+      });
+      const uniquePairMembers = new Set(allPairMembers);
+      if (uniquePairMembers.size !== allPairMembers.length) {
+        throw new Error("새신자-전도자 페어에서 한 사람이 중복으로 등장할 수 없습니다.");
       }
       
       // 기존 셀들 파싱
@@ -98,6 +134,16 @@ const CellReorganization = () => {
           existingMembers.add(leader);
         }
       });
+
+      // 새신자-전도자 페어 멤버들이 existingMembers에 없으면 추가
+      validPairs.forEach(pair => {
+        if (!existingMembers.has(pair.newcomer.trim())) {
+          existingMembers.add(pair.newcomer.trim());
+        }
+        if (!existingMembers.has(pair.evangelist.trim())) {
+          existingMembers.add(pair.evangelist.trim());
+        }
+      });
       
       let membersArray = Array.from(existingMembers);
       
@@ -109,8 +155,17 @@ const CellReorganization = () => {
         }
       }
       
-      // 리더들을 제외한 멤버 배열
-      const nonLeaderMembers = membersArray.filter(member => !validLeaders.includes(member));
+      // 페어에 포함된 멤버들 추출
+      const pairedMembers = new Set();
+      validPairs.forEach(pair => {
+        pairedMembers.add(pair.newcomer.trim());
+        pairedMembers.add(pair.evangelist.trim());
+      });
+      
+      // 리더들과 페어멤버들을 제외한 멤버 배열
+      const freeMembersForPairing = membersArray.filter(member => 
+        !validLeaders.includes(member) && !pairedMembers.has(member)
+      );
       
       // 무작위 시도 횟수
       const maxIterations = 1000;
@@ -118,31 +173,62 @@ const CellReorganization = () => {
       let bestCells = null;
       
       for(let i=0; i<maxIterations; i++){
-        // 리더가 아닌 멤버들만 섞기
-        shuffle(nonLeaderMembers);
+        // 자유로운 멤버들만 섞기
+        shuffle(freeMembersForPairing);
         
         // 셀 분배
         const newCells = Array(C).fill().map(() => []);
         
-        // 리더 배정 (각 셀에 한 명씩)
+        // 1단계: 리더 배정 (각 셀에 한 명씩)
         for(let c=0; c<C && c<validLeaders.length; c++){
           newCells[c].push(validLeaders[c]);
         }
         
-        // 나머지 멤버 분배
-        const remainingCount = nonLeaderMembers.length;
-        const cellSizes = new Array(C).fill(0);
+        // 2단계: 새신자-전도자 페어 배정 (같은 셀에)
+        const pairAssignments = [];
         
-        // 셀 크기 계산 (리더를 제외한)
-        for(let c=0; c<C; c++){
-          cellSizes[c] = Math.floor(remainingCount / C) + (c < remainingCount % C ? 1 : 0);
+        // 페어들을 무작위로 섞기
+        const shuffledPairs = [...validPairs];
+        shuffle(shuffledPairs);
+        
+        // 셀 인덱스들을 무작위로 섞기
+        const cellIndices = Array.from({length: C}, (_, i) => i);
+        shuffle(cellIndices);
+        
+        for(let pairIdx = 0; pairIdx < shuffledPairs.length; pairIdx++) {
+          const pair = shuffledPairs[pairIdx];
+          
+          // 순환하면서 셀에 배정 (무작위로 섞인 순서대로)
+          const targetCellIdx = cellIndices[pairIdx % C];
+          
+          newCells[targetCellIdx].push(pair.newcomer.trim(), pair.evangelist.trim());
+          pairAssignments.push({
+            cellIndex: targetCellIdx,
+            pair: pair
+          });
         }
         
-        // 각 셀에 멤버 분배
-        let startIndex = 0;
-        for(let c=0; c<C; c++){
-          newCells[c] = newCells[c].concat(nonLeaderMembers.slice(startIndex, startIndex + cellSizes[c]));
-          startIndex += cellSizes[c];
+        // 3단계: 나머지 멤버 분배
+        const currentCellSizes = newCells.map(cell => cell.length);
+        const targetTotalPerCell = Math.floor(membersArray.length / C);
+        const extraMembers = membersArray.length % C;
+        
+        // 각 셀에 배정해야 할 추가 멤버 수 계산
+        const needMoreMembers = [];
+        for(let c = 0; c < C; c++) {
+          const targetSize = targetTotalPerCell + (c < extraMembers ? 1 : 0);
+          const needed = Math.max(0, targetSize - currentCellSizes[c]);
+          needMoreMembers.push(needed);
+        }
+        
+        // 자유 멤버들을 필요한 만큼 각 셀에 분배
+        let memberIdx = 0;
+        for(let c = 0; c < C && memberIdx < freeMembersForPairing.length; c++) {
+          const needed = needMoreMembers[c];
+          for(let j = 0; j < needed && memberIdx < freeMembersForPairing.length; j++) {
+            newCells[c].push(freeMembersForPairing[memberIdx]);
+            memberIdx++;
+          }
         }
         
         // 교집합 계산
@@ -175,7 +261,8 @@ const CellReorganization = () => {
         minOverlap,
         cellCount: C,
         averageSize: (membersArray.length / C).toFixed(1),
-        leaders: validLeaders
+        leaders: validLeaders,
+        evangelistPairs: validPairs
       });
       
     } catch (error) {
@@ -216,6 +303,7 @@ const CellReorganization = () => {
             <GuideList>
               <GuideItem>총원과 새 셀 갯수를 입력하세요.</GuideItem>
               <GuideItem>각 셀의 리더를 지정하면 각 리더는 무조건 다른 셀에 배치됩니다.</GuideItem>
+              <GuideItem>새신자-전도자 페어를 지정하면 두 사람이 같은 셀에 배치됩니다.</GuideItem>
               <GuideItem>기존 셀 목록을 입력하세요. 각 줄은 하나의 셀을 의미하며, 셀원은 공백으로 구분합니다.</GuideItem>
               <GuideItem>새로 들어온 멤버가 있다면 공백으로 구분하여 입력하세요.</GuideItem>
               <GuideItem>'새 셀 배정' 버튼을 클릭하여 결과를 확인하세요.</GuideItem>
@@ -268,6 +356,42 @@ const CellReorganization = () => {
             )}
 
             <FormGroup>
+              <Label>새신자-전도자 페어링</Label>
+              <InputHint>새신자와 전도자를 같은 셀에 배치하고 싶다면 입력하세요.</InputHint>
+              <PairingContainer>
+                {evangelistPairs.map((pair, index) => (
+                  <PairRow key={index}>
+                    <PairInputGroup>
+                      <PairInput
+                        type="text"
+                        placeholder="새신자 이름"
+                        value={pair.newcomer}
+                        onChange={(e) => updateEvangelistPair(index, 'newcomer', e.target.value)}
+                      />
+                      <PairSeparator>↔</PairSeparator>
+                      <PairInput
+                        type="text"
+                        placeholder="전도자 이름"
+                        value={pair.evangelist}
+                        onChange={(e) => updateEvangelistPair(index, 'evangelist', e.target.value)}
+                      />
+                    </PairInputGroup>
+                    <PairActionButtons>
+                      <AddPairButton onClick={addEvangelistPair} type="button">
+                        ➕
+                      </AddPairButton>
+                      {evangelistPairs.length > 1 && (
+                        <RemovePairButton onClick={() => removeEvangelistPair(index)} type="button">
+                          ❌
+                        </RemovePairButton>
+                      )}
+                    </PairActionButtons>
+                  </PairRow>
+                ))}
+              </PairingContainer>
+            </FormGroup>
+
+            <FormGroup>
               <Label>기존 셀 목록</Label>
               <TextArea
                 rows="6"
@@ -313,9 +437,23 @@ const CellReorganization = () => {
                   <CellMembers>
                     {cell.map((member, memberIdx) => {
                       const isLeader = result.leaders.includes(member);
+                      const isPaired = result.evangelistPairs.some(pair => 
+                        pair.newcomer.trim() === member || pair.evangelist.trim() === member
+                      );
+                      const pairInfo = result.evangelistPairs.find(pair => 
+                        pair.newcomer.trim() === member || pair.evangelist.trim() === member
+                      );
+                      const isNewcomer = pairInfo && pairInfo.newcomer.trim() === member;
+                      
                       return (
-                        <MemberSpan key={memberIdx} $isLeader={isLeader}>
+                        <MemberSpan 
+                          key={memberIdx} 
+                          $isLeader={isLeader}
+                          $isPaired={isPaired}
+                          $isNewcomer={isNewcomer}
+                        >
                           {member}
+                          {isPaired && (isNewcomer ? ' 🆕' : ' 👥')}
                         </MemberSpan>
                       );
                     })}
@@ -333,7 +471,30 @@ const CellReorganization = () => {
                 <StatItem>
                   <strong>셀당 평균 인원</strong>: {result.averageSize}명
                 </StatItem>
+                {result.evangelistPairs.length > 0 && (
+                  <StatItem>
+                    <strong>새신자-전도자 페어</strong>: {result.evangelistPairs.length}쌍
+                  </StatItem>
+                )}
               </StatBox>
+              
+              {result.evangelistPairs.length > 0 && (
+                <PairInfoBox>
+                  <PairInfoTitle>📝 페어링 정보</PairInfoTitle>
+                  <PairInfoContent>
+                    🆕 새신자 / 👥 전도자로 표시됩니다.
+                    <br />
+                    다음 페어들이 같은 셀에 배치되었습니다:
+                    {result.evangelistPairs.map((pair, idx) => (
+                      <PairInfoItem key={idx}>
+                        <span style={{color: '#10b981', fontWeight: 'bold'}}>{pair.newcomer}</span>
+                        {' ↔ '}
+                        <span style={{color: '#f59e0b', fontWeight: 'bold'}}>{pair.evangelist}</span>
+                      </PairInfoItem>
+                    ))}
+                  </PairInfoContent>
+                </PairInfoBox>
+              )}
             </ResultCard>
           </ResultSection>
         )}
@@ -751,6 +912,111 @@ const MemberSpan = styled.span`
     border-radius: ${borderRadius.md};
     border: 1px solid ${colors.secondary[200]};
   `}
+  
+  ${props => props.$isPaired && !props.$isLeader && `
+    padding: ${spacing.xs} ${spacing.sm};
+    border-radius: ${borderRadius.md};
+    border: 1px solid ${props.$isNewcomer ? '#10b981' : '#f59e0b'};
+    background-color: ${props.$isNewcomer ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)'};
+  `}
+`;
+
+// 새신자-전도자 페어링 관련 스타일 컴포넌트
+const PairingContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${spacing.md};
+  margin-top: ${spacing.sm};
+`;
+
+const PairRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${spacing.md};
+  padding: ${spacing.md};
+  border: 1px solid ${colors.neutral[200]};
+  border-radius: ${borderRadius.lg};
+  background-color: ${colors.neutral[50]};
+`;
+
+const PairInputGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${spacing.sm};
+  flex: 1;
+`;
+
+const PairInput = styled.input`
+  flex: 1;
+  padding: ${spacing.sm} ${spacing.md};
+  font-size: ${typography.fontSize.sm};
+  font-family: ${typography.fontFamily.body};
+  border: 1px solid ${colors.neutral[300]};
+  border-radius: ${borderRadius.md};
+  background-color: white;
+  color: ${colors.neutral[800]};
+  transition: all 0.2s ease;
+  
+  &:focus {
+    outline: none;
+    border-color: ${colors.secondary[500]};
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.1);
+  }
+  
+  &::placeholder {
+    color: ${colors.neutral[500]};
+  }
+`;
+
+const PairSeparator = styled.span`
+  font-size: ${typography.fontSize.lg};
+  color: ${colors.secondary[500]};
+  font-weight: ${typography.fontWeight.bold};
+`;
+
+const PairActionButtons = styled.div`
+  display: flex;
+  gap: ${spacing.xs};
+`;
+
+const AddPairButton = styled.button`
+  padding: ${spacing.xs} ${spacing.sm};
+  border: none;
+  border-radius: ${borderRadius.md};
+  background-color: ${colors.secondary[500]};
+  color: white;
+  font-size: ${typography.fontSize.sm};
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background-color: ${colors.secondary[600]};
+    transform: translateY(-1px);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+`;
+
+const RemovePairButton = styled.button`
+  padding: ${spacing.xs} ${spacing.sm};
+  border: none;
+  border-radius: ${borderRadius.md};
+  background-color: #ef4444;
+  color: white;
+  font-size: ${typography.fontSize.sm};
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background-color: #dc2626;
+    transform: translateY(-1px);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
 `;
 
 const StatBox = styled.div`
@@ -769,6 +1035,34 @@ const StatItem = styled.div`
   &:last-child {
     margin-bottom: 0;
   }
+`;
+
+const PairInfoBox = styled.div`
+  margin-top: ${spacing.xl};
+  padding: ${spacing.lg};
+  background-color: rgba(59, 130, 246, 0.05);
+  border-radius: ${borderRadius.lg};
+  border: 1px solid rgba(59, 130, 246, 0.2);
+`;
+
+const PairInfoTitle = styled.h3`
+  color: ${colors.secondary[600]};
+  font-size: ${typography.fontSize.lg};
+  font-weight: ${typography.fontWeight.bold};
+  margin-bottom: ${spacing.sm};
+`;
+
+const PairInfoContent = styled.div`
+  color: ${colors.neutral[700]};
+  line-height: 1.6;
+`;
+
+const PairInfoItem = styled.div`
+  margin-top: ${spacing.sm};
+  padding: ${spacing.sm};
+  background-color: white;
+  border-radius: ${borderRadius.md};
+  border: 1px solid ${colors.neutral[200]};
 `;
 
 export default CellReorganization;

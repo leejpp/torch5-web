@@ -379,9 +379,18 @@ const TalantInput = () => {
     }
   }, []);
 
-  // 중복 데이터 체크 함수
+  // 중복 데이터 체크 함수 (고정 카테고리만 체크)
   const checkDuplicateEntry = useCallback(async (name, reason, selectedDate) => {
     try {
+      // 고정 카테고리인지 확인
+      const isFixedCategory = TALANT_CATEGORIES.some(cat => cat.reason === reason);
+      
+      // 기타 항목(커스텀 입력)은 중복 체크하지 않음
+      if (!isFixedCategory) {
+        console.log(`📝 기타 항목은 중복 체크 안함: ${name} - ${reason}`);
+        return false;
+      }
+      
       const [year, month, day] = selectedDate.split('-').map(Number);
       const targetDateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
       
@@ -404,7 +413,7 @@ const TalantInput = () => {
       });
       
       if (duplicateFound) {
-        console.log(`🚨 중복 발견: ${name} - ${reason} - ${targetDateStr}`);
+        console.log(`🚨 고정 항목 중복 발견: ${name} - ${reason} - ${targetDateStr}`);
       }
       
       return duplicateFound;
@@ -431,12 +440,12 @@ const TalantInput = () => {
     }
 
     try {
-      // 중복 데이터 체크
+      // 중복 데이터 체크 (고정 카테고리만)
       const isDuplicate = await checkDuplicateEntry(name, reason, selectedDate);
       if (isDuplicate) {
         const [year, month, day] = selectedDate.split('-').map(Number);
         const formattedDate = `${year}년 ${month}월 ${day}일`;
-        setResultMessage(`⚠️ 중복 데이터 발견!\n\n${name}님은 ${formattedDate}에\n이미 "${reason}" 달란트를 받았습니다.\n\n중복 입력을 방지했습니다.`);
+        setResultMessage(`⚠️ 중복 데이터 발견!\n\n${name}님은 ${formattedDate}에\n이미 "${reason}" 달란트를 받았습니다.\n\n※ 고정 항목은 하루에 한 번만 가능합니다.`);
         setShowResultModal(true);
         return;
       }

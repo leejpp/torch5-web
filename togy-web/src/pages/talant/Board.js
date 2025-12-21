@@ -14,7 +14,7 @@ import {
   TossFlex,
   TossColors
 } from '../../components/common/TossDesignSystem';
-import { STUDENT_LIST, TALANT_CATEGORIES } from '../../utils/talantUtils';
+import { STUDENT_LIST, TALANT_CATEGORIES, loadStudentsFromFirebase } from '../../utils/talantUtils';
 
 // 애니메이션
 const fadeInUp = keyframes`
@@ -331,7 +331,6 @@ const ActionButton = styled.button`
 `;
 
 // 공통 유틸에서 가져온 데이터 사용
-const STUDENTS = STUDENT_LIST;
 const BOARD_TALANT_CATEGORIES = TALANT_CATEGORIES.map(cat => ({ 
   name: cat.reason, 
   value: cat.value, 
@@ -359,10 +358,13 @@ const TalantBoard = () => {
 
   const loadStudents = async () => {
     try {
-      // Input 페이지와 동일한 학생 리스트 사용
-      setStudents(STUDENTS);
+      // Firebase에서 학생 목록 불러오기
+      const studentList = await loadStudentsFromFirebase();
+      setStudents(studentList);
     } catch (error) {
       console.error('학생 목록 로드 실패:', error);
+      // 오류 시 기본 목록 사용
+      setStudents(STUDENT_LIST);
     }
   };
 

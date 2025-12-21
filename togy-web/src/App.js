@@ -29,6 +29,7 @@ const TalantInput = React.lazy(() => import('./pages/talant/Input'));
 const TalantHistory = React.lazy(() => import('./pages/talant/History'));
 const TalantBoard = React.lazy(() => import('./pages/talant/Board'));
 const TalantRank = React.lazy(() => import('./pages/talant/Rank'));
+const TalantStudents = React.lazy(() => import('./pages/talant/Students'));
 
 const GlobalStyle = createGlobalStyle`
   * {
@@ -119,6 +120,7 @@ const App = () => {
             <Route path="history" element={<TalantHistory />} />
             <Route path="board" element={<TalantBoard />} />
             <Route path="rank" element={<TalantRank />} />
+            <Route path="students" element={<TalantStudents />} />
           </Route>
         </Routes>
         </Suspense>

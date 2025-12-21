@@ -120,6 +120,14 @@ const TalantDashboard = () => {
       gradient: `linear-gradient(135deg, ${TossColors.warning} 0%, #D97706 100%)`,
       path: '/talant/rank',
       delay: 0.3
+    },
+    {
+      title: '학생 관리',
+      description: '새로운 학생을 추가하거나 기존 학생을 삭제할 수 있습니다',
+      icon: '👥',
+      gradient: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+      path: '/talant/students',
+      delay: 0.4
     }
   ];
 

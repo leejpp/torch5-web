@@ -16,7 +16,7 @@ import {
   ErrorMessage,
   fadeInUp 
 } from '../../components/common/TalantStyles';
-import { TALANT_CATEGORIES, STUDENT_LIST } from '../../utils/talantUtils';
+import { TALANT_CATEGORIES, STUDENT_LIST, loadStudentsFromFirebase } from '../../utils/talantUtils';
 
 // Container, Header, HeaderContent, HeaderTop은 TalantStyles에서 import됨
 
@@ -317,11 +317,26 @@ const TalantInput = () => {
   const [lastSubmissionTime, setLastSubmissionTime] = useState(0);
 
   // 데이터 정의 (유틸리티에서 가져옴)
-  const people = STUDENT_LIST;
+  const [people, setPeople] = useState([]);
   const categories = [
     ...TALANT_CATEGORIES.map(cat => ({ name: cat.reason, value: cat.value, icon: cat.emoji })),
     { name: '기타', value: 'custom', icon: '➕' }
   ];
+
+  // 학생 목록 로드
+  useEffect(() => {
+    const loadStudents = async () => {
+      try {
+        const studentList = await loadStudentsFromFirebase();
+        setPeople(studentList);
+      } catch (error) {
+        console.error('학생 목록 로드 실패:', error);
+        // 오류 시 기본 목록 사용
+        setPeople(STUDENT_LIST);
+      }
+    };
+    loadStudents();
+  }, []);
 
   // 초기화
   useEffect(() => {

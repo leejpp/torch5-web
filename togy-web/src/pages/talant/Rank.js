@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, memo } from 'react';
 import styled, { keyframes } from 'styled-components';
-import { collection, query, where, orderBy, limit, onSnapshot, getDocs } from 'firebase/firestore';
+import { collection, query, where, orderBy, limit, onSnapshot, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { theme } from '../../styles/theme';
 import {
@@ -13,6 +13,7 @@ import {
   TossColors,
   TossAnimations
 } from '../../components/common/TossDesignSystem';
+import { loadStudentsFromFirebase } from '../../utils/talantUtils';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -432,26 +433,31 @@ const RankPage = () => {
   // user_stats 컬렉션을 활용한 효율적인 랭킹 데이터 계산
   const calculateRanking = useCallback(async () => {
     try {
-      // user_stats 컬렉션에서 모든 누적 데이터를 직접 가져오기
-      const q = query(collection(db, 'user_stats'));
-      const snapshot = await getDocs(q);
+      // 등록된 모든 학생 목록 가져오기
+      const allStudents = await loadStudentsFromFirebase();
       
-      if (snapshot.empty) {
+      if (allStudents.length === 0) {
         return [];
       }
 
       const rankingData = [];
       
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        const name = doc.id; // 문서 ID가 학생 이름
-        const score = data.total || 0;
-        
-        // 점수가 0보다 큰 학생만 랭킹에 포함
-        if (score > 0) {
-          rankingData.push({ name, score });
+      // 각 학생의 점수를 user_stats에서 가져오기
+      for (const studentName of allStudents) {
+        try {
+          const userStatsRef = doc(db, 'user_stats', studentName);
+          const userStatsDoc = await getDoc(userStatsRef);
+          
+          const score = userStatsDoc.exists() ? (userStatsDoc.data().total || 0) : 0;
+          
+          // 모든 학생을 랭킹에 포함 (점수가 0이어도 포함)
+          rankingData.push({ name: studentName, score });
+        } catch (error) {
+          console.error(`학생 ${studentName}의 점수 조회 실패:`, error);
+          // 오류가 발생해도 점수 0으로 포함
+          rankingData.push({ name: studentName, score: 0 });
         }
-      });
+      }
 
       // 점수 기준 내림차순 정렬
       rankingData.sort((a, b) => b.score - a.score);

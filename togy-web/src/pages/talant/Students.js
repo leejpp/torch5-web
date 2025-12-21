@@ -343,6 +343,14 @@ const TalantStudents = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '' });
 
+  // 토스트 메시지 표시
+  const showToast = useCallback((message, duration = 3000) => {
+    setToast({ show: true, message });
+    setTimeout(() => {
+      setToast({ show: false, message: '' });
+    }, duration);
+  }, []);
+
   // 학생 목록 로드
   const loadStudents = useCallback(async () => {
     try {
@@ -355,19 +363,11 @@ const TalantStudents = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [showToast]);
 
   useEffect(() => {
     loadStudents();
   }, [loadStudents]);
-
-  // 토스트 메시지 표시
-  const showToast = useCallback((message, duration = 3000) => {
-    setToast({ show: true, message });
-    setTimeout(() => {
-      setToast({ show: false, message: '' });
-    }, duration);
-  }, []);
 
   // 학생 추가
   const handleAddStudent = useCallback(async (e) => {

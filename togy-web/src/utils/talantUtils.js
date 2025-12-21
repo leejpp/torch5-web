@@ -1,4 +1,4 @@
-import { collection, getDocs, query, where, orderBy, doc, setDoc, deleteDoc, getDoc, Timestamp, writeBatch } from 'firebase/firestore';
+import { collection, getDocs, query, where, doc, setDoc, deleteDoc, getDoc, Timestamp, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase/config';
 
 // 달란트 카테고리 상수

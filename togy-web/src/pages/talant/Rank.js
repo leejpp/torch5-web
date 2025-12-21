@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, memo } from 'react';
 import styled, { keyframes } from 'styled-components';
-import { collection, query, where, orderBy, limit, onSnapshot, getDocs, doc, getDoc } from 'firebase/firestore';
+import { collection, query, where, orderBy, limit, onSnapshot, doc, getDoc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { theme } from '../../styles/theme';
 import {

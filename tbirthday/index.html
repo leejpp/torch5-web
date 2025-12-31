@@ -542,6 +542,7 @@
                 return {
                     ...person,
                     birthday: birthdayStr, // "MM월 DD일" 형식으로 저장
+                    originalLunarBirthday: isLunar ? birthdayStr : null, // 음력 생일자의 원본 날짜 보존
                     type: type,
                     actualSolarDate: actualSolarDate,
                     isLunar: isLunar
@@ -596,7 +597,10 @@
             }
             
             if (person.isLunar) {
-                // 음력 생일자: 음력 날짜 + 양력 변환 날짜 함께 표기
+                // 음력 생일자: 원본 음력 날짜 + 양력 변환 날짜 함께 표기
+                // 원본 음력 날짜 사용 (originalLunarBirthday가 있으면 사용, 없으면 birthday 사용)
+                const originalLunar = person.originalLunarBirthday || birthdayStr;
+                
                 if (person.actualSolarDate) {
                     try {
                         // Date 객체인지 확인하고 변환
@@ -607,10 +611,9 @@
                             const solarMonth = String(date.getMonth() + 1).padStart(2, '0');
                             const solarDay = String(date.getDate()).padStart(2, '0');
                             // 형식: 음력 MM월 DD일 / 변환된 양력 MM월 DD일
-                            // HTML 형식으로 반환 (줄바꿈 포함)
                             return {
                                 isLunar: true,
-                                original: `음력 ${birthdayStr}`,
+                                original: `음력 ${originalLunar}`,
                                 converted: `${solarMonth}월 ${solarDay}일`
                             };
                         }
@@ -621,7 +624,7 @@
                 // 변환 실패 시 원래 형식 유지
                 return {
                     isLunar: true,
-                    original: `음력 ${birthdayStr}`,
+                    original: `음력 ${originalLunar}`,
                     converted: null
                 };
             } else {
@@ -799,15 +802,18 @@
                         if (!dateA && !dateB) return 0;
                         if (!dateA) {
                             // dateA가 null이면 뒤로 (큰 값 반환)
+                            console.warn('정렬: dateA가 null', a.name, a.birthday, a.isLunar);
                             return 1;
                         }
                         if (!dateB) {
                             // dateB가 null이면 뒤로 (작은 값 반환)
+                            console.warn('정렬: dateB가 null', b.name, b.birthday, b.isLunar);
                             return -1;
                         }
                         
                         // 날짜 비교 (년도 무시, 월/일만 비교)
                         try {
+                            // 년도를 올해로 고정하여 비교 (정렬을 위해)
                             const monthA = dateA.getMonth() + 1;
                             const dayA = dateA.getDate();
                             const monthB = dateB.getMonth() + 1;
@@ -820,7 +826,7 @@
                             // 일 비교
                             return dayA - dayB;
                         } catch (e) {
-                            console.warn('날짜 비교 오류:', e, { dateA, dateB });
+                            console.warn('날짜 비교 오류:', e, { dateA, dateB, personA: a.name, personB: b.name });
                             return 0;
                         }
                     });

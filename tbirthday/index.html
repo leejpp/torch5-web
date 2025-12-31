@@ -436,18 +436,39 @@
                 }
                 
                 // 여러 가능한 전역 변수 이름 시도
-                if (typeof solarLunar !== 'undefined' && solarLunar.lunarToSolar) {
-                    solar = solarLunar.lunarToSolar(CURRENT_YEAR, lunarMonth, lunarDay);
-                } else if (typeof solarlunar !== 'undefined' && solarlunar.lunarToSolar) {
-                    solar = solarlunar.lunarToSolar(CURRENT_YEAR, lunarMonth, lunarDay);
-                } else if (typeof window.solarLunar !== 'undefined' && window.solarLunar.lunarToSolar) {
-                    solar = window.solarLunar.lunarToSolar(CURRENT_YEAR, lunarMonth, lunarDay);
-                } else if (typeof window.solarlunar !== 'undefined' && window.solarlunar.lunarToSolar) {
-                    solar = window.solarlunar.lunarToSolar(CURRENT_YEAR, lunarMonth, lunarDay);
-                } else {
+                let lib = null;
+                if (typeof solarLunar !== 'undefined' && solarLunar) {
+                    lib = solarLunar;
+                } else if (typeof solarlunar !== 'undefined' && solarlunar) {
+                    lib = solarlunar;
+                } else if (typeof window.solarLunar !== 'undefined' && window.solarLunar) {
+                    lib = window.solarLunar;
+                } else if (typeof window.solarlunar !== 'undefined' && window.solarlunar) {
+                    lib = window.solarlunar;
+                }
+                
+                if (lib) {
+                    // lunarToSolar 함수 시도
+                    if (typeof lib.lunarToSolar === 'function') {
+                        solar = lib.lunarToSolar(CURRENT_YEAR, lunarMonth, lunarDay);
+                    } else if (typeof lib.lunar2solar === 'function') {
+                        // lunar2solar 함수 사용 (다른 버전)
+                        const result = lib.lunar2solar(CURRENT_YEAR, lunarMonth, lunarDay);
+                        if (result && result.year && result.month && result.day) {
+                            solar = { year: result.year, month: result.month, day: result.day };
+                        }
+                    }
+                }
+                
+                if (!solar) {
                     // 경고 메시지는 한 번만 출력
                     if (!libraryWarningShown) {
-                        console.warn('solarlunar.js 라이브러리를 찾을 수 없습니다. 음력 변환이 불가능합니다.');
+                        console.warn('solarlunar.js 라이브러리를 찾을 수 없습니다. 음력 변환이 불가능합니다.', {
+                            solarLunar: typeof solarLunar,
+                            solarlunar: typeof solarlunar,
+                            windowSolarLunar: typeof window.solarLunar,
+                            windowSolarlunar: typeof window.solarlunar
+                        });
                         libraryWarningShown = true;
                     }
                     return null;
@@ -1202,10 +1223,16 @@
 
         // 라이브러리 확인 함수
         function checkSolarLunarLibrary() {
-            return (typeof solarLunar !== 'undefined' && solarLunar.lunarToSolar) ||
-                   (typeof solarlunar !== 'undefined' && solarlunar.lunarToSolar) ||
-                   (typeof window.solarLunar !== 'undefined' && window.solarLunar.lunarToSolar) ||
-                   (typeof window.solarlunar !== 'undefined' && window.solarlunar.lunarToSolar);
+            // solarlunar 라이브러리의 다양한 전역 변수 이름 확인
+            const checks = [
+                typeof solarLunar !== 'undefined' && solarLunar && solarLunar.lunarToSolar,
+                typeof solarlunar !== 'undefined' && solarlunar && solarlunar.lunarToSolar,
+                typeof window.solarLunar !== 'undefined' && window.solarLunar && window.solarLunar.lunarToSolar,
+                typeof window.solarlunar !== 'undefined' && window.solarlunar && window.solarlunar.lunarToSolar,
+                typeof solarLunar !== 'undefined' && solarLunar && typeof solarLunar.lunar2solar === 'function',
+                typeof solarlunar !== 'undefined' && solarlunar && typeof solarlunar.lunar2solar === 'function',
+            ];
+            return checks.some(check => check === true);
         }
         
         // solarlunar.js 라이브러리 로드 확인 및 대기

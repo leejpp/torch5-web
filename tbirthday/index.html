@@ -468,8 +468,17 @@
             return data.map((person, index) => {
                 // 필드명 확인 (구글 시트 구조에 맞게)
                 // 시트: 생년월일 기초(F), 음/양(H)
-                const rawBirthday = person.birthday || person.생년월일 || person.생일 || person['생년월일 기초'] || '';
-                const type = person.type || person.음양 || person['음/양'] || person.lunar || '';
+                // 구글 앱스 스크립트가 반환하는 모든 가능한 필드명 확인
+                const rawBirthday = person.birthday || person.생년월일 || person.생일 || person['생년월일 기초'] || 
+                                   person['생년월일기초'] || person['Birthday'] || person['birthday'] || '';
+                const type = person.type || person.음양 || person['음/양'] || person.lunar || 
+                            person['Type'] || person['Lunar'] || '';
+                
+                // 첫 번째 음력 생일자 데이터 로그
+                if (index === 0 || (type === '음' || type === '음력')) {
+                    console.log(`[${index}] 데이터 샘플:`, person);
+                    console.log(`[${index}] 추출된 필드:`, { rawBirthday, type, allFields: Object.keys(person) });
+                }
                 
                 // ISO 형식인 경우 "MM월 DD일" 형식으로 변환
                 let birthdayStr = '';
@@ -512,10 +521,10 @@
                     birthdayStr = String(rawBirthday || '');
                 }
                 
-                // 첫 번째 항목만 상세 로그
-                if (index === 0) {
-                    console.log('첫 번째 데이터 샘플:', person);
-                    console.log('처리된 필드:', { rawBirthday, birthdayStr, type, month, day });
+                // 첫 번째 항목 및 음력 생일자 상세 로그
+                if (index === 0 || (type === '음' || type === '음력')) {
+                    console.log(`[${index}] 데이터 샘플:`, person);
+                    console.log(`[${index}] 추출된 필드:`, { rawBirthday, birthdayStr, type, month, day, isLunar: type === '음' || type === '음력' });
                 }
                 
                 let actualSolarDate = null;
@@ -1140,33 +1149,52 @@
         // solarlunar.js 라이브러리 로드 확인 및 대기
         function waitForSolarLunarLibrary(callback) {
             let checked = false;
+            let libraryFound = false;
+            
+            const checkLibrary = () => {
+                // 라이브러리 확인 (여러 가능한 전역 변수 이름 확인)
+                const hasLibrary = (typeof solarLunar !== 'undefined' && solarLunar.lunarToSolar) ||
+                                  (typeof solarlunar !== 'undefined' && solarlunar.lunarToSolar) ||
+                                  (typeof window.solarLunar !== 'undefined' && window.solarLunar.lunarToSolar) ||
+                                  (typeof window.solarlunar !== 'undefined' && window.solarlunar.lunarToSolar);
+                
+                if (hasLibrary && !libraryFound) {
+                    console.log('solarlunar.js 라이브러리 로드 완료');
+                    libraryFound = true;
+                }
+                
+                return hasLibrary;
+            };
+            
             const checkInterval = setInterval(() => {
-                // 라이브러리 확인
-                const hasLibrary = typeof solarLunar !== 'undefined' || 
-                                  typeof solarlunar !== 'undefined' || 
-                                  typeof window.solarLunar !== 'undefined';
+                const hasLibrary = checkLibrary();
                 
                 if (hasLibrary && !checked) {
-                    console.log('solarlunar.js 라이브러리 로드 완료');
                     checked = true;
                     clearInterval(checkInterval);
                     if (callback) callback();
                 } else if (document.readyState === 'complete' && !checked) {
                     // 페이지 로드 완료 후에도 라이브러리가 없으면 경고하지만 계속 진행
+                    if (!libraryFound) {
+                        console.warn('solarlunar.js 라이브러리를 찾을 수 없습니다. 음력 변환이 작동하지 않을 수 있습니다.');
+                    }
                     checked = true;
                     clearInterval(checkInterval);
                     if (callback) callback();
                 }
             }, 100);
             
-            // 3초 후 타임아웃 (라이브러리가 없어도 진행)
+            // 5초 후 타임아웃 (라이브러리가 없어도 진행)
             setTimeout(() => {
                 if (!checked) {
+                    if (!checkLibrary()) {
+                        console.warn('solarlunar.js 라이브러리 로드 타임아웃. 음력 변환이 작동하지 않을 수 있습니다.');
+                    }
                     checked = true;
                     clearInterval(checkInterval);
                     if (callback) callback();
                 }
-            }, 3000);
+            }, 5000);
         }
         
         // 페이지 로드 시 실행

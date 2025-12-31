@@ -192,11 +192,13 @@
         }
         
         .lunar-original {
-            font-size: 14px;
+            font-size: 12px;
+            color: #888;
         }
         
         .lunar-converted {
-            font-size: 14px;
+            font-size: 16px;
+            font-weight: 500;
             padding-left: 8px;
         }
 
@@ -686,22 +688,25 @@
                 const convertedSolar = birthdayStr; // 이미 "MM월 DD일" 형식으로 변환되어 있음
                 
                 if (originalLunar && convertedSolar) {
-                    // 형식: 음력 MM월 DD일 MM월 DD일 (한 줄에 표시)
+                    // 두 줄로 표시하기 위해 original과 converted 분리
                     return {
                         isLunar: true,
-                        text: `음력 ${originalLunar} ${convertedSolar}`
+                        original: `음력 ${originalLunar}`,
+                        converted: convertedSolar
                     };
                 } else if (originalLunar) {
                     // 원본만 있는 경우
                     return {
                         isLunar: true,
-                        text: `음력 ${originalLunar}`
+                        original: `음력 ${originalLunar}`,
+                        converted: null
                     };
                 } else {
                     // 원본이 없는 경우 (fallback)
                     return {
                         isLunar: true,
-                        text: `음력 ${birthdayStr}`
+                        original: `음력 ${birthdayStr}`,
+                        converted: null
                     };
                 }
             } else {
@@ -972,9 +977,26 @@
                 
                 // formatDate가 객체인지 확인
                 if (formattedDate && typeof formattedDate === 'object' && 'isLunar' in formattedDate) {
-                    // 양력/음력 모두 한 줄로 표시
-                    birthdayInfo.className = 'birthday-info';
-                    birthdayInfo.textContent = formattedDate.text || (person.birthday || '');
+                    if (formattedDate.isLunar) {
+                        // 음력 생일자: 두 줄로 표시
+                        birthdayInfo.className = 'birthday-info lunar';
+                        
+                        const originalDiv = document.createElement('div');
+                        originalDiv.className = 'lunar-original';
+                        originalDiv.textContent = formattedDate.original || `음력 ${person.birthday || ''}`;
+                        birthdayInfo.appendChild(originalDiv);
+                        
+                        if (formattedDate.converted) {
+                            const convertedDiv = document.createElement('div');
+                            convertedDiv.className = 'lunar-converted';
+                            convertedDiv.textContent = formattedDate.converted;
+                            birthdayInfo.appendChild(convertedDiv);
+                        }
+                    } else {
+                        // 양력 생일자: 한 줄로 표시
+                        birthdayInfo.className = 'birthday-info';
+                        birthdayInfo.textContent = formattedDate.text || (person.birthday || '');
+                    }
                 } else {
                     // fallback: 문자열인 경우 (이전 형식 호환)
                     birthdayInfo.className = 'birthday-info';

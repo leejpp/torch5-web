@@ -489,17 +489,8 @@
                                          person['원본'] || person['original'] || person['Original'] ||
                                          person['음력날짜'] || person['lunarDate'] || null;
                 
-                // 첫 번째 음력 생일자 데이터 로그
-                if (index === 0 || (type === '음' || type === '음력')) {
-                    console.log(`[${index}] 데이터 샘플:`, person);
-                    console.log(`[${index}] 추출된 필드:`, { 
-                        rawBirthday, 
-                        type, 
-                        originalLunarDate,
-                        allFields: Object.keys(person),
-                        allValues: person
-                    });
-                }
+                // 원본 음력 날짜는 구글 앱스 스크립트에서 반환해야 함
+                // 현재는 변환된 양력 날짜만 오므로, 구글 앱스 스크립트 수정 필요
                 
                 // ISO 형식인 경우 "MM월 DD일" 형식으로 변환
                 let birthdayStr = '';
@@ -542,18 +533,17 @@
                     birthdayStr = String(rawBirthday || '');
                 }
                 
-                // 첫 번째 항목 및 음력 생일자 상세 로그
-                if (index === 0 || (type === '음' || type === '음력')) {
-                    console.log(`[${index}] 데이터 샘플:`, person);
-                    console.log(`[${index}] 추출된 필드:`, { rawBirthday, birthdayStr, type, month, day, isLunar: type === '음' || type === '음력' });
-                }
                 
                 let actualSolarDate = null;
                 const isLunar = type === '음력' || type === '음' || type === 'lunar';
                 
                 if (isLunar) {
                     // 음력 생일인 경우 올해 양력으로 변환
+                    // birthdayStr이 원본 음력 날짜라고 가정 (구글 앱스 스크립트가 원본을 반환해야 함)
                     actualSolarDate = convertLunarToSolar(birthdayStr, type);
+                    
+                    // 변환이 실패하면 라이브러리가 아직 로드되지 않았을 수 있음
+                    // 나중에 재시도할 수 있도록 null로 두기
                 } else {
                     // 양력 생일인 경우
                     if (month && day) {
@@ -570,16 +560,19 @@
                 }
                 
                 // 원본 음력 날짜 보존
-                // 구글 시트에서 원본이 별도로 오는 경우 사용, 없으면 현재 birthdayStr 사용
+                // 중요: 구글 앱스 스크립트가 F열(생년월일 기초)을 반환해야 함
+                // 현재 구글 앱스 스크립트가 원본을 반환하지 않으면,
+                // 음력 생일자의 경우 birthdayStr을 원본으로 간주
+                // (실제로는 구글 앱스 스크립트를 수정하여 F열을 반환하도록 해야 함)
                 let finalOriginalLunar = null;
                 if (isLunar) {
+                    // 원본 음력 날짜가 별도 필드로 오는 경우
                     if (originalLunarDate) {
-                        // 원본 음력 날짜가 별도 필드로 온 경우
                         finalOriginalLunar = originalLunarDate;
                     } else {
-                        // 원본이 없으면 현재 birthdayStr이 원본일 수 있음
-                        // 하지만 이미 변환된 날짜일 수도 있으므로, 
-                        // actualSolarDate가 null이면 birthdayStr을 원본으로 간주
+                        // 구글 앱스 스크립트가 원본을 반환하지 않는 경우
+                        // birthdayStr을 원본 음력 날짜로 간주
+                        // TODO: 구글 앱스 스크립트를 수정하여 F열(생년월일 기초)을 반환하도록 해야 함
                         finalOriginalLunar = birthdayStr;
                     }
                 }
@@ -789,7 +782,6 @@
                         const matches = month === monthInt && month > 0;
                         return matches;
                     });
-                    console.log(`월 필터링 (${monthInt}월): ${filteredData.length}명 / 전체: ${birthdayData.length}명`);
                 }
     
                 // 소속 필터링
@@ -798,7 +790,6 @@
                         const dept = person.소속 || person['소속'] || '';
                         return dept === selectedDepartment;
                     });
-                    console.log(`소속 필터링 (${selectedDepartment}): ${filteredData.length}명`);
                 }
     
                 // actualSolarDate 기준으로 정렬 (올해 생일이 빠른 순서대로)
@@ -821,7 +812,6 @@
                                 }
                             }
                         } catch (e) {
-                            console.warn('dateA 변환 오류:', e, a);
                             dateA = null;
                         }
                         
@@ -838,22 +828,37 @@
                                 }
                             }
                         } catch (e) {
-                            console.warn('dateB 변환 오류:', e, b);
                             dateB = null;
                         }
                         
                         // actualSolarDate가 없는 경우를 처리
-                        // null인 경우는 뒤로 보내되, 둘 다 null이면 순서 유지
-                        if (!dateA && !dateB) return 0;
+                        // null인 경우는 birthday에서 월/일을 추출하여 비교 (양력/음력 구분 없이 함께 정렬)
+                        if (!dateA && !dateB) {
+                            // 둘 다 null이면 birthday로 비교
+                            const monthA = getMonthFromDate(a);
+                            const monthB = getMonthFromDate(b);
+                            if (monthA !== monthB) return monthA - monthB;
+                            const dayA = parseInt((a.birthday || '').match(/(\d{1,2})일/)?.[1] || '0', 10);
+                            const dayB = parseInt((b.birthday || '').match(/(\d{1,2})일/)?.[1] || '0', 10);
+                            return dayA - dayB;
+                        }
                         if (!dateA) {
-                            // dateA가 null이면 뒤로 (큰 값 반환)
-                            console.warn('정렬: dateA가 null', a.name, a.birthday, a.isLunar);
-                            return 1;
+                            // dateA가 null이면 birthday에서 추출하여 비교
+                            const monthA = getMonthFromDate(a);
+                            const monthB = dateB.getMonth() + 1;
+                            if (monthA !== monthB) return monthA - monthB;
+                            const dayA = parseInt((a.birthday || '').match(/(\d{1,2})일/)?.[1] || '0', 10);
+                            const dayB = dateB.getDate();
+                            return dayA - dayB;
                         }
                         if (!dateB) {
-                            // dateB가 null이면 뒤로 (작은 값 반환)
-                            console.warn('정렬: dateB가 null', b.name, b.birthday, b.isLunar);
-                            return -1;
+                            // dateB가 null이면 birthday에서 추출하여 비교
+                            const monthA = dateA.getMonth() + 1;
+                            const monthB = getMonthFromDate(b);
+                            if (monthA !== monthB) return monthA - monthB;
+                            const dayA = dateA.getDate();
+                            const dayB = parseInt((b.birthday || '').match(/(\d{1,2})일/)?.[1] || '0', 10);
+                            return dayA - dayB;
                         }
                         
                         // 날짜 비교 (년도 무시, 월/일만 비교)
@@ -871,7 +876,6 @@
                             // 일 비교
                             return dayA - dayB;
                         } catch (e) {
-                            console.warn('날짜 비교 오류:', e, { dateA, dateB, personA: a.name, personB: b.name });
                             return 0;
                         }
                     });
@@ -1091,7 +1095,6 @@
                         waitForSolarLunarLibrary(() => {
                             // 캐시에서 데이터 로드 - processBirthdayData로 다시 처리
                             birthdayData = processBirthdayData(cachedData);
-                            console.log('캐시에서 데이터 로드:', birthdayData.length, '개');
                             restoreFilterSettings();
                             filterBirthdays();
                             updateTimestamp();
@@ -1126,11 +1129,8 @@
                 }
                 
                 const data = await response.json();
-                console.log('받은 데이터:', data); // 디버깅용
-                
                 // 데이터 구조 확인 및 변환
                 let rawData = data.birthdays || data || [];
-                console.log('원본 데이터:', rawData); // 디버깅용
                 
                 if (!Array.isArray(rawData) || rawData.length === 0) {
                     throw new Error('데이터가 비어있거나 올바른 형식이 아닙니다');
@@ -1138,7 +1138,6 @@
                 
                 // 데이터 가공: actualSolarDate 계산
                 rawData = processBirthdayData(rawData);
-                console.log('가공된 데이터:', rawData); // 디버깅용
                 
                 // 캐시에 저장
                 setCachedData(rawData);
@@ -1210,7 +1209,6 @@
                 const hasLibrary = checkSolarLunarLibrary();
                 
                 if (hasLibrary && !checked) {
-                    console.log('solarlunar.js 라이브러리 로드 완료');
                     solarLunarLibraryLoaded = true;
                     checked = true;
                     clearInterval(checkInterval);

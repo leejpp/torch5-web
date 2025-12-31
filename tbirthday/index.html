@@ -439,14 +439,46 @@
             return data.map((person, index) => {
                 // 필드명 확인 (구글 시트 구조에 맞게)
                 // 시트: 생년월일 기초(F), 음/양(H)
-                // 가능한 필드명: birthday, 생년월일, 생일, type, 음양, lunar 등
-                const birthday = person.birthday || person.생년월일 || person.생일 || person['생년월일 기초'] || '';
+                const rawBirthday = person.birthday || person.생년월일 || person.생일 || person['생년월일 기초'] || '';
                 const type = person.type || person.음양 || person['음/양'] || person.lunar || '';
+                
+                // ISO 형식인 경우 "MM월 DD일" 형식으로 변환
+                let birthdayStr = '';
+                let month = null;
+                let day = null;
+                
+                if (typeof rawBirthday === 'string') {
+                    // ISO 형식인 경우 (예: "2025-11-08T15:00:00.000Z")
+                    if (rawBirthday.includes('T') || rawBirthday.match(/^\d{4}-\d{2}-\d{2}/)) {
+                        const date = new Date(rawBirthday);
+                        if (!isNaN(date.getTime())) {
+                            month = date.getMonth() + 1;
+                            day = date.getDate();
+                            birthdayStr = `${month}월 ${day}일`;
+                        }
+                    } else {
+                        // 이미 "MM월 DD일" 형식인 경우
+                        const match = rawBirthday.match(/(\d{1,2})[월.\s]+(\d{1,2})/);
+                        if (match) {
+                            month = parseInt(match[1], 10);
+                            day = parseInt(match[2], 10);
+                            birthdayStr = rawBirthday;
+                        } else {
+                            birthdayStr = rawBirthday;
+                        }
+                    }
+                } else if (rawBirthday instanceof Date) {
+                    month = rawBirthday.getMonth() + 1;
+                    day = rawBirthday.getDate();
+                    birthdayStr = `${month}월 ${day}일`;
+                } else {
+                    birthdayStr = String(rawBirthday || '');
+                }
                 
                 // 첫 번째 항목만 상세 로그
                 if (index === 0) {
                     console.log('첫 번째 데이터 샘플:', person);
-                    console.log('추출된 필드:', { birthday, type });
+                    console.log('처리된 필드:', { rawBirthday, birthdayStr, type, month, day });
                 }
                 
                 let actualSolarDate = null;
@@ -454,38 +486,26 @@
                 
                 if (isLunar) {
                     // 음력 생일인 경우 올해 양력으로 변환
-                    actualSolarDate = convertLunarToSolar(birthday, type);
+                    actualSolarDate = convertLunarToSolar(birthdayStr, type);
                 } else {
-                    // 양력 생일인 경우 그대로 사용 (올해 기준으로 날짜 생성)
-                    try {
-                        // MM월 DD일 형식 파싱
-                        const dateMatch = birthday.match(/(\d{1,2})[월.\s]+(\d{1,2})/);
-                        if (dateMatch) {
-                            const month = parseInt(dateMatch[1], 10);
-                            const day = parseInt(dateMatch[2], 10);
+                    // 양력 생일인 경우
+                    if (month && day) {
+                        actualSolarDate = new Date(CURRENT_YEAR, month - 1, day);
+                    } else {
+                        // 파싱 실패 시 재시도
+                        const match = birthdayStr.match(/(\d{1,2})[월.\s]+(\d{1,2})/);
+                        if (match) {
+                            month = parseInt(match[1], 10);
+                            day = parseInt(match[2], 10);
                             actualSolarDate = new Date(CURRENT_YEAR, month - 1, day);
-                        } else {
-                            // ISO 형식인 경우
-                            if (birthday.includes('T') || birthday.match(/^\d{4}-\d{2}-\d{2}/)) {
-                                const date = new Date(birthday);
-                                if (!isNaN(date.getTime())) {
-                                    // 년도는 올해로, 월/일만 사용
-                                    actualSolarDate = new Date(CURRENT_YEAR, date.getMonth(), date.getDate());
-                                }
-                            }
                         }
-                    } catch (error) {
-                        console.error('양력 날짜 파싱 오류:', error, birthday);
                     }
                 }
                 
-                // 원본 birthday 값 보존 (ISO 형식으로 변환하지 않음)
-                const originalBirthday = birthday;
-                
                 return {
                     ...person,
-                    birthday: originalBirthday, // 원본 문자열 보존
-                    type: type, // 표준화된 필드명
+                    birthday: birthdayStr, // "MM월 DD일" 형식으로 저장
+                    type: type,
                     actualSolarDate: actualSolarDate,
                     isLunar: isLunar
                 };
@@ -928,56 +948,10 @@
             if (!forceRefresh) {
                 const cachedData = getCachedData();
                 if (cachedData && Array.isArray(cachedData) && cachedData.length > 0) {
-                    // 캐시에서 데이터 로드
-                    // Date 객체 복원 및 actualSolarDate 재계산
-                    let restoredData = restoreDateObjects(cachedData);
-                    
-                    // actualSolarDate가 없는 항목들을 다시 처리
-                    restoredData = restoredData.map(person => {
-                        // actualSolarDate가 없거나 유효하지 않은 경우 재계산
-                        if (!person.actualSolarDate || 
-                            (person.actualSolarDate instanceof Date && isNaN(person.actualSolarDate.getTime()))) {
-                            // 원본 데이터에서 다시 처리
-                            const birthday = person.birthday || person.생년월일 || person.생일 || person['생년월일 기초'] || '';
-                            const type = person.type || person.음양 || person['음/양'] || person.lunar || '';
-                            const isLunar = type === '음력' || type === '음' || type === 'lunar';
-                            
-                            let actualSolarDate = null;
-                            
-                            if (isLunar) {
-                                // 음력 변환 시도
-                                actualSolarDate = convertLunarToSolar(birthday, type);
-                            } else {
-                                // 양력 처리
-                                try {
-                                    const dateMatch = birthday.match(/(\d{1,2})[월.\s]+(\d{1,2})/);
-                                    if (dateMatch) {
-                                        const month = parseInt(dateMatch[1], 10);
-                                        const day = parseInt(dateMatch[2], 10);
-                                        actualSolarDate = new Date(CURRENT_YEAR, month - 1, day);
-                                    } else if (birthday.includes('T') || birthday.match(/^\d{4}-\d{2}-\d{2}/)) {
-                                        const date = new Date(birthday);
-                                        if (!isNaN(date.getTime())) {
-                                            actualSolarDate = new Date(CURRENT_YEAR, date.getMonth(), date.getDate());
-                                        }
-                                    }
-                                } catch (error) {
-                                    console.error('재계산 오류:', error, birthday);
-                                }
-                            }
-                            
-                            return {
-                                ...person,
-                                actualSolarDate: actualSolarDate,
-                                isLunar: isLunar
-                            };
-                        }
-                        return person;
-                    });
-                    
-                    birthdayData = restoredData;
+                    // 캐시에서 데이터 로드 - processBirthdayData로 다시 처리
+                    // (ISO 형식을 "MM월 DD일"로 변환하고 actualSolarDate 재계산)
+                    birthdayData = processBirthdayData(cachedData);
                     console.log('캐시에서 데이터 로드:', birthdayData.length, '개');
-                    console.log('actualSolarDate 재계산 완료');
                     restoreFilterSettings();
                     filterBirthdays();
                     updateTimestamp();
@@ -1053,11 +1027,13 @@
             const monthSelect = document.getElementById('monthSelect');
             const departmentSelect = document.getElementById('departmentSelect');
             
-            // 저장된 값이 있으면 복원, 없으면 현재 월 설정
+            // 기본값: 현재 월, 전체 부서
+            const currentMonth = new Date().getMonth() + 1;
             const savedMonth = localStorage.getItem('selectedMonth');
             const savedDepartment = localStorage.getItem('selectedDepartment');
             
-            monthSelect.value = savedMonth || new Date().getMonth() + 1;
+            // 저장된 값이 있으면 사용, 없으면 기본값
+            monthSelect.value = savedMonth || String(currentMonth);
             departmentSelect.value = savedDepartment || 'all';
         }
         

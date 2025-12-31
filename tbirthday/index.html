@@ -483,10 +483,22 @@
                 const type = person.type || person.음양 || person['음/양'] || person.lunar || 
                             person['Type'] || person['Lunar'] || '';
                 
+                // 원본 음력 날짜 찾기 (구글 시트의 F열: 생년월일 기초)
+                // 구글 앱스 스크립트가 원본을 다른 필드명으로 반환할 수 있음
+                const originalLunarDate = person['생년월일 기초'] || person['생년월일기초'] || 
+                                         person['원본'] || person['original'] || person['Original'] ||
+                                         person['음력날짜'] || person['lunarDate'] || null;
+                
                 // 첫 번째 음력 생일자 데이터 로그
                 if (index === 0 || (type === '음' || type === '음력')) {
                     console.log(`[${index}] 데이터 샘플:`, person);
-                    console.log(`[${index}] 추출된 필드:`, { rawBirthday, type, allFields: Object.keys(person) });
+                    console.log(`[${index}] 추출된 필드:`, { 
+                        rawBirthday, 
+                        type, 
+                        originalLunarDate,
+                        allFields: Object.keys(person),
+                        allValues: person
+                    });
                 }
                 
                 // ISO 형식인 경우 "MM월 DD일" 형식으로 변환
@@ -557,10 +569,25 @@
                     }
                 }
                 
+                // 원본 음력 날짜 보존
+                // 구글 시트에서 원본이 별도로 오는 경우 사용, 없으면 현재 birthdayStr 사용
+                let finalOriginalLunar = null;
+                if (isLunar) {
+                    if (originalLunarDate) {
+                        // 원본 음력 날짜가 별도 필드로 온 경우
+                        finalOriginalLunar = originalLunarDate;
+                    } else {
+                        // 원본이 없으면 현재 birthdayStr이 원본일 수 있음
+                        // 하지만 이미 변환된 날짜일 수도 있으므로, 
+                        // actualSolarDate가 null이면 birthdayStr을 원본으로 간주
+                        finalOriginalLunar = birthdayStr;
+                    }
+                }
+                
                 return {
                     ...person,
                     birthday: birthdayStr, // "MM월 DD일" 형식으로 저장
-                    originalLunarBirthday: isLunar ? birthdayStr : null, // 음력 생일자의 원본 날짜 보존
+                    originalLunarBirthday: finalOriginalLunar, // 음력 생일자의 원본 날짜 보존
                     type: type,
                     actualSolarDate: actualSolarDate,
                     isLunar: isLunar

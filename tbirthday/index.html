@@ -679,34 +679,31 @@
             }
             
             if (person.isLunar) {
-                // 음력 생일자: 원본 음력 날짜 + 양력 변환 날짜 함께 표기
-                // 원본 음력 날짜 사용 (originalLunarBirthday가 있으면 사용, 없으면 birthday 사용)
-                const originalLunar = person.originalLunarBirthday || birthdayStr;
+                // 음력 생일자: 원본 음력 날짜 + 변환된 양력 날짜 함께 표기
+                // 원본 음력 날짜: originalLunarBirthday 사용
+                // 변환된 양력 날짜: birthday 필드 사용 (구글 앱스 스크립트가 이미 변환함)
+                const originalLunar = person.originalLunarBirthday || '';
+                const convertedSolar = birthdayStr; // 이미 "MM월 DD일" 형식으로 변환되어 있음
                 
-                if (person.actualSolarDate) {
-                    try {
-                        // Date 객체인지 확인하고 변환
-                        const date = person.actualSolarDate instanceof Date 
-                            ? person.actualSolarDate 
-                            : new Date(person.actualSolarDate);
-                        if (!isNaN(date.getTime())) {
-                            const solarMonth = date.getMonth() + 1;
-                            const solarDay = date.getDate();
-                            // 형식: 음력 MM월 DD일 MM월 DD일 (한 줄에 표시)
-                            return {
-                                isLunar: true,
-                                text: `음력 ${originalLunar} ${solarMonth}월 ${solarDay}일`
-                            };
-                        }
-                    } catch (e) {
-                        console.warn('양력 변환 날짜 파싱 오류:', e, person.actualSolarDate);
-                    }
+                if (originalLunar && convertedSolar) {
+                    // 형식: 음력 MM월 DD일 MM월 DD일 (한 줄에 표시)
+                    return {
+                        isLunar: true,
+                        text: `음력 ${originalLunar} ${convertedSolar}`
+                    };
+                } else if (originalLunar) {
+                    // 원본만 있는 경우
+                    return {
+                        isLunar: true,
+                        text: `음력 ${originalLunar}`
+                    };
+                } else {
+                    // 원본이 없는 경우 (fallback)
+                    return {
+                        isLunar: true,
+                        text: `음력 ${birthdayStr}`
+                    };
                 }
-                // 변환 실패 시 원래 형식 유지
-                return {
-                    isLunar: true,
-                    text: `음력 ${originalLunar}`
-                };
             } else {
                 // 양력 생일자: 양력 날짜만 표시 (양력 표시 제거)
                 return {

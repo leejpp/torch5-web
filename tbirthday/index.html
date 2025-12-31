@@ -445,7 +445,8 @@
                 }
                 
                 if (solar && solar.year && solar.month && solar.day) {
-                    return new Date(solar.year, solar.month - 1, solar.day);
+                    // 년도는 올해로 고정 (정렬을 위해)
+                    return new Date(CURRENT_YEAR, solar.month - 1, solar.day);
                 }
                 
                 // 변환 실패 시 null 반환

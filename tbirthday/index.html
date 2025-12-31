@@ -540,7 +540,22 @@
                 if (isLunar) {
                     // 음력 생일인 경우 올해 양력으로 변환
                     // 원본 음력 날짜를 사용하여 변환 (originalLunarDate가 있으면 사용, 없으면 birthdayStr 사용)
-                    const lunarDateForConversion = originalLunarDate || birthdayStr;
+                    let lunarDateForConversion = originalLunarDate || birthdayStr;
+                    
+                    // originalLunarDate가 ISO 형식인 경우 "MM월 DD일" 형식으로 변환
+                    if (lunarDateForConversion && (lunarDateForConversion.includes('T') || lunarDateForConversion.match(/^\d{4}-\d{2}-\d{2}/))) {
+                        const date = new Date(lunarDateForConversion);
+                        if (!isNaN(date.getTime())) {
+                            lunarDateForConversion = `${date.getMonth() + 1}월 ${date.getDate()}일`;
+                        }
+                    } else if (lunarDateForConversion && lunarDateForConversion.match(/^(\d{4})\.\s*(\d{1,2})\.\s*(\d{1,2})/)) {
+                        // "2024. 2. 22" 형식인 경우
+                        const match = lunarDateForConversion.match(/^(\d{4})\.\s*(\d{1,2})\.\s*(\d{1,2})/);
+                        if (match) {
+                            lunarDateForConversion = `${parseInt(match[2], 10)}월 ${parseInt(match[3], 10)}일`;
+                        }
+                    }
+                    
                     actualSolarDate = convertLunarToSolar(lunarDateForConversion, type);
                     
                     // 변환이 실패하면 라이브러리가 아직 로드되지 않았을 수 있음

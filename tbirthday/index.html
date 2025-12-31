@@ -551,25 +551,55 @@
                 if (!arraysEqual(filteredData, cachedFilteredData)) {
                     filteredData.sort((a, b) => {
                         // actualSolarDate를 Date 객체로 변환 (캐시에서 불러올 때 문자열일 수 있음)
-                        const dateA = a.actualSolarDate instanceof Date 
-                            ? a.actualSolarDate 
-                            : (a.actualSolarDate ? new Date(a.actualSolarDate) : null);
-                        const dateB = b.actualSolarDate instanceof Date 
-                            ? b.actualSolarDate 
-                            : (b.actualSolarDate ? new Date(b.actualSolarDate) : null);
+                        let dateA = null;
+                        let dateB = null;
+                        
+                        try {
+                            if (a.actualSolarDate) {
+                                if (a.actualSolarDate instanceof Date) {
+                                    dateA = a.actualSolarDate;
+                                } else {
+                                    dateA = new Date(a.actualSolarDate);
+                                }
+                                // 유효하지 않은 날짜인지 확인
+                                if (isNaN(dateA.getTime())) {
+                                    dateA = null;
+                                }
+                            }
+                        } catch (e) {
+                            console.warn('dateA 변환 오류:', e, a);
+                            dateA = null;
+                        }
+                        
+                        try {
+                            if (b.actualSolarDate) {
+                                if (b.actualSolarDate instanceof Date) {
+                                    dateB = b.actualSolarDate;
+                                } else {
+                                    dateB = new Date(b.actualSolarDate);
+                                }
+                                // 유효하지 않은 날짜인지 확인
+                                if (isNaN(dateB.getTime())) {
+                                    dateB = null;
+                                }
+                            }
+                        } catch (e) {
+                            console.warn('dateB 변환 오류:', e, b);
+                            dateB = null;
+                        }
                         
                         // actualSolarDate가 없는 경우를 처리
                         if (!dateA && !dateB) return 0;
                         if (!dateA) return 1;
                         if (!dateB) return -1;
                         
-                        // 유효한 Date 객체인지 확인
-                        if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
-                        if (isNaN(dateA.getTime())) return 1;
-                        if (isNaN(dateB.getTime())) return -1;
-                        
                         // 날짜 비교
-                        return dateA.getTime() - dateB.getTime();
+                        try {
+                            return dateA.getTime() - dateB.getTime();
+                        } catch (e) {
+                            console.warn('날짜 비교 오류:', e, { dateA, dateB });
+                            return 0;
+                        }
                     });
                     
                     cachedFilteredData = filteredData;
@@ -669,17 +699,41 @@
 
         // Date 객체 복원 함수 (캐시에서 불러올 때 사용)
         function restoreDateObjects(data) {
-            if (!Array.isArray(data)) return data;
-            return data.map(person => {
-                if (person.actualSolarDate && !(person.actualSolarDate instanceof Date)) {
-                    // 문자열이나 다른 형식인 경우 Date 객체로 변환
-                    const date = new Date(person.actualSolarDate);
-                    return {
-                        ...person,
-                        actualSolarDate: isNaN(date.getTime()) ? null : date
-                    };
+            if (!Array.isArray(data)) {
+                console.warn('restoreDateObjects: 데이터가 배열이 아닙니다', data);
+                return data;
+            }
+            return data.map((person, index) => {
+                try {
+                    if (person.actualSolarDate) {
+                        // 이미 Date 객체인 경우
+                        if (person.actualSolarDate instanceof Date) {
+                            // 유효한지 확인
+                            if (isNaN(person.actualSolarDate.getTime())) {
+                                return { ...person, actualSolarDate: null };
+                            }
+                            return person;
+                        }
+                        
+                        // 문자열이나 다른 형식인 경우 Date 객체로 변환
+                        const dateStr = person.actualSolarDate;
+                        const date = new Date(dateStr);
+                        
+                        if (isNaN(date.getTime())) {
+                            console.warn(`[${index}] 유효하지 않은 날짜:`, dateStr);
+                            return { ...person, actualSolarDate: null };
+                        }
+                        
+                        return {
+                            ...person,
+                            actualSolarDate: date
+                        };
+                    }
+                    return person;
+                } catch (error) {
+                    console.error(`[${index}] Date 복원 오류:`, error, person);
+                    return { ...person, actualSolarDate: null };
                 }
-                return person;
             });
         }
         
@@ -725,9 +779,10 @@
             // 캐시된 데이터 확인 (강제 새로고침이 아닌 경우만)
             if (!forceRefresh) {
                 const cachedData = getCachedData();
-                if (cachedData) {
-                    // 캐시에서 데이터 로드
-                    birthdayData = cachedData;
+                if (cachedData && Array.isArray(cachedData) && cachedData.length > 0) {
+                    // 캐시에서 데이터 로드 (한 번 더 Date 객체 복원 확인)
+                    birthdayData = restoreDateObjects(cachedData);
+                    console.log('캐시에서 데이터 로드:', birthdayData.length, '개');
                     restoreFilterSettings();
                     filterBirthdays();
                     updateTimestamp();

@@ -460,8 +460,9 @@
         // 날짜 포맷팅 함수 (표기 방식 변경)
         function formatDate(person) {
             if (person.isLunar) {
-                // 음력 생일자: 원래 음력 날짜 (올해 양력: MM월 DD일) (음력)
-                const originalLunar = person.birthday.replace(/[월일]/g, '.').replace(/\s/g, '');
+                // 음력 생일자: 음력 날짜 + 양력 변환 날짜 + (음력)
+                const originalLunar = person.birthday; // 원래 음력 날짜 (예: "05월 05일")
+                
                 if (person.actualSolarDate) {
                     // Date 객체인지 확인하고 변환
                     const date = person.actualSolarDate instanceof Date 
@@ -470,14 +471,15 @@
                     if (!isNaN(date.getTime())) {
                         const solarMonth = date.getMonth() + 1;
                         const solarDay = date.getDate();
-                        return `음 ${originalLunar} (올해 양력 ${solarMonth}월 ${solarDay}일) (음력)`;
+                        // 형식: 음력 날짜 (양력 변환: MM월 DD일) (음력)
+                        return `${originalLunar} (양력: ${solarMonth}월 ${solarDay}일) (음력)`;
                     }
                 }
                 // 변환 실패 시 원래 형식 유지
                 return `${person.birthday} (음력)`;
             } else {
-                // 양력 생일자: MM월 DD일
-                return person.birthday;
+                // 양력 생일자: 양력 날짜 + (양력)
+                return `${person.birthday} (양력)`;
             }
         }
 
@@ -593,9 +595,19 @@
                         if (!dateA) return 1;
                         if (!dateB) return -1;
                         
-                        // 날짜 비교
+                        // 날짜 비교 (년도 무시, 월/일만 비교)
                         try {
-                            return dateA.getTime() - dateB.getTime();
+                            const monthA = dateA.getMonth() + 1;
+                            const dayA = dateA.getDate();
+                            const monthB = dateB.getMonth() + 1;
+                            const dayB = dateB.getDate();
+                            
+                            // 월 비교
+                            if (monthA !== monthB) {
+                                return monthA - monthB;
+                            }
+                            // 일 비교
+                            return dayA - dayB;
                         } catch (e) {
                             console.warn('날짜 비교 오류:', e, { dateA, dateB });
                             return 0;

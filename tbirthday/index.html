@@ -698,19 +698,12 @@
             requestAnimationFrame(() => {
                 let filteredData = [...birthdayData]; // 원본 데이터 복사
     
-                // 월 필터링 (actualSolarDate 기준)
+                // 월 필터링 (actualSolarDate 기준, 없으면 birthday에서 추출)
                 if (selectedMonth !== 'all') {
                     const monthInt = parseInt(selectedMonth);
                     filteredData = filteredData.filter(person => {
-                        if (!person.actualSolarDate) {
-                            console.warn('actualSolarDate 없음:', person);
-                            return false;
-                        }
                         const month = getMonthFromDate(person);
-                        const matches = month === monthInt;
-                        if (matches) {
-                            console.log('월 필터 매칭:', person.name, month, monthInt);
-                        }
+                        const matches = month === monthInt && month > 0;
                         return matches;
                     });
                     console.log(`월 필터링 (${monthInt}월): ${filteredData.length}명 / 전체: ${birthdayData.length}명`);
@@ -1064,28 +1057,35 @@
                 `마지막 업데이트: ${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
         }
 
-        // solarlunar.js 라이브러리 로드 확인
-        function checkSolarLunarLibrary() {
+        // solarlunar.js 라이브러리 로드 확인 및 대기
+        function waitForSolarLunarLibrary(callback) {
             const checkInterval = setInterval(() => {
                 if (typeof solarLunar !== 'undefined' || typeof solarlunar !== 'undefined' || typeof window.solarLunar !== 'undefined') {
                     console.log('solarlunar.js 라이브러리 로드 완료');
                     clearInterval(checkInterval);
+                    if (callback) callback();
                 } else if (document.readyState === 'complete') {
-                    // 페이지 로드 완료 후에도 라이브러리가 없으면 경고
+                    // 페이지 로드 완료 후에도 라이브러리가 없으면 경고하지만 계속 진행
                     console.warn('solarlunar.js 라이브러리를 찾을 수 없습니다. 음력 변환이 작동하지 않을 수 있습니다.');
                     clearInterval(checkInterval);
+                    if (callback) callback();
                 }
             }, 100);
             
-            // 5초 후 타임아웃
-            setTimeout(() => clearInterval(checkInterval), 5000);
+            // 5초 후 타임아웃 (라이브러리가 없어도 진행)
+            setTimeout(() => {
+                clearInterval(checkInterval);
+                if (callback) callback();
+            }, 5000);
         }
         
         // 페이지 로드 시 실행
         window.addEventListener('DOMContentLoaded', function() {
-            checkSolarLunarLibrary();
             setupEventListeners();
-            loadBirthdayData();
+            // 라이브러리 로드를 기다린 후 데이터 로드
+            waitForSolarLunarLibrary(() => {
+                loadBirthdayData();
+            });
         });
     </script>
 </body>

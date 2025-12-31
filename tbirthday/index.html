@@ -459,10 +459,38 @@
         
         // 날짜 포맷팅 함수 (표기 방식 변경)
         function formatDate(person) {
+            // birthday 필드에서 날짜 문자열 추출
+            let birthdayStr = '';
+            
+            if (typeof person.birthday === 'string') {
+                // 문자열인 경우 그대로 사용
+                birthdayStr = person.birthday;
+            } else if (person.birthday instanceof Date) {
+                // Date 객체인 경우 MM월 DD일 형식으로 변환
+                const month = person.birthday.getMonth() + 1;
+                const day = person.birthday.getDate();
+                birthdayStr = `${month}월 ${day}일`;
+            } else {
+                // 다른 형식인 경우 원본 사용
+                birthdayStr = String(person.birthday || '');
+            }
+            
+            // ISO 날짜 형식인 경우 파싱 (예: "2024-02-21T15:00:00.000Z")
+            if (birthdayStr.includes('T') || birthdayStr.match(/^\d{4}-\d{2}-\d{2}/)) {
+                try {
+                    const date = new Date(birthdayStr);
+                    if (!isNaN(date.getTime())) {
+                        const month = date.getMonth() + 1;
+                        const day = date.getDate();
+                        birthdayStr = `${month}월 ${day}일`;
+                    }
+                } catch (e) {
+                    console.warn('날짜 파싱 오류:', e, birthdayStr);
+                }
+            }
+            
             if (person.isLunar) {
                 // 음력 생일자: 음력 날짜 + 양력 변환 날짜 + (음력)
-                const originalLunar = person.birthday; // 원래 음력 날짜 (예: "05월 05일")
-                
                 if (person.actualSolarDate) {
                     // Date 객체인지 확인하고 변환
                     const date = person.actualSolarDate instanceof Date 
@@ -472,30 +500,52 @@
                         const solarMonth = date.getMonth() + 1;
                         const solarDay = date.getDate();
                         // 형식: 음력 날짜 (양력 변환: MM월 DD일) (음력)
-                        return `${originalLunar} (양력: ${solarMonth}월 ${solarDay}일) (음력)`;
+                        return `${birthdayStr} (양력: ${solarMonth}월 ${solarDay}일) (음력)`;
                     }
                 }
                 // 변환 실패 시 원래 형식 유지
-                return `${person.birthday} (음력)`;
+                return `${birthdayStr} (음력)`;
             } else {
                 // 양력 생일자: 양력 날짜 + (양력)
-                return `${person.birthday} (양력)`;
+                return `${birthdayStr} (양력)`;
             }
         }
 
         function getMonthFromDate(person) {
             if (person.actualSolarDate) {
                 // Date 객체인지 확인하고 변환
-                const date = person.actualSolarDate instanceof Date 
-                    ? person.actualSolarDate 
-                    : new Date(person.actualSolarDate);
-                if (!isNaN(date.getTime())) {
+                let date = null;
+                if (person.actualSolarDate instanceof Date) {
+                    date = person.actualSolarDate;
+                } else {
+                    date = new Date(person.actualSolarDate);
+                }
+                
+                if (date && !isNaN(date.getTime())) {
                     return date.getMonth() + 1;
                 }
             }
+            
             // fallback: 원래 날짜에서 추출
-            const match = person.birthday.match(/(\d{1,2})/);
-            return match ? parseInt(match[1], 10) : 1;
+            const birthdayStr = String(person.birthday || '');
+            const match = birthdayStr.match(/(\d{1,2})[월.\s]+/);
+            if (match) {
+                return parseInt(match[1], 10);
+            }
+            
+            // ISO 형식인 경우
+            if (birthdayStr.includes('T') || birthdayStr.match(/^\d{4}-\d{2}-\d{2}/)) {
+                try {
+                    const date = new Date(birthdayStr);
+                    if (!isNaN(date.getTime())) {
+                        return date.getMonth() + 1;
+                    }
+                } catch (e) {
+                    // 무시
+                }
+            }
+            
+            return 1; // 기본값
         }
 
         // 디바운스 처리를 위한 함수
@@ -527,6 +577,14 @@
             localStorage.setItem('selectedMonth', selectedMonth);
             localStorage.setItem('selectedDepartment', selectedDepartment);
             
+            // 데이터가 없으면 리턴
+            if (!birthdayData || !Array.isArray(birthdayData) || birthdayData.length === 0) {
+                console.warn('필터링: 데이터가 없습니다');
+                document.getElementById('birthdayList').innerHTML = 
+                    '<div class="no-birthdays">데이터를 불러오는 중...</div>';
+                return;
+            }
+            
             // 보여주기 전에 로딩 상태 표시
             if (isLoading) {
                 showLoading();
@@ -534,19 +592,25 @@
             
             // UI 렌더링을 다음 프레임으로 지연
             requestAnimationFrame(() => {
-                let filteredData = birthdayData;
+                let filteredData = [...birthdayData]; // 원본 데이터 복사
     
                 // 월 필터링 (actualSolarDate 기준)
                 if (selectedMonth !== 'all') {
                     const monthInt = parseInt(selectedMonth);
-                    filteredData = filteredData.filter(person => 
-                        getMonthFromDate(person) === monthInt
-                    );
+                    filteredData = filteredData.filter(person => {
+                        const month = getMonthFromDate(person);
+                        return month === monthInt;
+                    });
+                    console.log(`월 필터링 (${monthInt}월): ${filteredData.length}명`);
                 }
     
                 // 소속 필터링
                 if (selectedDepartment !== 'all') {
-                    filteredData = filteredData.filter(person => person.소속 === selectedDepartment);
+                    filteredData = filteredData.filter(person => {
+                        const dept = person.소속 || person['소속'] || '';
+                        return dept === selectedDepartment;
+                    });
+                    console.log(`소속 필터링 (${selectedDepartment}): ${filteredData.length}명`);
                 }
     
                 // actualSolarDate 기준으로 정렬 (올해 생일이 빠른 순서대로)

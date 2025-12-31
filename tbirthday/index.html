@@ -463,13 +463,18 @@
                 // 음력 생일자: 원래 음력 날짜 (올해 양력: MM월 DD일) (음력)
                 const originalLunar = person.birthday.replace(/[월일]/g, '.').replace(/\s/g, '');
                 if (person.actualSolarDate) {
-                    const solarMonth = person.actualSolarDate.getMonth() + 1;
-                    const solarDay = person.actualSolarDate.getDate();
-                    return `음 ${originalLunar} (올해 양력 ${solarMonth}월 ${solarDay}일) (음력)`;
-                } else {
-                    // 변환 실패 시 원래 형식 유지
-                    return `${person.birthday} (음력)`;
+                    // Date 객체인지 확인하고 변환
+                    const date = person.actualSolarDate instanceof Date 
+                        ? person.actualSolarDate 
+                        : new Date(person.actualSolarDate);
+                    if (!isNaN(date.getTime())) {
+                        const solarMonth = date.getMonth() + 1;
+                        const solarDay = date.getDate();
+                        return `음 ${originalLunar} (올해 양력 ${solarMonth}월 ${solarDay}일) (음력)`;
+                    }
                 }
+                // 변환 실패 시 원래 형식 유지
+                return `${person.birthday} (음력)`;
             } else {
                 // 양력 생일자: MM월 DD일
                 return person.birthday;
@@ -478,7 +483,13 @@
 
         function getMonthFromDate(person) {
             if (person.actualSolarDate) {
-                return person.actualSolarDate.getMonth() + 1;
+                // Date 객체인지 확인하고 변환
+                const date = person.actualSolarDate instanceof Date 
+                    ? person.actualSolarDate 
+                    : new Date(person.actualSolarDate);
+                if (!isNaN(date.getTime())) {
+                    return date.getMonth() + 1;
+                }
             }
             // fallback: 원래 날짜에서 추출
             const match = person.birthday.match(/(\d{1,2})/);
@@ -539,13 +550,26 @@
                 // actualSolarDate 기준으로 정렬 (올해 생일이 빠른 순서대로)
                 if (!arraysEqual(filteredData, cachedFilteredData)) {
                     filteredData.sort((a, b) => {
+                        // actualSolarDate를 Date 객체로 변환 (캐시에서 불러올 때 문자열일 수 있음)
+                        const dateA = a.actualSolarDate instanceof Date 
+                            ? a.actualSolarDate 
+                            : (a.actualSolarDate ? new Date(a.actualSolarDate) : null);
+                        const dateB = b.actualSolarDate instanceof Date 
+                            ? b.actualSolarDate 
+                            : (b.actualSolarDate ? new Date(b.actualSolarDate) : null);
+                        
                         // actualSolarDate가 없는 경우를 처리
-                        if (!a.actualSolarDate && !b.actualSolarDate) return 0;
-                        if (!a.actualSolarDate) return 1;
-                        if (!b.actualSolarDate) return -1;
+                        if (!dateA && !dateB) return 0;
+                        if (!dateA) return 1;
+                        if (!dateB) return -1;
+                        
+                        // 유효한 Date 객체인지 확인
+                        if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
+                        if (isNaN(dateA.getTime())) return 1;
+                        if (isNaN(dateB.getTime())) return -1;
                         
                         // 날짜 비교
-                        return a.actualSolarDate.getTime() - b.actualSolarDate.getTime();
+                        return dateA.getTime() - dateB.getTime();
                     });
                     
                     cachedFilteredData = filteredData;
@@ -643,6 +667,22 @@
             }
         }
 
+        // Date 객체 복원 함수 (캐시에서 불러올 때 사용)
+        function restoreDateObjects(data) {
+            if (!Array.isArray(data)) return data;
+            return data.map(person => {
+                if (person.actualSolarDate && !(person.actualSolarDate instanceof Date)) {
+                    // 문자열이나 다른 형식인 경우 Date 객체로 변환
+                    const date = new Date(person.actualSolarDate);
+                    return {
+                        ...person,
+                        actualSolarDate: isNaN(date.getTime()) ? null : date
+                    };
+                }
+                return person;
+            });
+        }
+        
         // localStorage에서 캐시된 데이터 확인
         function getCachedData() {
             try {
@@ -654,7 +694,8 @@
                 
                 // 24시간 이내의 캐시인지 확인
                 if (now - timestamp < CACHE_DURATION) {
-                    return data;
+                    // Date 객체 복원
+                    return restoreDateObjects(data);
                 } else {
                     // 만료된 캐시 삭제
                     localStorage.removeItem('birthdayDataCache');

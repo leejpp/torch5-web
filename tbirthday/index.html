@@ -386,6 +386,7 @@
         let cachedFilteredData = [];
         let isLoading = false;
         let libraryWarningShown = false; // 라이브러리 경고 메시지 한 번만 표시
+        let solarLunarLibraryLoaded = false; // 라이브러리 로드 상태
         
         // 음력 날짜를 올해 양력 날짜로 변환하는 함수
         function convertLunarToSolar(lunarDateStr, type) {
@@ -428,6 +429,12 @@
                 // CDN 버전에서는 전역 변수로 접근 가능
                 let solar = null;
                 
+                // 라이브러리 확인
+                if (!solarLunarLibraryLoaded && !checkSolarLunarLibrary()) {
+                    // 라이브러리가 아직 로드되지 않았으면 null 반환 (나중에 재시도)
+                    return null;
+                }
+                
                 // 여러 가능한 전역 변수 이름 시도
                 if (typeof solarLunar !== 'undefined' && solarLunar.lunarToSolar) {
                     solar = solarLunar.lunarToSolar(CURRENT_YEAR, lunarMonth, lunarDay);
@@ -435,6 +442,8 @@
                     solar = solarlunar.lunarToSolar(CURRENT_YEAR, lunarMonth, lunarDay);
                 } else if (typeof window.solarLunar !== 'undefined' && window.solarLunar.lunarToSolar) {
                     solar = window.solarLunar.lunarToSolar(CURRENT_YEAR, lunarMonth, lunarDay);
+                } else if (typeof window.solarlunar !== 'undefined' && window.solarlunar.lunarToSolar) {
+                    solar = window.solarlunar.lunarToSolar(CURRENT_YEAR, lunarMonth, lunarDay);
                 } else {
                     // 경고 메시지는 한 번만 출력
                     if (!libraryWarningShown) {
@@ -1050,14 +1059,26 @@
             if (!forceRefresh) {
                 const cachedData = getCachedData();
                 if (cachedData && Array.isArray(cachedData) && cachedData.length > 0) {
-                    // 캐시에서 데이터 로드 - processBirthdayData로 다시 처리
-                    // (ISO 형식을 "MM월 DD일"로 변환하고 actualSolarDate 재계산)
-                    birthdayData = processBirthdayData(cachedData);
-                    console.log('캐시에서 데이터 로드:', birthdayData.length, '개');
-                    restoreFilterSettings();
-                    filterBirthdays();
-                    updateTimestamp();
-                    return; // 네트워크 요청 건너뛰기
+                    // 라이브러리가 로드될 때까지 대기 후 처리
+                    if (!solarLunarLibraryLoaded) {
+                        waitForSolarLunarLibrary(() => {
+                            // 캐시에서 데이터 로드 - processBirthdayData로 다시 처리
+                            birthdayData = processBirthdayData(cachedData);
+                            console.log('캐시에서 데이터 로드:', birthdayData.length, '개');
+                            restoreFilterSettings();
+                            filterBirthdays();
+                            updateTimestamp();
+                        });
+                        return; // 네트워크 요청 건너뛰기
+                    } else {
+                        // 라이브러리가 이미 로드된 경우 바로 처리
+                        birthdayData = processBirthdayData(cachedData);
+                        console.log('캐시에서 데이터 로드:', birthdayData.length, '개');
+                        restoreFilterSettings();
+                        filterBirthdays();
+                        updateTimestamp();
+                        return; // 네트워크 요청 건너뛰기
+                    }
                 }
             } else {
                 // 강제 새로고침 시 캐시 삭제
@@ -1146,37 +1167,33 @@
                 `마지막 업데이트: ${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
         }
 
+        // 라이브러리 확인 함수
+        function checkSolarLunarLibrary() {
+            return (typeof solarLunar !== 'undefined' && solarLunar.lunarToSolar) ||
+                   (typeof solarlunar !== 'undefined' && solarlunar.lunarToSolar) ||
+                   (typeof window.solarLunar !== 'undefined' && window.solarLunar.lunarToSolar) ||
+                   (typeof window.solarlunar !== 'undefined' && window.solarlunar.lunarToSolar);
+        }
+        
         // solarlunar.js 라이브러리 로드 확인 및 대기
         function waitForSolarLunarLibrary(callback) {
             let checked = false;
-            let libraryFound = false;
-            
-            const checkLibrary = () => {
-                // 라이브러리 확인 (여러 가능한 전역 변수 이름 확인)
-                const hasLibrary = (typeof solarLunar !== 'undefined' && solarLunar.lunarToSolar) ||
-                                  (typeof solarlunar !== 'undefined' && solarlunar.lunarToSolar) ||
-                                  (typeof window.solarLunar !== 'undefined' && window.solarLunar.lunarToSolar) ||
-                                  (typeof window.solarlunar !== 'undefined' && window.solarlunar.lunarToSolar);
-                
-                if (hasLibrary && !libraryFound) {
-                    console.log('solarlunar.js 라이브러리 로드 완료');
-                    libraryFound = true;
-                }
-                
-                return hasLibrary;
-            };
             
             const checkInterval = setInterval(() => {
-                const hasLibrary = checkLibrary();
+                const hasLibrary = checkSolarLunarLibrary();
                 
                 if (hasLibrary && !checked) {
+                    console.log('solarlunar.js 라이브러리 로드 완료');
+                    solarLunarLibraryLoaded = true;
                     checked = true;
                     clearInterval(checkInterval);
                     if (callback) callback();
                 } else if (document.readyState === 'complete' && !checked) {
                     // 페이지 로드 완료 후에도 라이브러리가 없으면 경고하지만 계속 진행
-                    if (!libraryFound) {
+                    if (!hasLibrary) {
                         console.warn('solarlunar.js 라이브러리를 찾을 수 없습니다. 음력 변환이 작동하지 않을 수 있습니다.');
+                    } else {
+                        solarLunarLibraryLoaded = true;
                     }
                     checked = true;
                     clearInterval(checkInterval);
@@ -1187,8 +1204,11 @@
             // 5초 후 타임아웃 (라이브러리가 없어도 진행)
             setTimeout(() => {
                 if (!checked) {
-                    if (!checkLibrary()) {
+                    const hasLibrary = checkSolarLunarLibrary();
+                    if (!hasLibrary) {
                         console.warn('solarlunar.js 라이브러리 로드 타임아웃. 음력 변환이 작동하지 않을 수 있습니다.');
+                    } else {
+                        solarLunarLibraryLoaded = true;
                     }
                     checked = true;
                     clearInterval(checkInterval);

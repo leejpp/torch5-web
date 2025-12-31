@@ -877,7 +877,7 @@
                 const formattedDate = formatDate(person);
                 
                 // formatDate가 객체인지 확인
-                if (formattedDate && typeof formattedDate === 'object' && formattedDate.isLunar !== undefined) {
+                if (formattedDate && typeof formattedDate === 'object' && 'isLunar' in formattedDate) {
                     if (formattedDate.isLunar) {
                         // 음력 생일자: 두 줄로 표시
                         birthdayInfo.className = 'birthday-info lunar';
@@ -892,6 +892,9 @@
                             convertedDiv.className = 'lunar-converted';
                             convertedDiv.textContent = formattedDate.converted;
                             birthdayInfo.appendChild(convertedDiv);
+                        } else {
+                            // 변환된 날짜가 없으면 표시하지 않음
+                            console.warn('음력 변환 날짜 없음:', person);
                         }
                     } else {
                         // 양력 생일자: 한 줄로 표시
@@ -901,7 +904,9 @@
                 } else {
                     // fallback: 문자열인 경우 (이전 형식 호환)
                     birthdayInfo.className = 'birthday-info';
-                    birthdayInfo.textContent = typeof formattedDate === 'string' ? formattedDate : (person.birthday || '');
+                    const fallbackText = typeof formattedDate === 'string' ? formattedDate : (person.birthday || '');
+                    birthdayInfo.textContent = fallbackText;
+                    console.warn('formatDate가 예상 형식이 아님:', { formattedDate, person });
                 }
                 
                 item.appendChild(personInfo);

@@ -379,8 +379,14 @@
                 let lunarMonth = null;
                 let lunarDay = null;
                 
+                // "2024. 2. 22" 형식인 경우 (구글 시트 형식)
+                const dotFormatMatch = lunarDateStr.match(/^(\d{4})\.\s*(\d{1,2})\.\s*(\d{1,2})/);
+                if (dotFormatMatch) {
+                    lunarMonth = parseInt(dotFormatMatch[2], 10);
+                    lunarDay = parseInt(dotFormatMatch[3], 10);
+                }
                 // ISO 형식인 경우 (예: "2025-11-08T15:00:00.000Z")
-                if (lunarDateStr.includes('T') || lunarDateStr.match(/^\d{4}-\d{2}-\d{2}/)) {
+                else if (lunarDateStr.includes('T') || lunarDateStr.match(/^\d{4}-\d{2}-\d{2}/)) {
                     const date = new Date(lunarDateStr);
                     if (!isNaN(date.getTime())) {
                         lunarMonth = date.getMonth() + 1;
@@ -448,16 +454,24 @@
                 let day = null;
                 
                 if (typeof rawBirthday === 'string') {
+                    // "2024. 2. 22" 형식인 경우 (구글 시트 형식)
+                    const dotFormatMatch = rawBirthday.match(/^(\d{4})\.\s*(\d{1,2})\.\s*(\d{1,2})/);
+                    if (dotFormatMatch) {
+                        month = parseInt(dotFormatMatch[2], 10);
+                        day = parseInt(dotFormatMatch[3], 10);
+                        birthdayStr = `${month}월 ${day}일`;
+                    }
                     // ISO 형식인 경우 (예: "2025-11-08T15:00:00.000Z")
-                    if (rawBirthday.includes('T') || rawBirthday.match(/^\d{4}-\d{2}-\d{2}/)) {
+                    else if (rawBirthday.includes('T') || rawBirthday.match(/^\d{4}-\d{2}-\d{2}/)) {
                         const date = new Date(rawBirthday);
                         if (!isNaN(date.getTime())) {
                             month = date.getMonth() + 1;
                             day = date.getDate();
                             birthdayStr = `${month}월 ${day}일`;
                         }
-                    } else {
-                        // 이미 "MM월 DD일" 형식인 경우
+                    } 
+                    // 이미 "MM월 DD일" 형식인 경우
+                    else {
                         const match = rawBirthday.match(/(\d{1,2})[월.\s]+(\d{1,2})/);
                         if (match) {
                             month = parseInt(match[1], 10);
@@ -609,6 +623,12 @@
             
             // fallback: 원래 날짜에서 추출
             const birthdayStr = String(person.birthday || person.생년월일 || person.생일 || person['생년월일 기초'] || '');
+            
+            // "2024. 2. 22" 형식인 경우 (구글 시트 형식)
+            const dotFormatMatch = birthdayStr.match(/^(\d{4})\.\s*(\d{1,2})\.\s*(\d{1,2})/);
+            if (dotFormatMatch) {
+                return parseInt(dotFormatMatch[2], 10);
+            }
             
             // MM월 DD일 형식
             const match = birthdayStr.match(/(\d{1,2})[월.\s]+/);

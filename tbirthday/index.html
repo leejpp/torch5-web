@@ -409,29 +409,48 @@
         
         // 데이터에 actualSolarDate 추가하는 함수
         function processBirthdayData(data) {
-            return data.map(person => {
+            if (!data || !Array.isArray(data)) {
+                console.error('processBirthdayData: 데이터가 배열이 아닙니다', data);
+                return [];
+            }
+            
+            return data.map((person, index) => {
+                // 필드명 확인 (구글 시트 구조에 맞게)
+                // 시트: 생년월일 기초(F), 음/양(H)
+                // 가능한 필드명: birthday, 생년월일, 생일, type, 음양, lunar 등
+                const birthday = person.birthday || person.생년월일 || person.생일 || person['생년월일 기초'] || '';
+                const type = person.type || person.음양 || person['음/양'] || person.lunar || '';
+                
+                // 첫 번째 항목만 상세 로그
+                if (index === 0) {
+                    console.log('첫 번째 데이터 샘플:', person);
+                    console.log('추출된 필드:', { birthday, type });
+                }
+                
                 let actualSolarDate = null;
-                const isLunar = person.type === '음력' || person.type === '음';
+                const isLunar = type === '음력' || type === '음' || type === 'lunar';
                 
                 if (isLunar) {
                     // 음력 생일인 경우 올해 양력으로 변환
-                    actualSolarDate = convertLunarToSolar(person.birthday, person.type);
+                    actualSolarDate = convertLunarToSolar(birthday, type);
                 } else {
                     // 양력 생일인 경우 그대로 사용 (올해 기준으로 날짜 생성)
                     try {
-                        const dateMatch = person.birthday.match(/(\d{1,2})[월.\s]+(\d{1,2})/);
+                        const dateMatch = birthday.match(/(\d{1,2})[월.\s]+(\d{1,2})/);
                         if (dateMatch) {
                             const month = parseInt(dateMatch[1], 10);
                             const day = parseInt(dateMatch[2], 10);
                             actualSolarDate = new Date(CURRENT_YEAR, month - 1, day);
                         }
                     } catch (error) {
-                        console.error('양력 날짜 파싱 오류:', error);
+                        console.error('양력 날짜 파싱 오류:', error, birthday);
                     }
                 }
                 
                 return {
                     ...person,
+                    birthday: birthday, // 표준화된 필드명
+                    type: type, // 표준화된 필드명
                     actualSolarDate: actualSolarDate,
                     isLunar: isLunar
                 };
@@ -661,16 +680,21 @@
         }
         
         // 데이터 초기 로드
-        async function loadBirthdayData() {
-            // 캐시된 데이터 확인
-            const cachedData = getCachedData();
-            if (cachedData) {
-                // 캐시에서 데이터 로드
-                birthdayData = cachedData;
-                restoreFilterSettings();
-                filterBirthdays();
-                updateTimestamp();
-                return; // 네트워크 요청 건너뛰기
+        async function loadBirthdayData(forceRefresh = false) {
+            // 캐시된 데이터 확인 (강제 새로고침이 아닌 경우만)
+            if (!forceRefresh) {
+                const cachedData = getCachedData();
+                if (cachedData) {
+                    // 캐시에서 데이터 로드
+                    birthdayData = cachedData;
+                    restoreFilterSettings();
+                    filterBirthdays();
+                    updateTimestamp();
+                    return; // 네트워크 요청 건너뛰기
+                }
+            } else {
+                // 강제 새로고침 시 캐시 삭제
+                localStorage.removeItem('birthdayDataCache');
             }
             
             // 캐시가 없거나 만료된 경우 네트워크에서 로드
@@ -687,10 +711,19 @@
                 }
                 
                 const data = await response.json();
-                let rawData = data.birthdays;
+                console.log('받은 데이터:', data); // 디버깅용
+                
+                // 데이터 구조 확인 및 변환
+                let rawData = data.birthdays || data || [];
+                console.log('원본 데이터:', rawData); // 디버깅용
+                
+                if (!Array.isArray(rawData) || rawData.length === 0) {
+                    throw new Error('데이터가 비어있거나 올바른 형식이 아닙니다');
+                }
                 
                 // 데이터 가공: actualSolarDate 계산
                 rawData = processBirthdayData(rawData);
+                console.log('가공된 데이터:', rawData); // 디버깅용
                 
                 // 캐시에 저장
                 setCachedData(rawData);
@@ -707,14 +740,17 @@
                 updateTimestamp();
                 
             } catch (error) {
-                console.error('Error:', error);
+                console.error('데이터 로드 오류:', error);
+                console.error('오류 상세:', error.message, error.stack);
                 document.getElementById('birthdayList').innerHTML = 
-                    '<div class="no-birthdays">데이터를 불러오는데 실패했습니다.<br><button id="retryButton" class="retry-button">다시 시도</button></div>';
+                    `<div class="no-birthdays">데이터를 불러오는데 실패했습니다.<br>
+                    <small style="color: #999; margin-top: 8px; display: block;">오류: ${error.message}</small><br>
+                    <button id="retryButton" class="retry-button">다시 시도</button></div>`;
                 
                 // 재시도 버튼 이벤트 리스너
                 const retryButton = document.getElementById('retryButton');
                 if (retryButton) {
-                    retryButton.addEventListener('click', loadBirthdayData);
+                    retryButton.addEventListener('click', () => loadBirthdayData(true)); // 강제 새로고침
                 }
             } finally {
                 isLoading = false;

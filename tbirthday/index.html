@@ -376,12 +376,29 @@
             }
             
             try {
-                // 날짜 문자열 파싱 (예: "06월 01일" 또는 "06.01" 또는 "6.1")
-                const match = lunarDateStr.match(/(\d{1,2})[월.\s]+(\d{1,2})/);
-                if (!match) return null;
+                let lunarMonth = null;
+                let lunarDay = null;
                 
-                const lunarMonth = parseInt(match[1], 10);
-                const lunarDay = parseInt(match[2], 10);
+                // ISO 형식인 경우 (예: "2025-11-08T15:00:00.000Z")
+                if (lunarDateStr.includes('T') || lunarDateStr.match(/^\d{4}-\d{2}-\d{2}/)) {
+                    const date = new Date(lunarDateStr);
+                    if (!isNaN(date.getTime())) {
+                        lunarMonth = date.getMonth() + 1;
+                        lunarDay = date.getDate();
+                    }
+                } else {
+                    // 날짜 문자열 파싱 (예: "06월 01일" 또는 "06.01" 또는 "6.1")
+                    const match = lunarDateStr.match(/(\d{1,2})[월.\s]+(\d{1,2})/);
+                    if (match) {
+                        lunarMonth = parseInt(match[1], 10);
+                        lunarDay = parseInt(match[2], 10);
+                    }
+                }
+                
+                if (!lunarMonth || !lunarDay) {
+                    console.warn('음력 날짜 파싱 실패:', lunarDateStr);
+                    return null;
+                }
                 
                 // solarlunar.js를 사용하여 음력을 양력으로 변환
                 // CDN 버전에서는 전역 변수로 접근 가능
@@ -394,6 +411,9 @@
                     solar = solarlunar.lunarToSolar(CURRENT_YEAR, lunarMonth, lunarDay);
                 } else if (typeof window.solarLunar !== 'undefined' && window.solarLunar.lunarToSolar) {
                     solar = window.solarLunar.lunarToSolar(CURRENT_YEAR, lunarMonth, lunarDay);
+                } else {
+                    console.warn('solarlunar.js 라이브러리를 찾을 수 없습니다. 음력 변환이 불가능합니다.');
+                    return null;
                 }
                 
                 if (solar && solar.year && solar.month && solar.day) {
@@ -401,6 +421,7 @@
                 }
                 
                 // 변환 실패 시 null 반환
+                console.warn('음력 변환 실패:', { lunarMonth, lunarDay, solar });
                 return null;
             } catch (error) {
                 console.error('음력 변환 오류:', error, lunarDateStr);
@@ -907,9 +928,56 @@
             if (!forceRefresh) {
                 const cachedData = getCachedData();
                 if (cachedData && Array.isArray(cachedData) && cachedData.length > 0) {
-                    // 캐시에서 데이터 로드 (한 번 더 Date 객체 복원 확인)
-                    birthdayData = restoreDateObjects(cachedData);
+                    // 캐시에서 데이터 로드
+                    // Date 객체 복원 및 actualSolarDate 재계산
+                    let restoredData = restoreDateObjects(cachedData);
+                    
+                    // actualSolarDate가 없는 항목들을 다시 처리
+                    restoredData = restoredData.map(person => {
+                        // actualSolarDate가 없거나 유효하지 않은 경우 재계산
+                        if (!person.actualSolarDate || 
+                            (person.actualSolarDate instanceof Date && isNaN(person.actualSolarDate.getTime()))) {
+                            // 원본 데이터에서 다시 처리
+                            const birthday = person.birthday || person.생년월일 || person.생일 || person['생년월일 기초'] || '';
+                            const type = person.type || person.음양 || person['음/양'] || person.lunar || '';
+                            const isLunar = type === '음력' || type === '음' || type === 'lunar';
+                            
+                            let actualSolarDate = null;
+                            
+                            if (isLunar) {
+                                // 음력 변환 시도
+                                actualSolarDate = convertLunarToSolar(birthday, type);
+                            } else {
+                                // 양력 처리
+                                try {
+                                    const dateMatch = birthday.match(/(\d{1,2})[월.\s]+(\d{1,2})/);
+                                    if (dateMatch) {
+                                        const month = parseInt(dateMatch[1], 10);
+                                        const day = parseInt(dateMatch[2], 10);
+                                        actualSolarDate = new Date(CURRENT_YEAR, month - 1, day);
+                                    } else if (birthday.includes('T') || birthday.match(/^\d{4}-\d{2}-\d{2}/)) {
+                                        const date = new Date(birthday);
+                                        if (!isNaN(date.getTime())) {
+                                            actualSolarDate = new Date(CURRENT_YEAR, date.getMonth(), date.getDate());
+                                        }
+                                    }
+                                } catch (error) {
+                                    console.error('재계산 오류:', error, birthday);
+                                }
+                            }
+                            
+                            return {
+                                ...person,
+                                actualSolarDate: actualSolarDate,
+                                isLunar: isLunar
+                            };
+                        }
+                        return person;
+                    });
+                    
+                    birthdayData = restoredData;
                     console.log('캐시에서 데이터 로드:', birthdayData.length, '개');
+                    console.log('actualSolarDate 재계산 완료');
                     restoreFilterSettings();
                     filterBirthdays();
                     updateTimestamp();

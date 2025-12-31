@@ -646,13 +646,12 @@
                             ? person.actualSolarDate 
                             : new Date(person.actualSolarDate);
                         if (!isNaN(date.getTime())) {
-                            const solarMonth = String(date.getMonth() + 1).padStart(2, '0');
-                            const solarDay = String(date.getDate()).padStart(2, '0');
-                            // 형식: 음력 MM월 DD일 / 변환된 양력 MM월 DD일
+                            const solarMonth = date.getMonth() + 1;
+                            const solarDay = date.getDate();
+                            // 형식: 음력 MM월 DD일 MM월 DD일 (한 줄에 표시)
                             return {
                                 isLunar: true,
-                                original: `음력 ${originalLunar}`,
-                                converted: `${solarMonth}월 ${solarDay}일`
+                                text: `음력 ${originalLunar} ${solarMonth}월 ${solarDay}일`
                             };
                         }
                     } catch (e) {
@@ -662,14 +661,13 @@
                 // 변환 실패 시 원래 형식 유지
                 return {
                     isLunar: true,
-                    original: `음력 ${originalLunar}`,
-                    converted: null
+                    text: `음력 ${originalLunar}`
                 };
             } else {
-                // 양력 생일자: 양력 날짜 + (양력)
+                // 양력 생일자: 양력 날짜만 표시 (양력 표시 제거)
                 return {
                     isLunar: false,
-                    text: `${birthdayStr} (양력)`
+                    text: birthdayStr
                 };
             }
         }
@@ -933,35 +931,14 @@
                 
                 // formatDate가 객체인지 확인
                 if (formattedDate && typeof formattedDate === 'object' && 'isLunar' in formattedDate) {
-                    if (formattedDate.isLunar) {
-                        // 음력 생일자: 두 줄로 표시
-                        birthdayInfo.className = 'birthday-info lunar';
-                        
-                        const originalDiv = document.createElement('div');
-                        originalDiv.className = 'lunar-original';
-                        originalDiv.textContent = formattedDate.original || `음력 ${person.birthday || ''}`;
-                        birthdayInfo.appendChild(originalDiv);
-                        
-                        if (formattedDate.converted) {
-                            const convertedDiv = document.createElement('div');
-                            convertedDiv.className = 'lunar-converted';
-                            convertedDiv.textContent = formattedDate.converted;
-                            birthdayInfo.appendChild(convertedDiv);
-                        } else {
-                            // 변환된 날짜가 없으면 표시하지 않음
-                            console.warn('음력 변환 날짜 없음:', person);
-                        }
-                    } else {
-                        // 양력 생일자: 한 줄로 표시
-                        birthdayInfo.className = 'birthday-info';
-                        birthdayInfo.textContent = formattedDate.text || `${person.birthday || ''} (양력)`;
-                    }
+                    // 양력/음력 모두 한 줄로 표시
+                    birthdayInfo.className = 'birthday-info';
+                    birthdayInfo.textContent = formattedDate.text || (person.birthday || '');
                 } else {
                     // fallback: 문자열인 경우 (이전 형식 호환)
                     birthdayInfo.className = 'birthday-info';
                     const fallbackText = typeof formattedDate === 'string' ? formattedDate : (person.birthday || '');
                     birthdayInfo.textContent = fallbackText;
-                    console.warn('formatDate가 예상 형식이 아님:', { formattedDate, person });
                 }
                 
                 item.appendChild(personInfo);
@@ -1103,7 +1080,6 @@
                     } else {
                         // 라이브러리가 이미 로드된 경우 바로 처리
                         birthdayData = processBirthdayData(cachedData);
-                        console.log('캐시에서 데이터 로드:', birthdayData.length, '개');
                         restoreFilterSettings();
                         filterBirthdays();
                         updateTimestamp();

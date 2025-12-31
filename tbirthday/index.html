@@ -573,7 +573,7 @@
             }
             
             if (person.isLunar) {
-                // 음력 생일자: 음력 날짜 + 양력 변환 날짜 + (음력)
+                // 음력 생일자: 음력 날짜 + 양력 변환 날짜 함께 표기
                 if (person.actualSolarDate) {
                     try {
                         // Date 객체인지 확인하고 변환
@@ -583,15 +583,15 @@
                         if (!isNaN(date.getTime())) {
                             const solarMonth = date.getMonth() + 1;
                             const solarDay = date.getDate();
-                            // 형식: 음력 날짜 (양력 변환: MM월 DD일) (음력)
-                            return `${birthdayStr} (양력: ${solarMonth}월 ${solarDay}일) (음력)`;
+                            // 형식: 음력 MM월 DD일 (양력: MM월 DD일) (음력)
+                            return `음력 ${birthdayStr} (양력: ${solarMonth}월 ${solarDay}일) (음력)`;
                         }
                     } catch (e) {
                         console.warn('양력 변환 날짜 파싱 오류:', e, person.actualSolarDate);
                     }
                 }
                 // 변환 실패 시 원래 형식 유지
-                return `${birthdayStr} (음력)`;
+                return `음력 ${birthdayStr} (음력)`;
             } else {
                 // 양력 생일자: 양력 날짜 + (양력)
                 return `${birthdayStr} (양력)`;

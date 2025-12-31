@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>월별 생일자 목록</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pretendard/1.3.8/static/pretendard.css">
+    <script src="https://cdn.jsdelivr.net/npm/solarlunar/lib/solarlunar.min.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -361,30 +362,108 @@
 
     <script>
         const scriptURL = 'https://script.google.com/macros/s/AKfycbwKMY7UDajbisVm_UgLr1cEuib5de1rNk0t3P_hV9HYues7f_aWNFXr54en0miE40lWuA/exec';
+        const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24시간 (밀리초)
+        const CURRENT_YEAR = new Date().getFullYear(); // 2025년
         let birthdayData = [];
         let cachedFilteredData = [];
         let isLoading = false;
         
-        // 날짜 캐싱 최적화
-        const dateCache = new Map();
-        function formatDate(dateStr) {
-            if (dateCache.has(dateStr)) {
-                return dateCache.get(dateStr);
+        // 음력 날짜를 올해 양력 날짜로 변환하는 함수
+        function convertLunarToSolar(lunarDateStr, type) {
+            if (type !== '음력' && type !== '음') {
+                return null; // 양력이면 변환 불필요
             }
-            const date = new Date(dateStr);
-            const formatted = `${date.getMonth() + 1}월 ${date.getDate()}일`;
-            dateCache.set(dateStr, formatted);
-            return formatted;
+            
+            try {
+                // 날짜 문자열 파싱 (예: "06월 01일" 또는 "06.01" 또는 "6.1")
+                const match = lunarDateStr.match(/(\d{1,2})[월.\s]+(\d{1,2})/);
+                if (!match) return null;
+                
+                const lunarMonth = parseInt(match[1], 10);
+                const lunarDay = parseInt(match[2], 10);
+                
+                // solarlunar.js를 사용하여 음력을 양력으로 변환
+                // CDN 버전에서는 전역 변수로 접근 가능
+                let solar = null;
+                
+                // 여러 가능한 전역 변수 이름 시도
+                if (typeof solarLunar !== 'undefined' && solarLunar.lunarToSolar) {
+                    solar = solarLunar.lunarToSolar(CURRENT_YEAR, lunarMonth, lunarDay);
+                } else if (typeof solarlunar !== 'undefined' && solarlunar.lunarToSolar) {
+                    solar = solarlunar.lunarToSolar(CURRENT_YEAR, lunarMonth, lunarDay);
+                } else if (typeof window.solarLunar !== 'undefined' && window.solarLunar.lunarToSolar) {
+                    solar = window.solarLunar.lunarToSolar(CURRENT_YEAR, lunarMonth, lunarDay);
+                }
+                
+                if (solar && solar.year && solar.month && solar.day) {
+                    return new Date(solar.year, solar.month - 1, solar.day);
+                }
+                
+                // 변환 실패 시 null 반환
+                return null;
+            } catch (error) {
+                console.error('음력 변환 오류:', error, lunarDateStr);
+                return null;
+            }
+        }
+        
+        // 데이터에 actualSolarDate 추가하는 함수
+        function processBirthdayData(data) {
+            return data.map(person => {
+                let actualSolarDate = null;
+                const isLunar = person.type === '음력' || person.type === '음';
+                
+                if (isLunar) {
+                    // 음력 생일인 경우 올해 양력으로 변환
+                    actualSolarDate = convertLunarToSolar(person.birthday, person.type);
+                } else {
+                    // 양력 생일인 경우 그대로 사용 (올해 기준으로 날짜 생성)
+                    try {
+                        const dateMatch = person.birthday.match(/(\d{1,2})[월.\s]+(\d{1,2})/);
+                        if (dateMatch) {
+                            const month = parseInt(dateMatch[1], 10);
+                            const day = parseInt(dateMatch[2], 10);
+                            actualSolarDate = new Date(CURRENT_YEAR, month - 1, day);
+                        }
+                    } catch (error) {
+                        console.error('양력 날짜 파싱 오류:', error);
+                    }
+                }
+                
+                return {
+                    ...person,
+                    actualSolarDate: actualSolarDate,
+                    isLunar: isLunar
+                };
+            });
+        }
+        
+        // 날짜 포맷팅 함수 (표기 방식 변경)
+        function formatDate(person) {
+            if (person.isLunar) {
+                // 음력 생일자: 원래 음력 날짜 (올해 양력: MM월 DD일) (음력)
+                const originalLunar = person.birthday.replace(/[월일]/g, '.').replace(/\s/g, '');
+                if (person.actualSolarDate) {
+                    const solarMonth = person.actualSolarDate.getMonth() + 1;
+                    const solarDay = person.actualSolarDate.getDate();
+                    return `음 ${originalLunar} (올해 양력 ${solarMonth}월 ${solarDay}일) (음력)`;
+                } else {
+                    // 변환 실패 시 원래 형식 유지
+                    return `${person.birthday} (음력)`;
+                }
+            } else {
+                // 양력 생일자: MM월 DD일
+                return person.birthday;
+            }
         }
 
-        function getMonthFromDate(dateStr) {
-            if (dateCache.has(`month_${dateStr}`)) {
-                return dateCache.get(`month_${dateStr}`);
+        function getMonthFromDate(person) {
+            if (person.actualSolarDate) {
+                return person.actualSolarDate.getMonth() + 1;
             }
-            const date = new Date(dateStr);
-            const month = date.getMonth() + 1;
-            dateCache.set(`month_${dateStr}`, month);
-            return month;
+            // fallback: 원래 날짜에서 추출
+            const match = person.birthday.match(/(\d{1,2})/);
+            return match ? parseInt(match[1], 10) : 1;
         }
 
         // 디바운스 처리를 위한 함수
@@ -425,11 +504,11 @@
             requestAnimationFrame(() => {
                 let filteredData = birthdayData;
     
-                // 월 필터링
+                // 월 필터링 (actualSolarDate 기준)
                 if (selectedMonth !== 'all') {
                     const monthInt = parseInt(selectedMonth);
                     filteredData = filteredData.filter(person => 
-                        getMonthFromDate(person.birthday) === monthInt
+                        getMonthFromDate(person) === monthInt
                     );
                 }
     
@@ -438,19 +517,16 @@
                     filteredData = filteredData.filter(person => person.소속 === selectedDepartment);
                 }
     
-                // 날짜순으로 정렬 (캐시 사용)
+                // actualSolarDate 기준으로 정렬 (올해 생일이 빠른 순서대로)
                 if (!arraysEqual(filteredData, cachedFilteredData)) {
                     filteredData.sort((a, b) => {
-                        const monthA = getMonthFromDate(a.birthday);
-                        const monthB = getMonthFromDate(b.birthday);
+                        // actualSolarDate가 없는 경우를 처리
+                        if (!a.actualSolarDate && !b.actualSolarDate) return 0;
+                        if (!a.actualSolarDate) return 1;
+                        if (!b.actualSolarDate) return -1;
                         
-                        if (monthA !== monthB) {
-                            return monthA - monthB;
-                        }
-                        
-                        const dateA = new Date(a.birthday);
-                        const dateB = new Date(b.birthday);
-                        return dateA.getDate() - dateB.getDate();
+                        // 날짜 비교
+                        return a.actualSolarDate.getTime() - b.actualSolarDate.getTime();
                     });
                     
                     cachedFilteredData = filteredData;
@@ -503,7 +579,7 @@
                 
                 const birthdayInfo = document.createElement('div');
                 birthdayInfo.className = 'birthday-info';
-                birthdayInfo.textContent = `${formatDate(person.birthday)} ${person.type ? `(${person.type}력)` : ''}`;
+                birthdayInfo.textContent = formatDate(person);
                 
                 item.appendChild(personInfo);
                 item.appendChild(birthdayInfo);
@@ -548,8 +624,56 @@
             }
         }
 
+        // localStorage에서 캐시된 데이터 확인
+        function getCachedData() {
+            try {
+                const cached = localStorage.getItem('birthdayDataCache');
+                if (!cached) return null;
+                
+                const { data, timestamp } = JSON.parse(cached);
+                const now = new Date().getTime();
+                
+                // 24시간 이내의 캐시인지 확인
+                if (now - timestamp < CACHE_DURATION) {
+                    return data;
+                } else {
+                    // 만료된 캐시 삭제
+                    localStorage.removeItem('birthdayDataCache');
+                    return null;
+                }
+            } catch (error) {
+                console.error('캐시 읽기 오류:', error);
+                return null;
+            }
+        }
+        
+        // localStorage에 데이터 캐싱
+        function setCachedData(data) {
+            try {
+                const cache = {
+                    data: data,
+                    timestamp: new Date().getTime()
+                };
+                localStorage.setItem('birthdayDataCache', JSON.stringify(cache));
+            } catch (error) {
+                console.error('캐시 저장 오류:', error);
+            }
+        }
+        
         // 데이터 초기 로드
         async function loadBirthdayData() {
+            // 캐시된 데이터 확인
+            const cachedData = getCachedData();
+            if (cachedData) {
+                // 캐시에서 데이터 로드
+                birthdayData = cachedData;
+                restoreFilterSettings();
+                filterBirthdays();
+                updateTimestamp();
+                return; // 네트워크 요청 건너뛰기
+            }
+            
+            // 캐시가 없거나 만료된 경우 네트워크에서 로드
             showLoading();
             
             try {
@@ -563,7 +687,15 @@
                 }
                 
                 const data = await response.json();
-                birthdayData = data.birthdays;
+                let rawData = data.birthdays;
+                
+                // 데이터 가공: actualSolarDate 계산
+                rawData = processBirthdayData(rawData);
+                
+                // 캐시에 저장
+                setCachedData(rawData);
+                
+                birthdayData = rawData;
                 
                 // 초기 필터 값 설정 (로컬 스토리지에서 복원)
                 restoreFilterSettings();

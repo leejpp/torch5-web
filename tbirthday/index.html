@@ -180,6 +180,23 @@
             font-weight: 500;
             color: #7B4AFF;
             border: 1px solid rgba(123, 74, 255, 0.2);
+            line-height: 1.6;
+        }
+        
+        .birthday-info.lunar {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 4px;
+        }
+        
+        .lunar-original {
+            font-size: 14px;
+        }
+        
+        .lunar-converted {
+            font-size: 14px;
+            padding-left: 8px;
         }
 
         .no-birthdays {
@@ -586,20 +603,32 @@
                             ? person.actualSolarDate 
                             : new Date(person.actualSolarDate);
                         if (!isNaN(date.getTime())) {
-                            const solarMonth = date.getMonth() + 1;
-                            const solarDay = date.getDate();
-                            // 형식: 음력 MM월 DD일 (양력: MM월 DD일) (음력)
-                            return `음력 ${birthdayStr} (양력: ${solarMonth}월 ${solarDay}일) (음력)`;
+                            const solarMonth = String(date.getMonth() + 1).padStart(2, '0');
+                            const solarDay = String(date.getDate()).padStart(2, '0');
+                            // 형식: 음력 MM월 DD일 / 변환된 양력 MM월 DD일
+                            // HTML 형식으로 반환 (줄바꿈 포함)
+                            return {
+                                isLunar: true,
+                                original: `음력 ${birthdayStr}`,
+                                converted: `${solarMonth}월 ${solarDay}일`
+                            };
                         }
                     } catch (e) {
                         console.warn('양력 변환 날짜 파싱 오류:', e, person.actualSolarDate);
                     }
                 }
                 // 변환 실패 시 원래 형식 유지
-                return `음력 ${birthdayStr} (음력)`;
+                return {
+                    isLunar: true,
+                    original: `음력 ${birthdayStr}`,
+                    converted: null
+                };
             } else {
                 // 양력 생일자: 양력 날짜 + (양력)
-                return `${birthdayStr} (양력)`;
+                return {
+                    isLunar: false,
+                    text: `${birthdayStr} (양력)`
+                };
             }
         }
 
@@ -837,8 +866,28 @@
                 personInfo.appendChild(department);
                 
                 const birthdayInfo = document.createElement('div');
-                birthdayInfo.className = 'birthday-info';
-                birthdayInfo.textContent = formatDate(person);
+                const formattedDate = formatDate(person);
+                
+                if (formattedDate.isLunar) {
+                    // 음력 생일자: 두 줄로 표시
+                    birthdayInfo.className = 'birthday-info lunar';
+                    
+                    const originalDiv = document.createElement('div');
+                    originalDiv.className = 'lunar-original';
+                    originalDiv.textContent = formattedDate.original;
+                    birthdayInfo.appendChild(originalDiv);
+                    
+                    if (formattedDate.converted) {
+                        const convertedDiv = document.createElement('div');
+                        convertedDiv.className = 'lunar-converted';
+                        convertedDiv.textContent = formattedDate.converted;
+                        birthdayInfo.appendChild(convertedDiv);
+                    }
+                } else {
+                    // 양력 생일자: 한 줄로 표시
+                    birthdayInfo.className = 'birthday-info';
+                    birthdayInfo.textContent = formattedDate.text;
+                }
                 
                 item.appendChild(personInfo);
                 item.appendChild(birthdayInfo);

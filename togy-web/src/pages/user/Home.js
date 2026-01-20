@@ -52,8 +52,8 @@ const Home = () => {
             id: index + 1,
             text: typeof item === 'string' ? item : item.text || item,
             emoji: [
-              '🙏', '✨', '⚖️', '💎', '🤝', 
-              '🌟', '💚', '🔥', '🙌', '❤️'
+              '❤️', '❤️', '❤️', '❤️', '❤️', 
+              '❤️', '❤️', '❤️', '❤️', '❤️'
             ][index % 10],
             color: [
               colors.gradients.primary,
@@ -132,7 +132,7 @@ const Home = () => {
         <VisionSection>
           <VisionCard>
             <VisionCardContent>
-              <VisionTitle>우리의 비전</VisionTitle>
+              <VisionTitle>우리의 선포</VisionTitle>
               <VisionList>
                 {visionItems.map((item, index) => (
                   <VisionItem key={item.id} delay={index * 0.05}>

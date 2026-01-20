@@ -29,7 +29,7 @@ const UserLayout = () => {
       </Main>
       <Footer>
         <FooterContent>
-          <FooterText>© 2025 TOGY 청년부. All rights reserved.</FooterText>
+          <FooterText>© 2026 TOGY 청년부. All rights reserved.</FooterText>
         </FooterContent>
       </Footer>
     </Container>

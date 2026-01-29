@@ -73,30 +73,6 @@ const Home = () => {
     }
   };
 
-  const quickActions = [
-    {
-      title: '중보기도',
-      subtitle: '서로를 위해 기도해요',
-      emoji: '💙',
-      path: '/togy/prayer',
-      gradient: colors.gradients.primary,
-      isPrimary: true
-    },
-    {
-      title: '마음의 소리',
-      subtitle: '마음을 나누어요',
-      emoji: '💬',
-      path: '/togy/voices',
-      gradient: colors.gradients.secondary
-    },
-    {
-      title: '캘린더',
-      subtitle: '일정을 확인해요',
-      emoji: '🗓️',
-      path: '/togy/calendar',
-      gradient: colors.gradients.success
-    }
-  ];
 
 
 
@@ -147,28 +123,7 @@ const Home = () => {
           </VisionCard>
         </VisionSection>
 
-        <QuickActionsSection>
-          <QuickActionsGrid>
-            {quickActions.map((action, index) => (
-              <ActionCard
-                key={action.title}
-                onClick={() => navigate(action.path)}
-                $isPrimary={action.isPrimary}
-                delay={index * 0.1}
-              >
-                <ActionCardBackground gradient={action.gradient} />
-                <ActionCardContent>
-                  <ActionEmoji>{action.emoji}</ActionEmoji>
-                  <ActionTitle $isPrimary={action.isPrimary}>{action.title}</ActionTitle>
-                  <ActionSubtitle>{action.subtitle}</ActionSubtitle>
-                </ActionCardContent>
-                <ActionButton $isPrimary={action.isPrimary}>
-                  이동하기 →
-                </ActionButton>
-              </ActionCard>
-            ))}
-          </QuickActionsGrid>
-        </QuickActionsSection>
+
       </MainContent>
     </Container>
   );

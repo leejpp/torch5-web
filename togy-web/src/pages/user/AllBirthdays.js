@@ -7,98 +7,119 @@ import { colors, typography, spacing, shadows, borderRadius, media } from '../..
 import KoreanLunarCalendar from 'korean-lunar-calendar';
 
 const AllBirthdays = () => {
-  const [members, setMembers] = useState([]);
+  const [rawMembers, setRawMembers] = useState([]); // Store raw data from DB
+  const [members, setMembers] = useState([]); // Store processed data with calculated dates
   const [isLoading, setIsLoading] = useState(true);
-  const [currentYear] = useState(new Date().getFullYear());
 
   // Filters
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedDept, setSelectedDept] = useState('전체');
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1); // Default to current month
 
+  // Fetch raw data once on mount
   useEffect(() => {
-    fetchMembers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    fetchRawMembers();
   }, []);
 
-  const fetchMembers = async () => {
+  // Recalculate dates whenever raw data or selectedYear changes
+  useEffect(() => {
+    if (rawMembers.length > 0) {
+      processMembers(rawMembers, selectedYear);
+    }
+  }, [rawMembers, selectedYear]);
+
+  const fetchRawMembers = async () => {
     try {
       const querySnapshot = await getDocs(collection(db, 'church_member'));
       const memberList = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
-
-      const calendar = new KoreanLunarCalendar();
-
-      // Calculate solar date for current year
-      const processedMembers = memberList.map(member => {
-        let solarDate;
-        let displayDateStr = `${member.birthMonth}월 ${member.birthDay}일`;
-
-        // Robust check for isLunar (handle string 'true' or boolean true)
-        const isLunar = member.isLunar === true || member.isLunar === 'true';
-
-        if (isLunar) {
-          displayDateStr += ' (음)'; // Explicitly add (음) indicator
-
-          try {
-            // Check Current Year Lunar Date
-            calendar.setLunarDate(currentYear, Number(member.birthMonth), Number(member.birthDay), false);
-            const solarDateCurrent = new Date(
-              calendar.solarCalendar.year,
-              calendar.solarCalendar.month - 1,
-              calendar.solarCalendar.day
-            );
-
-            // Check Previous Year Lunar Date
-            calendar.setLunarDate(currentYear - 1, Number(member.birthMonth), Number(member.birthDay), false);
-            const solarDatePrev = new Date(
-              calendar.solarCalendar.year,
-              calendar.solarCalendar.month - 1,
-              calendar.solarCalendar.day
-            );
-
-            const currentYearStart = new Date(currentYear, 0, 1);
-            const currentYearEnd = new Date(currentYear, 11, 31);
-
-            // Select the date that falls within the current year
-            if (solarDatePrev >= currentYearStart && solarDatePrev <= currentYearEnd) {
-              solarDate = solarDatePrev;
-            } else if (solarDateCurrent >= currentYearStart && solarDateCurrent <= currentYearEnd) {
-              solarDate = solarDateCurrent;
-            } else {
-              // Fallback to current lunar year's solar date even if outside (rare edge case)
-              solarDate = solarDateCurrent;
-            }
-          } catch (e) {
-            console.error("Lunar conversion error", e);
-            // Fallback to purely numeric date if conversion crashes
-            solarDate = new Date(currentYear, Number(member.birthMonth) - 1, Number(member.birthDay));
-          }
-        } else {
-          displayDateStr += ' (양)';
-          solarDate = new Date(currentYear, Number(member.birthMonth) - 1, Number(member.birthDay));
-        }
-
-        return {
-          ...member,
-          solarDate,
-          displayDateStr,
-          isLunar // ensuring this is passed through
-        };
-      });
-
-      // Sort by solar date
-      processedMembers.sort((a, b) => {
-        return a.solarDate.getTime() - b.solarDate.getTime();
-      });
-
-      setMembers(processedMembers);
+      setRawMembers(memberList);
     } catch (error) {
       console.error("Error fetching members:", error);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const processMembers = (memberList, year) => {
+    const calendar = new KoreanLunarCalendar();
+    const currentYearStart = new Date(year, 0, 1);
+    const currentYearEnd = new Date(year, 11, 31);
+
+    const processed = memberList.map(member => {
+      let solarDate;
+      let displayDateStr = `${member.birthMonth}월 ${member.birthDay}일`;
+
+      // Robust check for isLunar (handle string 'true' or boolean true)
+      const isLunar = member.isLunar === true || member.isLunar === 'true';
+
+      if (isLunar) {
+        displayDateStr += ' (음)';
+
+        try {
+          // Check Selected Year Lunar Date
+          calendar.setLunarDate(year, Number(member.birthMonth), Number(member.birthDay), false);
+          const solarDateCurrent = new Date(
+            calendar.solarCalendar.year,
+            calendar.solarCalendar.month - 1,
+            calendar.solarCalendar.day
+          );
+
+          // Check Previous Year Lunar Date (because lunar year starts later, sometimes prev lunar year falls in current solar year)
+          calendar.setLunarDate(year - 1, Number(member.birthMonth), Number(member.birthDay), false);
+          const solarDatePrev = new Date(
+            calendar.solarCalendar.year,
+            calendar.solarCalendar.month - 1,
+            calendar.solarCalendar.day
+          );
+
+          // Check Next Year Lunar Date (just in case)
+          calendar.setLunarDate(year + 1, Number(member.birthMonth), Number(member.birthDay), false);
+          const solarDateNext = new Date(
+            calendar.solarCalendar.year,
+            calendar.solarCalendar.month - 1,
+            calendar.solarCalendar.day
+          );
+
+          // Select the date that falls within the selected solar year
+          if (solarDatePrev >= currentYearStart && solarDatePrev <= currentYearEnd) {
+            solarDate = solarDatePrev;
+          } else if (solarDateCurrent >= currentYearStart && solarDateCurrent <= currentYearEnd) {
+            solarDate = solarDateCurrent;
+          } else if (solarDateNext >= currentYearStart && solarDateNext <= currentYearEnd) {
+            solarDate = solarDateNext;
+          } else {
+            // Fallback: use current lunar year's solar date even if it drifts slightly out? 
+            // Or just default to the one calculated for 'year'. 
+            // Usually one of them MUST be in the year unless it's a leap month edge case or very early/late.
+            solarDate = solarDateCurrent;
+          }
+        } catch (e) {
+          console.error("Lunar conversion error", e);
+          // Fallback to purely numeric date if conversion crashes
+          solarDate = new Date(year, Number(member.birthMonth) - 1, Number(member.birthDay));
+        }
+      } else {
+        displayDateStr += ' (양)';
+        solarDate = new Date(year, Number(member.birthMonth) - 1, Number(member.birthDay));
+      }
+
+      return {
+        ...member,
+        solarDate,
+        displayDateStr,
+        isLunar
+      };
+    });
+
+    // Sort by solar date
+    processed.sort((a, b) => {
+      return a.solarDate.getTime() - b.solarDate.getTime();
+    });
+
+    setMembers(processed);
   };
 
   // Extract unique departments
@@ -129,16 +150,38 @@ const AllBirthdays = () => {
     return `${month}월 ${day}일 (${dayOfWeek})`;
   };
 
+  // Year Range for Dropdown (Current Year - 5 to + 5)
+  const yearRange = useMemo(() => {
+    const current = new Date().getFullYear();
+    const years = [];
+    for (let i = -5; i <= 5; i++) {
+      years.push(current + i);
+    }
+    return years;
+  }, []);
+
   return (
     <Container>
       <PageHeader>
         <BackToMain to="/">⬅︎ 메인으로</BackToMain>
         <FastIcon>🎂</FastIcon>
         <Title>전교인 생일 보기</Title>
-        <Subtitle>{currentYear}년 생일 달력입니다.</Subtitle>
+        <Subtitle>{selectedYear}년 생일 달력입니다.</Subtitle>
       </PageHeader>
 
       <FilterSection>
+        <FilterGroup>
+          <FilterLabel>년도 선택</FilterLabel>
+          <Select
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(Number(e.target.value))}
+          >
+            {yearRange.map(year => (
+              <option key={year} value={year}>{year}년</option>
+            ))}
+          </Select>
+        </FilterGroup>
+
         <FilterGroup>
           <FilterLabel>월 선택</FilterLabel>
           <Select
@@ -172,6 +215,7 @@ const AllBirthdays = () => {
       ) : (
         <>
           <ResultSummary>
+            <Highlight>{selectedYear}년 </Highlight>
             {selectedMonth !== '전체' && <Highlight>{selectedMonth}월 </Highlight>}
             {selectedDept !== '전체' && <Highlight>{selectedDept} </Highlight>}
             생일자: 총 <strong>{filteredMembers.length}</strong>명
@@ -187,13 +231,14 @@ const AllBirthdays = () => {
                     <TableHeader>이름</TableHeader>
                     <TableHeader>직분</TableHeader>
                     <TableHeader>원래 생일</TableHeader>
-                    <TableHeader>올해 날짜 (양력)</TableHeader>
+                    <TableHeader>{selectedYear}년 날짜 (양력)</TableHeader>
                   </TableRow>
                 </thead>
                 <tbody>
                   {filteredMembers.length > 0 ? (
                     filteredMembers.map(member => (
                       <TableRow key={member.id} $isToday={
+                        member.solarDate.getFullYear() === new Date().getFullYear() &&
                         member.solarDate.getMonth() === new Date().getMonth() &&
                         member.solarDate.getDate() === new Date().getDate()
                       }>
@@ -203,14 +248,18 @@ const AllBirthdays = () => {
                         <TableCell>{member.displayDateStr}</TableCell>
                         <TableCell $highlight>
                           {formatSolarDate(member.solarDate)}
-                          {member.isToday && <TodayBadge>오늘!</TodayBadge>}
+                          {/* Only show 'Today' badge if selectedYear is actually the current real-time year */}
+                          {member.solarDate.getFullYear() === new Date().getFullYear() &&
+                            member.solarDate.getMonth() === new Date().getMonth() &&
+                            member.solarDate.getDate() === new Date().getDate() &&
+                            <TodayBadge>오늘!</TodayBadge>}
                         </TableCell>
                       </TableRow>
                     ))
                   ) : (
                     <TableRow>
                       <EmptyCell colSpan="5">
-                        {selectedMonth}월에는 생일자가 없습니다. 🎉
+                        {selectedMonth !== '전체' ? `${selectedMonth}월에는` : `${selectedYear}년에는`} 생일자가 없습니다. 🎉
                       </EmptyCell>
                     </TableRow>
                   )}
@@ -224,7 +273,8 @@ const AllBirthdays = () => {
             {filteredMembers.length > 0 ? (
               <CardList>
                 {filteredMembers.map(member => {
-                  const isToday = member.solarDate.getMonth() === new Date().getMonth() &&
+                  const isToday = member.solarDate.getFullYear() === new Date().getFullYear() &&
+                    member.solarDate.getMonth() === new Date().getMonth() &&
                     member.solarDate.getDate() === new Date().getDate();
                   return (
                     <MemberCard key={member.id} $isToday={isToday}>
@@ -249,7 +299,7 @@ const AllBirthdays = () => {
               </CardList>
             ) : (
               <EmptyStateCard>
-                {selectedMonth}월에는 생일자가 없습니다. 🎉
+                {selectedMonth !== '전체' ? `${selectedMonth}월에는` : `${selectedYear}년에는`} 생일자가 없습니다. 🎉
               </EmptyStateCard>
             )}
           </MobileView>

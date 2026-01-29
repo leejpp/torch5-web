@@ -49,12 +49,6 @@ const TalantInput = () => {
     setLoadingButtons(prev => new Set(prev).add(buttonId));
 
     try {
-      // 0. Check for duplicates (optional, based on logic)
-      // For now, allow multiple entries as per original logic, 
-      // but maybe strict check for daily fixed items if needed?
-      // Original logic had checkDuplicateEntry. Let's implement a simple version if needed.
-      // For simplicity and speed, we'll proceed similar to the original reliable logic.
-
       // 1. Add to talant_history
       const dateParts = selectedDate.split('-');
       const targetDate = new Date(
@@ -129,28 +123,15 @@ const TalantInput = () => {
 
   return (
     <PageContainer>
-      <Header>
-        <HeaderContent>
-          <BackButton onClick={() => navigate('/admin/talant')}>
-            ← 대시보드
-          </BackButton>
-          <PageTitle>달란트 입력</PageTitle>
-          <HistoryLink onClick={() => navigate('/admin/talant/history')}>
-            <span>전체 내역</span>
-            <span>📋</span>
-          </HistoryLink>
-        </HeaderContent>
-      </Header>
-
       <ContentArea>
-        <Controls>
+        <DateControls>
           <DateLabel>날짜 선택</DateLabel>
           <DateInput
             type="date"
             value={selectedDate}
             onChange={(e) => setSelectedDate(e.target.value)}
           />
-        </Controls>
+        </DateControls>
 
         {loading ? (
           <LoadingState>학생 목록을 불러오는 중...</LoadingState>
@@ -246,82 +227,32 @@ const spin = keyframes`
 // Styled Components
 const PageContainer = styled.div`
   min-height: 100vh;
-  background-color: ${colors.neutral[50]};
-`;
-
-const Header = styled.header`
-  background: white;
-  border-bottom: 1px solid ${colors.neutral[200]};
-  padding: ${spacing.md} 0;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-`;
-
-const HeaderContent = styled.div`
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 ${spacing.lg};
+  background-color: white;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-`;
-
-const BackButton = styled.button`
-  background: none;
-  border: none;
-  font-size: ${typography.fontSize.sm};
-  color: ${colors.neutral[600]};
-  cursor: pointer;
-  padding: ${spacing.sm};
-  
-  &:hover { color: ${colors.neutral[900]}; }
-`;
-
-const PageTitle = styled.h1`
-  font-size: ${typography.fontSize.lg};
-  font-weight: ${typography.fontWeight.bold};
-  color: ${colors.neutral[900]};
-  margin: 0;
-`;
-
-const HistoryLink = styled.button`
-  background: ${colors.neutral[100]};
-  border: none;
-  padding: ${spacing.sm} ${spacing.md};
-  border-radius: ${borderRadius.full};
-  font-size: ${typography.fontSize.sm};
-  color: ${colors.neutral[700]};
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  
-  &:hover { background: ${colors.neutral[200]}; }
+  flex-direction: column;
 `;
 
 const ContentArea = styled.main`
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: ${spacing.xl} ${spacing.lg};
+  flex: 1;
+  padding: ${spacing.xl};
+  width: 100%;
   
-  ${media['max-md']} { padding: ${spacing.lg} ${spacing.md}; }
+  ${media['max-md']} { padding: ${spacing.md}; }
 `;
 
-const Controls = styled.div`
-  margin-bottom: ${spacing.lg};
+const DateControls = styled.div`
   display: flex;
   align-items: center;
   gap: ${spacing.md};
-  background: white;
+  margin-bottom: ${spacing.xl};
   padding: ${spacing.md};
+  background: ${colors.neutral[50]};
   border-radius: ${borderRadius.lg};
-  box-shadow: ${shadows.sm};
   width: fit-content;
 `;
 
 const DateLabel = styled.label`
-  font-weight: ${typography.fontWeight.bold};
+  font-weight: ${typography.fontWeight.semibold};
   color: ${colors.neutral[700]};
   font-size: ${typography.fontSize.sm};
 `;
@@ -329,17 +260,18 @@ const DateLabel = styled.label`
 const DateInput = styled.input`
   padding: ${spacing.sm} ${spacing.md};
   border: 1px solid ${colors.neutral[300]};
-  border-radius: ${borderRadius.md};
+  border-radius: ${borderRadius.lg};
   font-size: ${typography.fontSize.base};
   color: ${colors.neutral[900]};
   outline: none;
+  background: white;
   
   &:focus { border-color: ${colors.primary[500]}; }
 `;
 
 const Grid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: ${spacing.lg};
   
   ${media['max-sm']} { grid-template-columns: 1fr; }
@@ -352,11 +284,12 @@ const StudentCard = styled.div`
   border: 1px solid ${colors.neutral[200]};
   overflow: hidden;
   animation: ${fadeIn} 0.5s ease-out;
-  transition: transform 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s;
   
   &:hover {
     transform: translateY(-2px);
     box-shadow: ${shadows.md};
+    border-color: ${colors.primary[200]};
   }
 `;
 
@@ -376,8 +309,8 @@ const StudentName = styled.h3`
 const ButtonsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: ${spacing.xs};
-  padding: ${spacing.md};
+  gap: ${spacing.sm};
+  padding: ${spacing.lg};
 `;
 
 const TalantButton = styled.button`
@@ -385,14 +318,14 @@ const TalantButton = styled.button`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 4px;
   background: ${props => props.$isCustom ? colors.primary[50] : 'white'};
   border: 1px solid ${props => props.$isCustom ? colors.primary[200] : colors.neutral[200]};
   border-radius: ${borderRadius.lg};
-  padding: ${spacing.sm};
+  padding: ${spacing.md} ${spacing.sm};
   cursor: pointer;
   transition: all 0.1s;
-  min-height: 80px;
+  min-height: 90px;
   
   &:hover {
     background: ${props => props.$isCustom ? colors.primary[100] : colors.neutral[50]};
@@ -409,7 +342,7 @@ const TalantButton = styled.button`
 `;
 
 const Emoji = styled.span`
-  font-size: 24px;
+  font-size: 28px;
   line-height: 1.2;
 `;
 

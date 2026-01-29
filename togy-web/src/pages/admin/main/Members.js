@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import { db } from '../../../firebase/config';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query } from 'firebase/firestore';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, writeBatch, where } from 'firebase/firestore';
 import { colors, typography, spacing, shadows, borderRadius } from '../../../styles/designSystem';
 
 const Members = () => {
@@ -120,6 +120,92 @@ const Members = () => {
         }
     };
 
+    const handleBatchRegister = async () => {
+        if (!window.confirm(`전체 성도 ${members.length}명의 생일 일정을 캘린더에 일괄 등록하시겠습니까?\n이미 등록된 일정이 중복될 수 있으니 주의해주세요.`)) {
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            const batch = writeBatch(db);
+            const eventsRef = collection(db, 'events');
+            let count = 0;
+            const currentYear = new Date().getFullYear();
+
+            // Generate UUID for repeatGroupId
+            const generateUUID = () => {
+                return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                    var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+                    return v.toString(16);
+                });
+            };
+
+            members.forEach(member => {
+                if (member.birthMonth && member.birthDay) {
+                    const newEventRef = doc(eventsRef);
+                    const birthDate = new Date(currentYear, Number(member.birthMonth) - 1, Number(member.birthDay), 9, 0, 0);
+
+                    batch.set(newEventRef, {
+                        title: `${member.name} ${member.position} 생일`,
+                        description: `[성도 생일] ${member.dept} ${member.name} 성도님의 생일입니다.`,
+                        start: birthDate,
+                        end: birthDate,
+                        location: '',
+                        allDay: true,
+                        type: 'BIRTHDAY',
+                        isLunar: member.isLunar || false,
+                        isRecurring: true,
+                        repeat: {
+                            type: 'YEARLY',
+                            repeatGroupId: generateUUID()
+                        },
+                        createdAt: new Date()
+                    });
+                    count++;
+                }
+            });
+
+            await batch.commit();
+            showToast(`${count}명의 생일 일정이 캘린더에 등록되었습니다!`, 'success');
+        } catch (error) {
+            console.error("Error batch registering birthdays:", error);
+            showToast('생일 일괄 등록 중 오류가 발생했습니다.', 'error');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleDeleteAllBirthdays = async () => {
+        if (!window.confirm('캘린더에 등록된 모든 [생일] 타입의 일정을 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.')) {
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            const q = query(collection(db, 'events'), where('type', '==', 'BIRTHDAY'));
+            const snapshot = await getDocs(q);
+
+            if (snapshot.empty) {
+                showToast('삭제할 생일 일정이 없습니다.', 'info');
+                setIsLoading(false);
+                return;
+            }
+
+            const batch = writeBatch(db);
+            snapshot.docs.forEach(doc => {
+                batch.delete(doc.ref);
+            });
+
+            await batch.commit();
+            showToast(`${snapshot.size}개의 생일 일정이 삭제되었습니다.`, 'success');
+        } catch (error) {
+            console.error("Error deleting all birthdays:", error);
+            showToast('생일 일정 삭제 중 오류가 발생했습니다.', 'error');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const openEditForm = (member) => {
         setEditingMember(member);
         setFormData({
@@ -160,12 +246,17 @@ const Members = () => {
 
     return (
         <Container>
-            <Header>
-                <Title>성도 관리</Title>
+            <ActionBar>
+                <BatchButton onClick={handleBatchRegister}>
+                    📅 생일 일괄 등록
+                </BatchButton>
+                <DeleteAllButton onClick={handleDeleteAllBirthdays}>
+                    🗑️ 생일 전체 삭제
+                </DeleteAllButton>
                 <AddButton onClick={() => setIsFormOpen(true)}>
                     + 성도 추가
                 </AddButton>
-            </Header>
+            </ActionBar>
 
             <FilterContainer>
                 <FilterGroup>
@@ -354,17 +445,12 @@ const Container = styled.div`
     padding: ${spacing.md};
 `;
 
-const Header = styled.div`
+const ActionBar = styled.div`
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
+    gap: ${spacing.sm};
     margin-bottom: ${spacing.lg};
-`;
-
-const Title = styled.h2`
-    font-size: ${typography.fontSize['2xl']};
-    font-weight: ${typography.fontWeight.bold};
-    color: ${colors.neutral[800]};
 `;
 
 const AddButton = styled.button`
@@ -379,6 +465,36 @@ const AddButton = styled.button`
 
     &:hover {
         background-color: ${colors.primary[700]};
+    }
+`;
+
+const BatchButton = styled.button`
+    background-color: ${colors.secondary[100]};
+    color: ${colors.secondary[700]};
+    border: none;
+    padding: ${spacing.md} ${spacing.lg};
+    border-radius: ${borderRadius.lg};
+    font-weight: ${typography.fontWeight.bold};
+    cursor: pointer;
+    transition: background-color 0.2s;
+
+    &:hover {
+        background-color: ${colors.secondary[200]};
+    }
+`;
+
+const DeleteAllButton = styled.button`
+    background-color: ${colors.error[100]};
+    color: ${colors.error[700]};
+    border: none;
+    padding: ${spacing.md} ${spacing.lg};
+    border-radius: ${borderRadius.lg};
+    font-weight: ${typography.fontWeight.bold};
+    cursor: pointer;
+    transition: background-color 0.2s;
+
+    &:hover {
+        background-color: ${colors.error[200]};
     }
 `;
 
@@ -625,7 +741,7 @@ const Toast = styled.div`
     box-shadow: ${shadows.lg};
     z-index: 2000;
     animation: slideUp 0.3s ease-out;
-    
+
     @keyframes slideUp {
         from { transform: translate(-50%, 20px); opacity: 0; }
         to { transform: translate(-50%, 0); opacity: 1; }

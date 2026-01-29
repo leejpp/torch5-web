@@ -223,23 +223,6 @@ const TalantHistory = () => {
 
   return (
     <PageContainer>
-      <Header>
-        <HeaderContent>
-          <BackButton onClick={() => navigate('/admin/talant')}>
-            ← 대시보드
-          </BackButton>
-          <PageTitle>달란트 내역</PageTitle>
-          <ButtonGroup>
-            <HeaderButton onClick={() => navigate('/admin/talant/board')}>
-              📊 현황판
-            </HeaderButton>
-            <HeaderButton $primary onClick={() => navigate('/admin/talant/input')}>
-              ✏️ 입력하기
-            </HeaderButton>
-          </ButtonGroup>
-        </HeaderContent>
-      </Header>
-
       <ContentArea>
         {/* Filters */}
         <FiltersSection>
@@ -342,86 +325,12 @@ const PageContainer = styled.div`
   background-color: ${colors.neutral[50]};
 `;
 
-const Header = styled.header`
-  background: white;
-  border-bottom: 1px solid ${colors.neutral[200]};
-  padding: ${spacing.md} 0;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-`;
-
-const HeaderContent = styled.div`
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 0 ${spacing.lg};
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  
-  ${media['max-md']} {
-    flex-direction: column;
-    gap: ${spacing.md};
-    padding: ${spacing.md};
-  }
-`;
-
-const BackButton = styled.button`
-  background: none;
-  border: none;
-  font-size: ${typography.fontSize.sm};
-  color: ${colors.neutral[600]};
-  cursor: pointer;
-  padding: ${spacing.sm};
-  
-  &:hover {
-    color: ${colors.neutral[900]};
-  }
-  
-  ${media['max-md']} {
-    align-self: flex-start;
-  }
-`;
-
-const PageTitle = styled.h1`
-  font-size: ${typography.fontSize.xl};
-  font-weight: ${typography.fontWeight.bold};
-  color: ${colors.neutral[900]};
-  margin: 0;
-`;
-
-const ButtonGroup = styled.div`
-  display: flex;
-  gap: ${spacing.md};
-`;
-
-const HeaderButton = styled.button`
-  padding: ${spacing.sm} ${spacing.md};
-  border-radius: ${borderRadius.lg};
-  font-size: ${typography.fontSize.sm};
-  font-weight: ${typography.fontWeight.semibold};
-  cursor: pointer;
-  transition: all 0.2s;
-  border: none;
-  
-  ${props => props.$primary ? `
-    background: ${colors.primary[600]};
-    color: white;
-    &:hover { background: ${colors.primary[700]}; }
-  ` : `
-    background: ${colors.neutral[100]};
-    color: ${colors.neutral[700]};
-    &:hover { background: ${colors.neutral[200]}; }
-  `}
-`;
-
 const ContentArea = styled.main`
-  max-width: 800px;
-  margin: 0 auto;
-  padding: ${spacing.xl} ${spacing.lg};
+  padding: ${spacing.xl};
+  width: 100%;
   
   ${media['max-md']} {
-    padding: ${spacing.lg} ${spacing.md};
+    padding: ${spacing.md};
   }
 `;
 

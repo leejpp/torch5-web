@@ -20,13 +20,13 @@ const Notice = React.lazy(() => import('./pages/user/Notice'));
 const PrayerRequests = React.lazy(() => import('./pages/user/PrayerRequests'));
 const Voices = React.lazy(() => import('./pages/user/Voices'));
 const Calendar = React.lazy(() => import('./pages/user/Calendar'));
+const ChurchSchedule = React.lazy(() => import('./pages/user/ChurchSchedule')); // [NEW] Global Schedule
 
 // Admin Pages
 const AdminPortal = React.lazy(() => import('./pages/admin/AdminPortal'));
 const Dashboard = React.lazy(() => import('./pages/admin/Dashboard'));
 const PrayerAdmin = React.lazy(() => import('./pages/admin/Prayer'));
 const VoicesAdmin = React.lazy(() => import('./pages/admin/Voices'));
-const CalendarAdmin = React.lazy(() => import('./pages/admin/Calendar'));
 const YearlyThemes = React.lazy(() => import('./pages/admin/YearlyThemes'));
 const CellReorganization = React.lazy(() => import('./pages/admin/CellReorganization'));
 
@@ -40,6 +40,8 @@ const TalantStudents = React.lazy(() => import('./pages/talant/Students'));
 
 // Main Admin Pages
 const MainMembers = React.lazy(() => import('./pages/admin/main/Members'));
+const MainSchedule = React.lazy(() => import('./pages/admin/main/Schedule')); // [NEW] Admin Schedule
+const MainDashboard = React.lazy(() => import('./pages/admin/main/Dashboard')); // [NEW] Admin Dashboard
 
 const GlobalStyle = createGlobalStyle`
   * {
@@ -114,6 +116,7 @@ const App = () => {
 
             {/* User Routes (Moved to /togy) */}
             <Route path="/birthdays" element={<AllBirthdays />} />
+            <Route path="/schedule" element={<ChurchSchedule />} /> {/* [NEW] Global Schedule Route */}
             <Route path="/togy" element={<UserLayout />}>
               <Route index element={<Home />} />
               <Route path="notice" element={<Notice />} />
@@ -131,15 +134,15 @@ const App = () => {
                 <Route index element={<Dashboard />} />
                 <Route path="prayer" element={<PrayerAdmin />} />
                 <Route path="voices" element={<VoicesAdmin />} />
-                <Route path="calendar" element={<CalendarAdmin />} />
                 <Route path="yearlythemes" element={<YearlyThemes />} />
                 <Route path="cells" element={<CellReorganization />} />
               </Route>
 
               {/* Main Admin Routes (Nested under /admin/main) */}
               <Route path="/admin/main" element={<MainAdminLayout />}>
-                <Route index element={<MainMembers />} /> {/* Default to Members page for now */}
+                <Route index element={<MainDashboard />} /> {/* Dashboard as index */}
                 <Route path="members" element={<MainMembers />} />
+                <Route path="schedule" element={<MainSchedule />} /> {/* New Schedule Route */}
               </Route>
 
               {/* Talant Routes (Nested under /admin/talant) */}
@@ -157,7 +160,7 @@ const App = () => {
           </Routes>
         </Suspense>
       </Router>
-    </ThemeProvider>
+    </ThemeProvider >
   );
 };
 

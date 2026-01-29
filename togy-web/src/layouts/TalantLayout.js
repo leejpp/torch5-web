@@ -27,7 +27,7 @@ const TalantLayout = () => {
 
 const LayoutContainer = styled.div`
   min-height: 100vh;
-  background-color: #F5F5F7;
+  background-color: white;
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
   display: flex;
   flex-direction: column;
@@ -38,6 +38,9 @@ const Header = styled.header`
   border-bottom: 1px solid ${colors.neutral[200]};
   padding: ${spacing.md} 0;
   box-shadow: ${shadows.sm};
+  position: sticky;
+  top: 0;
+  z-index: 100;
 `;
 
 const HeaderContent = styled.div`
@@ -106,10 +109,8 @@ const NavLink = styled(Link)`
 
 const Main = styled.main`
   flex: 1;
-  max-width: 1200px;
   width: 100%;
-  margin: 0 auto;
-  padding: ${spacing.xl} ${spacing.lg};
+  padding: 0;
 `;
 
 export default TalantLayout;

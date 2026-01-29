@@ -99,7 +99,7 @@ const Prayer = () => {
 
   const handleDelete = async (prayerId) => {
     if (isDeleting) return;
-    
+
     const prayerToDelete = prayers.find(p => p.id === prayerId);
     if (!prayerToDelete) {
       alert('삭제할 기도제목을 찾을 수 없습니다.');
@@ -111,10 +111,10 @@ const Prayer = () => {
     try {
       // Firestore에서 문서 삭제
       await deleteDoc(doc(db, 'prayerRequests', prayerId));
-      
+
       // 로컬 상태에서 즉시 제거 (UI 응답성 향상)
       setPrayers(prevPrayers => prevPrayers.filter(prayer => prayer.id !== prayerId));
-      
+
       // 관련 상태 초기화
       if (editingPrayer && editingPrayer.id === prayerId) {
         clearForm();
@@ -122,12 +122,12 @@ const Prayer = () => {
       if (openPrayerId === prayerId) {
         setOpenPrayerId(null);
       }
-      
+
       setDeleteConfirm({ isOpen: false, prayerId: null });
       alert(`"${prayerToDelete.id}"님의 기도제목이 성공적으로 삭제되었습니다.`);
     } catch (error) {
       console.error("Error deleting prayer:", error);
-      
+
       // 구체적인 에러 메시지 제공
       let errorMessage = '삭제 중 오류가 발생했습니다.';
       if (error.code === 'permission-denied') {
@@ -137,9 +137,9 @@ const Prayer = () => {
       } else if (error.code === 'unavailable') {
         errorMessage = '네트워크 연결을 확인하고 다시 시도해주세요.';
       }
-      
+
       alert(errorMessage);
-      
+
       // 실패 시 데이터 다시 가져오기
       fetchPrayers();
     } finally {
@@ -196,7 +196,7 @@ const Prayer = () => {
 
   const handleTogglePin = async (prayerId) => {
     if (isPinning) return;
-    
+
     const prayer = prayers.find(p => p.id === prayerId);
     if (!prayer) return;
 
@@ -230,15 +230,15 @@ const Prayer = () => {
       }
 
       await updateDoc(doc(db, 'prayerRequests', prayerId), updateData);
-      
+
       // 로컬 상태 업데이트
-      setPrayers(prevPrayers => 
+      setPrayers(prevPrayers =>
         prevPrayers.map(p => {
           if (p.id === prayerId) {
             const updatedPrayer = { ...p };
             updatedPrayer.isPinned = !currentlyPinned;
             updatedPrayer.updatedAt = new Date();
-            
+
             if (!currentlyPinned) {
               // 핀 설정
               updatedPrayer.pinnedAt = new Date();
@@ -246,7 +246,7 @@ const Prayer = () => {
               // 핀 해제 - pinnedAt 필드 제거
               delete updatedPrayer.pinnedAt;
             }
-            
+
             return updatedPrayer;
           }
           return p;
@@ -257,7 +257,7 @@ const Prayer = () => {
       alert(`기도제목이 성공적으로 ${action}되었습니다.`);
     } catch (error) {
       console.error("Error toggling pin:", error);
-      
+
       // 구체적인 에러 메시지 제공
       let errorMessage = '핀 설정 중 오류가 발생했습니다.';
       if (error.code === 'permission-denied') {
@@ -267,9 +267,9 @@ const Prayer = () => {
       } else if (error.code === 'unavailable') {
         errorMessage = '네트워크 연결을 확인하고 다시 시도해주세요.';
       }
-      
+
       alert(errorMessage);
-      
+
       // 실패 시 데이터 다시 가져오기
       fetchPrayers();
     } finally {
@@ -279,43 +279,28 @@ const Prayer = () => {
 
   return (
     <Container>
-      <BackgroundOverlay />
-      
-      <Header>
-        <HeaderContent>
-          <AdminBadge>
-            <BadgeIcon>👑</BadgeIcon>
-            <BadgeText>관리자</BadgeText>
-          </AdminBadge>
-          
-          <TitleSection>
-            <HeaderIcon>🙏</HeaderIcon>
-            <Title>중보기도 관리</Title>
-            <Subtitle>청년부 기도제목 등록 및 관리</Subtitle>
-          </TitleSection>
-          
-          <StatsContainer>
-            <StatsCard>
-              <StatsIcon>📊</StatsIcon>
-              <StatsText>총 {prayers.length}명의 기도제목이 등록되어 있습니다</StatsText>
-            </StatsCard>
-            {getPinnedCount() > 0 && (
-              <PinStatsCard>
-                <PinStatsIcon>📌</PinStatsIcon>
-                <PinStatsText>{getPinnedCount()}개 항목이 상단 고정되어 있습니다</PinStatsText>
-              </PinStatsCard>
-            )}
-          </StatsContainer>
-        </HeaderContent>
-      </Header>
-
       <MainContent>
+        <HeaderSection>
+          <StatsRow>
+            <StatBadge>
+              <span>📊</span>
+              <span>총 {prayers.length}명</span>
+            </StatBadge>
+            {getPinnedCount() > 0 && (
+              <StatBadge $isPinned>
+                <span>📌</span>
+                <span>고정 {getPinnedCount()}개</span>
+              </StatBadge>
+            )}
+          </StatsRow>
+        </HeaderSection>
+
         <FormSection>
           <SectionTitle>
             <SectionIcon>✍️</SectionIcon>
             {editingPrayer ? '기도제목 수정' : '새 기도제목 등록'}
           </SectionTitle>
-          
+
           <FormCard>
             <Form onSubmit={editingPrayer ? handleUpdate : handleSubmit}>
               <FormGroup>
@@ -349,7 +334,7 @@ const Prayer = () => {
                       />
                     </PrayerItemGroup>
                   ))}
-                  
+
                   <AddButton type="button" onClick={addPrayerItem}>
                     <AddIcon>+</AddIcon>
                     <AddText>기도제목 추가</AddText>
@@ -415,7 +400,7 @@ const Prayer = () => {
                     </PersonInfo>
 
                     <CardActions>
-                      <PinButton 
+                      <PinButton
                         onClick={(e) => { e.stopPropagation(); handleTogglePin(prayer.id); }}
                         isPinned={prayer.isPinned}
                         disabled={isPinning}
@@ -426,7 +411,7 @@ const Prayer = () => {
                       <EditButton onClick={(e) => { e.stopPropagation(); handleEdit(prayer); }}>
                         <ActionIcon>✏️</ActionIcon>
                       </EditButton>
-                      <DeleteButton 
+                      <DeleteButton
                         onClick={(e) => { e.stopPropagation(); setDeleteConfirm({ isOpen: true, prayerId: prayer.id }); }}
                         disabled={isDeleting || isPinning}
                       >
@@ -464,7 +449,7 @@ const Prayer = () => {
                 const name = prayer?.id || '선택된 항목';
                 return (
                   <>
-                    <strong>"{name}"</strong>님의 기도제목을 삭제하시겠습니까?<br/>
+                    <strong>"{name}"</strong>님의 기도제목을 삭제하시겠습니까?<br />
                     <DeleteWarning>삭제된 데이터는 복구할 수 없습니다.</DeleteWarning>
                     {isDeleting && <DeletingText>삭제 중입니다...</DeletingText>}
                   </>
@@ -472,7 +457,7 @@ const Prayer = () => {
               })()}
             </ModalDescription>
             <ModalButtons>
-              <DeleteConfirmButton 
+              <DeleteConfirmButton
                 onClick={() => handleDelete(deleteConfirm.prayerId)}
                 disabled={isDeleting}
               >
@@ -488,7 +473,7 @@ const Prayer = () => {
                   </>
                 )}
               </DeleteConfirmButton>
-              <ModalCancelButton 
+              <ModalCancelButton
                 onClick={() => setDeleteConfirm({ isOpen: false, prayerId: null })}
                 disabled={isDeleting}
               >
@@ -507,7 +492,7 @@ const Prayer = () => {
 const fadeInUp = keyframes`
   from {
     opacity: 0;
-    transform: translateY(30px);
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
@@ -518,15 +503,6 @@ const fadeInUp = keyframes`
 const fadeIn = keyframes`
   from { opacity: 0; }
   to { opacity: 1; }
-`;
-
-const float = keyframes`
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
 `;
 
 const spin = keyframes`
@@ -548,194 +524,7 @@ const pulse = keyframes`
 // 스타일 컴포넌트
 const Container = styled.div`
   min-height: 100vh;
-  position: relative;
-  overflow-x: hidden;
-`;
-
-const BackgroundOverlay = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  z-index: -2;
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: 
-      radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
-      radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.05) 0%, transparent 50%),
-      radial-gradient(circle at 40% 60%, rgba(236, 72, 153, 0.03) 0%, transparent 50%);
-  }
-`;
-
-const Header = styled.header`
-  background: ${colors.gradients.primary};
-  position: relative;
-  overflow: hidden;
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: 
-      radial-gradient(circle at 30% 70%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-      radial-gradient(circle at 70% 30%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
-  }
-`;
-
-const HeaderContent = styled.div`
-  position: relative;
-  padding: ${spacing['4xl']} ${spacing['2xl']} ${spacing['3xl']};
-  text-align: center;
-  max-width: 1200px;
-  margin: 0 auto;
-  
-  ${media['max-md']} {
-    padding: ${spacing['3xl']} ${spacing.lg} ${spacing['2xl']};
-  }
-`;
-
-const AdminBadge = styled.div`
-  display: inline-flex;
-  align-items: center;
-  gap: ${spacing.sm};
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: ${borderRadius.full};
-  padding: ${spacing.sm} ${spacing.lg};
-  margin-bottom: ${spacing.xl};
-  animation: ${fadeInUp} 0.8s ease-out;
-`;
-
-const BadgeIcon = styled.span`
-  font-size: ${typography.fontSize.lg};
-`;
-
-const BadgeText = styled.span`
-  color: white;
-  font-size: ${typography.fontSize.sm};
-  font-weight: ${typography.fontWeight.semibold};
-`;
-
-const TitleSection = styled.div`
-  margin-bottom: ${spacing.xl};
-`;
-
-const HeaderIcon = styled.div`
-  font-size: ${typography.fontSize['4xl']};
-  margin-bottom: ${spacing.lg};
-  animation: ${float} 3s ease-in-out infinite, ${fadeInUp} 0.8s ease-out 0.2s both;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
-  
-  ${media['max-md']} {
-    font-size: ${typography.fontSize['3xl']};
-  }
-`;
-
-const Title = styled.h1`
-  color: white;
-  font-size: ${typography.fontSize['4xl']};
-  font-weight: ${typography.fontWeight.extrabold};
-  margin-bottom: ${spacing.sm};
-  font-family: ${typography.fontFamily.heading};
-  animation: ${fadeInUp} 0.8s ease-out 0.4s both;
-  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  
-  ${media['max-md']} {
-    font-size: ${typography.fontSize['2xl']};
-  }
-`;
-
-const Subtitle = styled.p`
-  color: rgba(255, 255, 255, 0.9);
-  font-size: ${typography.fontSize.xl};
-  font-weight: ${typography.fontWeight.medium};
-  animation: ${fadeInUp} 0.8s ease-out 0.6s both;
-  
-  ${media['max-md']} {
-    font-size: ${typography.fontSize.lg};
-  }
-`;
-
-const StatsContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: ${spacing.lg};
-  align-items: center;
-  
-  ${media['max-md']} {
-    gap: ${spacing.md};
-  }
-`;
-
-const StatsCard = styled.div`
-  display: inline-flex;
-  align-items: center;
-  gap: ${spacing.sm};
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  border-radius: ${borderRadius.xl};
-  padding: ${spacing.lg} ${spacing.xl};
-  animation: ${fadeInUp} 0.8s ease-out 0.8s both;
-  
-  ${media['max-md']} {
-    padding: ${spacing.md} ${spacing.lg};
-  }
-`;
-
-const PinStatsCard = styled.div`
-  display: inline-flex;
-  align-items: center;
-  gap: ${spacing.sm};
-  background: linear-gradient(135deg, rgba(251, 191, 36, 0.2) 0%, rgba(245, 158, 11, 0.2) 100%);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(251, 191, 36, 0.3);
-  border-radius: ${borderRadius.xl};
-  padding: ${spacing.lg} ${spacing.xl};
-  animation: ${fadeInUp} 0.8s ease-out 1s both;
-  
-  ${media['max-md']} {
-    padding: ${spacing.md} ${spacing.lg};
-  }
-`;
-
-const PinStatsIcon = styled.span`
-  font-size: ${typography.fontSize.lg};
-`;
-
-const PinStatsText = styled.span`
-  color: rgba(245, 158, 11, 1);
-  font-size: ${typography.fontSize.base};
-  font-weight: ${typography.fontWeight.semibold};
-  
-  ${media['max-md']} {
-    font-size: ${typography.fontSize.sm};
-  }
-`;
-
-const StatsIcon = styled.span`
-  font-size: ${typography.fontSize.lg};
-`;
-
-const StatsText = styled.span`
-  color: white;
-  font-size: ${typography.fontSize.base};
-  font-weight: ${typography.fontWeight.medium};
-  
-  ${media['max-md']} {
-    font-size: ${typography.fontSize.sm};
-  }
+  background-color: ${colors.background};
 `;
 
 const MainContent = styled.main`
@@ -748,212 +537,222 @@ const MainContent = styled.main`
   }
 `;
 
+const HeaderSection = styled.header`
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: ${spacing['3xl']};
+  padding-bottom: ${spacing.xl};
+  border-bottom: 1px solid ${colors.neutral[200]};
+  animation: ${fadeInUp} 0.6s ease-out;
+
+  ${media['max-md']} {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: ${spacing.lg};
+  }
+`;
+
+const Title = styled.h1`
+  font-size: ${typography.fontSize['3xl']};
+  font-weight: ${typography.fontWeight.bold};
+  color: ${colors.neutral[900]};
+  margin-bottom: ${spacing.xs};
+  font-family: ${typography.fontFamily.heading};
+`;
+
+const Subtitle = styled.p`
+  font-size: ${typography.fontSize.lg};
+  color: ${colors.neutral[500]};
+`;
+
+const StatsRow = styled.div`
+  display: flex;
+  gap: ${spacing.md};
+`;
+
+const StatBadge = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${spacing.xs};
+  padding: ${spacing.sm} ${spacing.md};
+  background-color: ${props => props.$isPinned ? 'rgba(245, 158, 11, 0.1)' : 'white'};
+  border: 1px solid ${props => props.$isPinned ? 'rgba(245, 158, 11, 0.3)' : colors.neutral[200]};
+  border-radius: ${borderRadius.full};
+  font-size: ${typography.fontSize.sm};
+  color: ${props => props.$isPinned ? '#d97706' : colors.neutral[600]};
+  font-weight: ${typography.fontWeight.medium};
+`;
+
 const FormSection = styled.section`
   margin-bottom: ${spacing['4xl']};
-  animation: ${fadeInUp} 0.8s ease-out 1s both;
+  animation: ${fadeInUp} 0.8s ease-out 0.2s both;
 `;
 
 const ListSection = styled.section`
-  animation: ${fadeInUp} 0.8s ease-out 1.2s both;
+  animation: ${fadeInUp} 0.8s ease-out 0.4s both;
 `;
 
 const SectionTitle = styled.h2`
   display: flex;
   align-items: center;
-  gap: ${spacing.lg};
+  gap: ${spacing.md};
   color: ${colors.neutral[800]};
-  font-size: ${typography.fontSize['2xl']};
+  font-size: ${typography.fontSize.xl};
   font-weight: ${typography.fontWeight.bold};
-  margin-bottom: ${spacing['2xl']};
+  margin-bottom: ${spacing.xl};
   font-family: ${typography.fontFamily.heading};
-  
-  ${media['max-md']} {
-    font-size: ${typography.fontSize.xl};
-    margin-bottom: ${spacing.xl};
-  }
 `;
 
 const SectionIcon = styled.span`
   font-size: ${typography.fontSize['2xl']};
-  
-  ${media['max-md']} {
-    font-size: ${typography.fontSize.xl};
-  }
 `;
 
 const FormCard = styled.div`
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: ${borderRadius['2xl']};
-  box-shadow: ${shadows.lg};
-  padding: ${spacing['3xl']};
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: white;
+  border-radius: ${borderRadius.xl};
+  box-shadow: ${shadows.md};
+  padding: ${spacing['2xl']};
+  border: 1px solid ${colors.neutral[200]};
   
   ${media['max-md']} {
-    padding: ${spacing['2xl']};
+    padding: ${spacing.xl};
   }
 `;
 
 const Form = styled.form`
   display: flex;
   flex-direction: column;
-  gap: ${spacing['2xl']};
+  gap: ${spacing.xl};
 `;
 
 const FormGroup = styled.div`
   display: flex;
   flex-direction: column;
-  gap: ${spacing.lg};
+  gap: ${spacing.sm};
 `;
 
 const Label = styled.label`
   color: ${colors.neutral[700]};
-  font-size: ${typography.fontSize.lg};
+  font-size: ${typography.fontSize.base};
   font-weight: ${typography.fontWeight.semibold};
-  
-  ${media['max-md']} {
-    font-size: ${typography.fontSize.base};
-  }
 `;
 
 const Input = styled.input`
-  padding: ${spacing.lg};
-  border: 2px solid ${colors.neutral[200]};
-  border-radius: ${borderRadius.xl};
+  padding: ${spacing.md};
+  border: 1px solid ${colors.neutral[300]};
+  border-radius: ${borderRadius.lg};
   font-size: ${typography.fontSize.base};
-  transition: all 0.3s ease;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
+  transition: all 0.2s ease;
   
   &:focus {
     outline: none;
-    border-color: ${colors.primary[400]};
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    background: rgba(255, 255, 255, 0.95);
+    border-color: ${colors.primary[500]};
+    box-shadow: 0 0 0 2px ${colors.primary[100]};
   }
   
   &:disabled {
     background: ${colors.neutral[100]};
     color: ${colors.neutral[500]};
-    cursor: not-allowed;
-  }
-  
-  &::placeholder {
-    color: ${colors.neutral[400]};
   }
 `;
 
 const PrayerItemsContainer = styled.div`
   display: flex;
   flex-direction: column;
-  gap: ${spacing.lg};
+  gap: ${spacing.md};
 `;
 
 const PrayerItemGroup = styled.div`
   display: flex;
-  align-items: center;
-  gap: ${spacing.md};
-  background: rgba(255, 255, 255, 0.6);
-  border-radius: ${borderRadius.xl};
-  padding: ${spacing.md};
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  align-items: flex-start;
+  gap: ${spacing.sm};
 `;
 
 const PrayerItemNumber = styled.div`
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
   border-radius: ${borderRadius.full};
-  background: ${colors.gradients.primary};
+  background: ${colors.primary[100]};
+  color: ${colors.primary[700]};
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  font-size: ${typography.fontSize.sm};
+  font-size: ${typography.fontSize.xs};
   font-weight: ${typography.fontWeight.bold};
+  margin-top: 10px;
   flex-shrink: 0;
 `;
 
 const RemoveButton = styled.button`
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
   border-radius: ${borderRadius.full};
   border: none;
-  background: ${colors.red[500]};
-  color: white;
+  background: ${colors.neutral[200]};
+  color: ${colors.neutral[600]};
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
-  flex-shrink: 0;
+  transition: all 0.2s;
+  margin-top: 10px;
   
   &:hover {
-    background: ${colors.red[600]};
-    transform: scale(1.1);
+    background: ${colors.red[100]};
+    color: ${colors.red[600]};
   }
 `;
 
 const RemoveIcon = styled.span`
-  font-size: ${typography.fontSize.lg};
-  font-weight: bold;
+  line-height: 1;
 `;
 
 const PrayerInput = styled.textarea`
   flex: 1;
-  padding: ${spacing.lg};
-  border: none;
+  padding: ${spacing.md};
+  border: 1px solid ${colors.neutral[300]};
   border-radius: ${borderRadius.lg};
   font-size: ${typography.fontSize.base};
-  background: transparent;
   resize: vertical;
-  min-height: 60px;
-  font-family: inherit;
+  min-height: 48px;
   line-height: 1.5;
+  transition: all 0.2s;
   
   &:focus {
     outline: none;
-  }
-  
-  &::placeholder {
-    color: ${colors.neutral[400]};
+    border-color: ${colors.primary[500]};
+    box-shadow: 0 0 0 2px ${colors.primary[100]};
   }
 `;
 
 const AddButton = styled.button`
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: ${spacing.sm};
-  padding: ${spacing.lg};
-  border: 2px dashed ${colors.primary[300]};
-  border-radius: ${borderRadius.xl};
-  background: rgba(59, 130, 246, 0.05);
-  color: ${colors.primary[600]};
+  padding: ${spacing.md};
+  border: 1px dashed ${colors.neutral[300]};
+  border-radius: ${borderRadius.lg};
+  background: white;
+  color: ${colors.neutral[600]};
   cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: ${typography.fontSize.base};
-  font-weight: ${typography.fontWeight.medium};
+  transition: all 0.2s;
+  font-size: ${typography.fontSize.sm};
   
   &:hover {
-    border-color: ${colors.primary[400]};
-    background: rgba(59, 130, 246, 0.1);
-    transform: translateY(-2px);
+    border-color: ${colors.primary[500]};
+    color: ${colors.primary[600]};
+    background: ${colors.primary[50]};
   }
 `;
 
-const AddIcon = styled.span`
-  font-size: ${typography.fontSize.lg};
-  font-weight: bold;
-`;
-
+const AddIcon = styled.span``;
 const AddText = styled.span``;
 
 const ButtonGroup = styled.div`
   display: flex;
-  gap: ${spacing.lg};
-  
-  ${media['max-md']} {
-    flex-direction: column;
-  }
+  gap: ${spacing.md};
 `;
 
 const SubmitButton = styled.button`
@@ -962,55 +761,44 @@ const SubmitButton = styled.button`
   align-items: center;
   justify-content: center;
   gap: ${spacing.sm};
-  padding: ${spacing.lg} ${spacing.xl};
-  background: ${colors.gradients.primary};
+  padding: ${spacing.md};
+  background: ${colors.primary[600]};
   color: white;
   border: none;
-  border-radius: ${borderRadius.xl};
+  border-radius: ${borderRadius.lg};
   font-size: ${typography.fontSize.base};
-  font-weight: ${typography.fontWeight.semibold};
+  font-weight: ${typography.fontWeight.medium};
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background 0.2s;
   
   &:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: ${shadows.lg};
+    background: ${colors.primary[700]};
   }
   
   &:disabled {
     opacity: 0.7;
     cursor: not-allowed;
-    transform: none;
   }
 `;
 
 const ClearButton = styled.button`
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: ${spacing.sm};
-  padding: ${spacing.lg} ${spacing.xl};
-  background: rgba(255, 255, 255, 0.8);
+  padding: ${spacing.md} ${spacing.xl};
+  background: white;
   color: ${colors.neutral[600]};
-  border: 2px solid ${colors.neutral[300]};
-  border-radius: ${borderRadius.xl};
+  border: 1px solid ${colors.neutral[300]};
+  border-radius: ${borderRadius.lg};
   font-size: ${typography.fontSize.base};
-  font-weight: ${typography.fontWeight.semibold};
+  font-weight: ${typography.fontWeight.medium};
   cursor: pointer;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
+  transition: all 0.2s;
   
   &:hover {
-    background: rgba(255, 255, 255, 0.95);
+    background: ${colors.neutral[50]};
     border-color: ${colors.neutral[400]};
-    transform: translateY(-2px);
   }
 `;
 
-const ButtonIcon = styled.span`
-  font-size: ${typography.fontSize.base};
-`;
+const ButtonIcon = styled.span``;
 
 const LoadingSpinner = styled.div`
   width: 20px;
@@ -1025,271 +813,218 @@ const LoadingContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: ${spacing.lg};
+  gap: ${spacing.md};
   padding: ${spacing['4xl']};
-  color: ${colors.neutral[600]};
+  color: ${colors.neutral[500]};
 `;
 
-const LoadingText = styled.p`
-  font-size: ${typography.fontSize.lg};
-  font-weight: ${typography.fontWeight.medium};
-`;
+const LoadingText = styled.p``;
 
 const EmptyState = styled.div`
   text-align: center;
   padding: ${spacing['4xl']};
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: ${borderRadius['2xl']};
-  box-shadow: ${shadows.lg};
+  background: white;
+  border-radius: ${borderRadius.xl};
+  border: 1px dashed ${colors.neutral[300]};
 `;
 
 const EmptyIcon = styled.div`
   font-size: ${typography.fontSize['4xl']};
-  margin-bottom: ${spacing.lg};
-  animation: ${pulse} 2s ease-in-out infinite;
+  margin-bottom: ${spacing.md};
+  opacity: 0.5;
 `;
 
 const EmptyTitle = styled.h3`
-  color: ${colors.neutral[700]};
-  font-size: ${typography.fontSize.xl};
+  color: ${colors.neutral[800]};
+  font-size: ${typography.fontSize.lg};
   font-weight: ${typography.fontWeight.bold};
-  margin-bottom: ${spacing.sm};
-  font-family: ${typography.fontFamily.heading};
+  margin-bottom: ${spacing.xs};
 `;
 
 const EmptyDescription = styled.p`
   color: ${colors.neutral[500]};
-  font-size: ${typography.fontSize.base};
 `;
 
 const PrayerList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: ${spacing.xl};
+  gap: ${spacing.md};
 `;
 
 const PrayerCard = styled.div`
-  position: relative;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: ${borderRadius['2xl']};
-  box-shadow: ${props => props.isPinned ? shadows['2xl'] : shadows.lg};
+  background: white;
+  border-radius: ${borderRadius.xl};
+  box-shadow: ${shadows.sm};
+  border: 1px solid ${props => props.isPinned ? colors.amber[200] : colors.neutral[200]};
   overflow: hidden;
-  transition: all 0.4s ease;
-  ${props => css`
-    animation: ${fadeInUp} 0.8s ease-out ${1.4 + props.delay}s both;
-  `}
-  border: ${props => props.isPinned 
-    ? '2px solid rgba(251, 191, 36, 0.5)'
-    : '1px solid rgba(255, 255, 255, 0.3)'
-  };
+  transition: all 0.2s;
+  background-color: ${props => props.isPinned ? colors.amber[50] : 'white'};
   
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: ${shadows['2xl']};
+    box-shadow: ${shadows.md};
+    transform: translateY(-2px);
   }
-  
-  ${props => props.isPinned && css`
-    &::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-      z-index: 10;
-    }
-  `}
 `;
 
 const CardHeader = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: ${spacing['2xl']};
+  padding: ${spacing.lg};
   cursor: pointer;
-  transition: background 0.3s ease;
-  
-  &:hover {
-    background: rgba(255, 255, 255, 0.5);
-  }
-  
-  ${media['max-md']} {
-    padding: ${spacing.xl};
-  }
 `;
 
 const PersonInfo = styled.div`
   display: flex;
   align-items: center;
-  gap: ${spacing.lg};
+  gap: ${spacing.md};
 `;
 
 const PersonAvatar = styled.div`
-  width: 50px;
-  height: 50px;
+  width: 40px;
+  height: 40px;
   border-radius: ${borderRadius.full};
-  background: ${props => props.isPinned 
-    ? 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)'
-    : colors.gradients.primary
-  };
+  background: ${props => props.isPinned ? colors.amber[100] : colors.primary[100]};
+  color: ${props => props.isPinned ? colors.amber[600] : colors.primary[600]};
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: ${props => props.isPinned ? shadows.lg : shadows.sm};
-  transition: all 0.3s ease;
-  
-  ${media['max-md']} {
-    width: 40px;
-    height: 40px;
-  }
 `;
 
 const AvatarText = styled.span`
-  color: white;
   font-size: ${typography.fontSize.lg};
   font-weight: ${typography.fontWeight.bold};
-  
-  ${media['max-md']} {
-    font-size: ${typography.fontSize.base};
-  }
 `;
 
 const PersonDetails = styled.div`
   display: flex;
   flex-direction: column;
-  gap: ${spacing.xs};
 `;
 
 const PersonName = styled.h3`
-  color: ${colors.neutral[800]};
-  font-size: ${typography.fontSize.xl};
+  color: ${colors.neutral[900]};
+  font-size: ${typography.fontSize.lg};
   font-weight: ${typography.fontWeight.bold};
-  margin: 0;
-  font-family: ${typography.fontFamily.heading};
-  
-  ${media['max-md']} {
-    font-size: ${typography.fontSize.lg};
-  }
 `;
 
 const UpdatedDate = styled.p`
   color: ${colors.neutral[500]};
-  font-size: ${typography.fontSize.sm};
-  margin: 0;
+  font-size: ${typography.fontSize.xs};
+`;
+
+const PinStatus = styled.span`
+  font-size: ${typography.fontSize.xs};
+  color: ${colors.amber[600]};
+  font-weight: ${typography.fontWeight.medium};
 `;
 
 const CardActions = styled.div`
   display: flex;
   align-items: center;
-  gap: ${spacing.sm};
+  gap: ${spacing.xs};
 `;
 
-const EditButton = styled.button`
-  width: 40px;
-  height: 40px;
+const PinButton = styled.button`
+  width: 32px;
+  height: 32px;
   border-radius: ${borderRadius.lg};
   border: none;
-  background: rgba(59, 130, 246, 0.1);
-  color: ${colors.primary[600]};
+  background: ${props => props.isPinned ? colors.amber[100] : 'transparent'};
+  color: ${props => props.isPinned ? colors.amber[600] : colors.neutral[400]};
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  transition: all 0.2s;
   
   &:hover {
-    background: rgba(59, 130, 246, 0.2);
-    transform: scale(1.1);
+    background: ${colors.amber[50]};
+    color: ${colors.amber[600]};
+  }
+`;
+
+const EditButton = styled.button`
+  width: 32px;
+  height: 32px;
+  border-radius: ${borderRadius.lg};
+  border: none;
+  background: transparent;
+  color: ${colors.neutral[400]};
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  
+  &:hover {
+    background: ${colors.blue[50]};
+    color: ${colors.blue[600]};
   }
 `;
 
 const DeleteButton = styled.button`
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: ${borderRadius.lg};
   border: none;
-  background: rgba(239, 68, 68, 0.1);
-  color: ${colors.red[600]};
+  background: transparent;
+  color: ${colors.neutral[400]};
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  transition: all 0.2s;
   
-  &:hover:not(:disabled) {
-    background: rgba(239, 68, 68, 0.2);
-    transform: scale(1.1);
-  }
-  
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
+  &:hover {
+    background: ${colors.red[50]};
+    color: ${colors.red[600]};
   }
 `;
 
-const ActionIcon = styled.span`
-  font-size: ${typography.fontSize.base};
-`;
+const ActionIcon = styled.span``;
 
 const ToggleIcon = styled.div`
-  font-size: ${typography.fontSize.lg};
-  color: ${colors.neutral[500]};
-  margin-left: ${spacing.sm};
-  transition: transform 0.3s ease;
+  color: ${colors.neutral[400]};
+  margin-left: ${spacing.xs};
+  transition: transform 0.2s ease;
   transform: ${props => props.isOpen ? 'rotate(180deg)' : 'rotate(0deg)'};
 `;
 
 const PrayerContent = styled.div`
   max-height: ${props => props.isOpen ? '1000px' : '0'};
   overflow: hidden;
-  transition: max-height 0.5s ease;
-  padding: ${props => props.isOpen ? `0 ${spacing['2xl']} ${spacing['2xl']}` : '0'};
-  
-  ${media['max-md']} {
-    padding: ${props => props.isOpen ? `0 ${spacing.xl} ${spacing.xl}` : '0'};
-  }
+  transition: max-height 0.3s ease;
+  padding: ${props => props.isOpen ? `0 ${spacing.lg} ${spacing.lg}` : '0'};
+  border-top: ${props => props.isOpen ? `1px solid ${colors.neutral[100]}` : 'none'};
 `;
 
 const PrayerItemCard = styled.div`
   display: flex;
   align-items: flex-start;
-  gap: ${spacing.lg};
-  padding: ${spacing.lg};
-  background: rgba(255, 255, 255, 0.6);
-  border-radius: ${borderRadius.xl};
-  margin-bottom: ${spacing.lg};
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  
-  &:last-child {
-    margin-bottom: 0;
-  }
+  gap: ${spacing.md};
+  padding-top: ${spacing.md};
 `;
 
 const ItemNumber = styled.div`
-  width: 28px;
-  height: 28px;
+  width: 20px;
+  height: 20px;
   border-radius: ${borderRadius.full};
-  background: ${colors.gradients.secondary};
+  background: ${colors.neutral[200]};
+  color: ${colors.neutral[600]};
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  font-size: ${typography.fontSize.sm};
+  font-size: ${typography.fontSize.xs};
   font-weight: ${typography.fontWeight.bold};
   flex-shrink: 0;
+  margin-top: 2px;
 `;
 
 const PrayerItemText = styled.p`
-  color: ${colors.neutral[700]};
+  color: ${colors.neutral[800]};
   font-size: ${typography.fontSize.base};
-  line-height: ${typography.lineHeight.relaxed};
-  margin: 0;
-  flex: 1;
+  line-height: 1.6;
 `;
 
 const DeleteModal = styled.div`
@@ -1299,53 +1034,55 @@ const DeleteModal = styled.div`
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(5px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  animation: ${fadeIn} 0.3s ease-out;
+  animation: ${fadeIn} 0.2s ease-out;
 `;
 
 const ModalContent = styled.div`
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: ${borderRadius['2xl']};
-  padding: ${spacing['3xl']};
+  background: white;
+  border-radius: ${borderRadius.xl};
+  padding: ${spacing['2xl']};
   max-width: 400px;
   width: 90%;
   text-align: center;
-  box-shadow: ${shadows['2xl']};
-  animation: ${fadeInUp} 0.3s ease-out;
+  box-shadow: ${shadows.xl};
 `;
 
 const ModalIcon = styled.div`
-  font-size: ${typography.fontSize['4xl']};
-  margin-bottom: ${spacing.lg};
+  font-size: ${typography.fontSize['3xl']};
+  margin-bottom: ${spacing.md};
 `;
 
 const ModalTitle = styled.h3`
-  color: ${colors.neutral[800]};
+  color: ${colors.neutral[900]};
   font-size: ${typography.fontSize.xl};
   font-weight: ${typography.fontWeight.bold};
-  margin-bottom: ${spacing.lg};
-  font-family: ${typography.fontFamily.heading};
+  margin-bottom: ${spacing.sm};
 `;
 
-const ModalDescription = styled.p`
+const ModalDescription = styled.div`
   color: ${colors.neutral[600]};
-  font-size: ${typography.fontSize.base};
-  line-height: ${typography.lineHeight.relaxed};
-  margin-bottom: ${spacing['2xl']};
+  margin-bottom: ${spacing.xl};
+`;
+
+const DeleteWarning = styled.div`
+  color: ${colors.red[500]};
+  font-size: ${typography.fontSize.sm};
+  margin-top: ${spacing.sm};
+`;
+
+const DeletingText = styled.div`
+  color: ${colors.blue[500]};
+  font-size: ${typography.fontSize.sm};
+  margin-top: ${spacing.sm};
 `;
 
 const ModalButtons = styled.div`
   display: flex;
-  gap: ${spacing.lg};
-  
-  ${media['max-md']} {
-    flex-direction: column;
-  }
+  gap: ${spacing.md};
 `;
 
 const DeleteConfirmButton = styled.button`
@@ -1354,19 +1091,21 @@ const DeleteConfirmButton = styled.button`
   align-items: center;
   justify-content: center;
   gap: ${spacing.sm};
-  padding: ${spacing.lg};
+  padding: ${spacing.md};
   background: ${colors.red[500]};
   color: white;
   border: none;
-  border-radius: ${borderRadius.xl};
-  font-size: ${typography.fontSize.base};
-  font-weight: ${typography.fontWeight.semibold};
+  border-radius: ${borderRadius.lg};
+  font-weight: ${typography.fontWeight.medium};
   cursor: pointer;
-  transition: all 0.3s ease;
   
-  &:hover {
+  &:hover:not(:disabled) {
     background: ${colors.red[600]};
-    transform: translateY(-2px);
+  }
+  
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
   }
 `;
 
@@ -1376,84 +1115,17 @@ const ModalCancelButton = styled.button`
   align-items: center;
   justify-content: center;
   gap: ${spacing.sm};
-  padding: ${spacing.lg};
-  background: rgba(255, 255, 255, 0.8);
-  color: ${colors.neutral[600]};
-  border: 2px solid ${colors.neutral[300]};
-  border-radius: ${borderRadius.xl};
-  font-size: ${typography.fontSize.base};
-  font-weight: ${typography.fontWeight.semibold};
-  cursor: pointer;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
-  
-  &:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.95);
-    border-color: ${colors.neutral[400]};
-    transform: translateY(-2px);
-  }
-  
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-  }
-`;
-
-const DeleteWarning = styled.span`
-  color: ${colors.red[600]};
-  font-weight: ${typography.fontWeight.semibold};
-  font-size: ${typography.fontSize.sm};
-`;
-
-const DeletingText = styled.div`
-  color: ${colors.primary[600]};
-  font-weight: ${typography.fontWeight.medium};
-  margin-top: ${spacing.md};
-  font-size: ${typography.fontSize.sm};
-`;
-
-// 핀 기능을 위한 새로운 스타일 컴포넌트들
-const PinButton = styled.button`
-  width: 40px;
-  height: 40px;
+  padding: ${spacing.md};
+  background: white;
+  color: ${colors.neutral[700]};
+  border: 1px solid ${colors.neutral[300]};
   border-radius: ${borderRadius.lg};
-  border: none;
-  background: ${props => props.isPinned 
-    ? 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)'
-    : 'rgba(156, 163, 175, 0.1)'
-  };
-  color: ${props => props.isPinned ? 'white' : colors.neutral[500]};
+  font-weight: ${typography.fontWeight.medium};
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-  box-shadow: ${props => props.isPinned ? shadows.md : 'none'};
   
   &:hover:not(:disabled) {
-    background: ${props => props.isPinned 
-      ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'
-      : 'rgba(156, 163, 175, 0.2)'
-    };
-    transform: scale(1.1);
+    background: ${colors.neutral[50]};
   }
-  
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-  }
-`;
-
-const PinStatus = styled.span`
-  color: #f59e0b;
-  font-size: ${typography.fontSize.xs};
-  font-weight: ${typography.fontWeight.semibold};
-  display: flex;
-  align-items: center;
-  gap: ${spacing.xs};
-  margin-top: ${spacing.xs};
 `;
 
 export default Prayer;

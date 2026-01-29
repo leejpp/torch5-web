@@ -1,193 +1,117 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { Outlet, Link, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
-import { Link, Outlet, useLocation } from 'react-router-dom';
 import { colors, typography, spacing, shadows, borderRadius, media } from '../styles/designSystem';
 
 const MainAdminLayout = () => {
-    const location = useLocation();
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const location = useLocation();
 
-    return (
-        <Container>
-            <Header>
-                <HeaderContent>
-                    <BackToPortal to="/admin">⬅︎ 전체 관리자</BackToPortal>
-                    <HomeLink to="/admin/main">
-                        <Logo>TorchChurch 본당 관리자</Logo>
-                    </HomeLink>
-                    <MenuButton onClick={() => setIsMenuOpen(!isMenuOpen)}>
-                        <MenuIcon>{isMenuOpen ? '✕' : '☰'}</MenuIcon>
-                    </MenuButton>
-                    <Nav $isOpen={isMenuOpen}>
-                        <NavLink to="/admin/main/members" $isActive={location.pathname === '/admin/main/members'}>성도 관리</NavLink>
-                    </Nav>
-                </HeaderContent>
-            </Header>
-            <Main>
-                <Outlet />
-            </Main>
-            <Footer>
-                <FooterContent>
-                    <FooterText>© 2026 TorchChurch 본당 관리자. All rights reserved.</FooterText>
-                </FooterContent>
-            </Footer>
-        </Container>
-    );
+  return (
+    <LayoutContainer>
+      <Header>
+        <HeaderContent>
+          <BackToPortal to="/admin">⬅︎ 전체 관리자</BackToPortal>
+          <Title to="/admin/main">⛪️ 횃불교회 본당</Title>
+          <Nav>
+            <NavLink to="/admin/main/members" $isActive={location.pathname.includes('/members')}>성도 관리</NavLink>
+            <NavLink to="/admin/main/schedule" $isActive={location.pathname.includes('/schedule')}>일정 관리</NavLink>
+          </Nav>
+        </HeaderContent>
+      </Header>
+      <Main>
+        <Outlet />
+      </Main>
+    </LayoutContainer>
+  );
 };
 
-const Container = styled.div`
+const LayoutContainer = styled.div`
   min-height: 100vh;
+  background-color: ${colors.background};
   display: flex;
   flex-direction: column;
-  background-color: ${colors.neutral[50]};
 `;
 
 const Header = styled.header`
-  background: linear-gradient(135deg, ${colors.primary[800]} 0%, ${colors.primary[600]} 100%);
-  color: white;
-  box-shadow: ${shadows.lg};
+  background: white;
+  border-bottom: 1px solid ${colors.neutral[200]};
+  padding: ${spacing.md} 0;
+  box-shadow: ${shadows.sm};
   position: sticky;
   top: 0;
   z-index: 100;
-  
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: rgba(255, 255, 255, 0.1);
-  }
 `;
 
 const HeaderContent = styled.div`
-  max-width: 1400px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: ${spacing.md} ${spacing.xl};
+  padding: 0 ${spacing.lg};
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  
+  gap: ${spacing.xl};
+
   ${media['max-md']} {
-    padding: ${spacing.md};
+    flex-direction: column;
+    gap: ${spacing.md};
   }
 `;
 
 const BackToPortal = styled(Link)`
-  color: rgba(255, 255, 255, 0.7);
+  color: ${colors.neutral[500]};
   text-decoration: none;
   font-size: ${typography.fontSize.sm};
-  margin-right: ${spacing.lg};
   display: flex;
   align-items: center;
   gap: 4px;
-  transition: color 0.2s;
   
   &:hover {
-    color: white;
+    color: ${colors.neutral[800]};
   }
 `;
 
-const HomeLink = styled(Link)`
-  text-decoration: none;
-`;
-
-const Logo = styled.h1`
+const Title = styled(Link)`
   font-size: ${typography.fontSize.xl};
   font-weight: ${typography.fontWeight.bold};
-  color: white;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: ${spacing.sm};
-  
-  &::before {
-    content: '⛪️';
-    font-size: ${typography.fontSize.xl};
-  }
-`;
-
-const MenuButton = styled.button`
-  display: none;
-  background: none;
-  border: none;
-  color: white;
-  font-size: 1.5rem;
-  cursor: pointer;
+  color: ${colors.primary[600]};
+  text-decoration: none;
+  margin-right: auto;
   
   ${media['max-md']} {
-    display: block;
+    margin-right: 0;
   }
-`;
-
-const MenuIcon = styled.span`
-  display: block;
-  line-height: 1;
 `;
 
 const Nav = styled.nav`
   display: flex;
-  gap: ${spacing.md};
+  gap: ${spacing.sm};
   
   ${media['max-md']} {
-    display: ${props => props.$isOpen ? 'flex' : 'none'};
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: ${colors.primary[800]};
-    padding: ${spacing.md};
-    flex-direction: column;
-    box-shadow: ${shadows.lg};
+    gap: ${spacing.xs};
+    flex-wrap: wrap;
+    justify-content: center;
   }
 `;
 
 const NavLink = styled(Link)`
-  color: rgba(255, 255, 255, 0.9);
   text-decoration: none;
-  font-weight: ${typography.fontWeight.medium};
-  font-size: ${typography.fontSize.sm};
-  padding: ${spacing.sm} ${spacing.md};
+  color: ${props => props.$isActive ? colors.primary[600] : colors.neutral[600]};
+  font-weight: ${props => props.$isActive ? typography.fontWeight.bold : typography.fontWeight.medium};
+  padding: ${spacing.xs} ${spacing.md};
   border-radius: ${borderRadius.md};
-  transition: all 0.2s ease;
-  background-color: ${props => props.$isActive ? 'rgba(255, 255, 255, 0.2)' : 'transparent'};
-  
+  transition: all 0.2s;
+  background-color: ${props => props.$isActive ? colors.primary[50] : 'transparent'};
+
   &:hover {
-    background-color: rgba(255, 255, 255, 0.15);
+    background-color: ${colors.neutral[100]};
+    color: ${colors.primary[600]};
   }
 `;
 
 const Main = styled.main`
   flex: 1;
   width: 100%;
-  max-width: 1400px;
   margin: 0 auto;
-  padding: ${spacing.xl};
-  
-  ${media['max-md']} {
-    padding: ${spacing.md};
-  }
-`;
-
-const Footer = styled.footer`
-  background: white;
-  padding: ${spacing.xl} 0;
-  margin-top: auto;
-  border-top: 1px solid ${colors.neutral[200]};
-`;
-
-const FooterContent = styled.div`
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 ${spacing.xl};
-  text-align: center;
-`;
-
-const FooterText = styled.p`
-  color: ${colors.neutral[500]};
-  font-size: ${typography.fontSize.sm};
-  margin: 0;
+  padding: 0;
 `;
 
 export default MainAdminLayout;

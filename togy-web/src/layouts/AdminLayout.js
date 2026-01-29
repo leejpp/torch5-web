@@ -1,227 +1,111 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { Outlet, Link, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
-import { Link, Outlet, useLocation } from 'react-router-dom';
 import { colors, typography, spacing, shadows, borderRadius, media } from '../styles/designSystem';
+
 const AdminLayout = () => {
   const location = useLocation();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <Container>
+    <LayoutContainer>
       <Header>
         <HeaderContent>
           <BackToPortal to="/admin">⬅︎ 전체 관리자</BackToPortal>
-          <HomeLink to="/admin/togy">
-            <Logo>TOGY 관리자</Logo>
-          </HomeLink>
-          <MenuButton onClick={() => setIsMenuOpen(!isMenuOpen)}>
-            <MenuIcon>{isMenuOpen ? '✕' : '☰'}</MenuIcon>
-          </MenuButton>
-          <Nav $isOpen={isMenuOpen}>
-            <NavLink to="/admin/togy/prayer" $isActive={location.pathname === '/admin/togy/prayer'}>중보기도</NavLink>
-            <NavLink to="/admin/togy/voices" $isActive={location.pathname === '/admin/togy/voices'}>마음의 소리</NavLink>
-            <NavLink to="/admin/togy/calendar" $isActive={location.pathname === '/admin/togy/calendar'}>일정관리</NavLink>
-            <NavLink to="/admin/togy/yearlythemes" $isActive={location.pathname === '/admin/togy/yearlythemes'}>연간테마</NavLink>
-            <NavLink to="/admin/togy/cells" $isActive={location.pathname === '/admin/togy/cells'}>셀 재편성</NavLink>
+          <Title to="/admin/togy">🔥 TOGY 청년부</Title>
+          <Nav>
+            <NavLink to="/admin/togy/prayer" $isActive={location.pathname.includes('/prayer')}>중보기도</NavLink>
+            <NavLink to="/admin/togy/voices" $isActive={location.pathname.includes('/voices')}>마음의 소리</NavLink>
+            <NavLink to="/admin/togy/yearlythemes" $isActive={location.pathname.includes('/yearlythemes')}>연간테마</NavLink>
+            <NavLink to="/admin/togy/cells" $isActive={location.pathname.includes('/cells')}>셀 재편성</NavLink>
           </Nav>
         </HeaderContent>
       </Header>
       <Main>
         <Outlet />
       </Main>
-      <Footer>
-        <FooterContent>
-          <FooterText>© 2026 TOGY 청년부 관리자. All rights reserved.</FooterText>
-        </FooterContent>
-      </Footer>
-    </Container>
+    </LayoutContainer>
   );
 };
 
-const Container = styled.div`
+const LayoutContainer = styled.div`
   min-height: 100vh;
+  background-color: ${colors.background};
   display: flex;
   flex-direction: column;
-  background-color: #f8f9fa;
 `;
 
 const Header = styled.header`
-  background: linear-gradient(135deg, ${colors.secondary[600]} 0%, ${colors.primary[600]} 100%);
-  color: white;
-  box-shadow: ${shadows.lg};
+  background: white;
+  border-bottom: 1px solid ${colors.neutral[200]};
+  padding: ${spacing.md} 0;
+  box-shadow: ${shadows.sm};
   position: sticky;
   top: 0;
   z-index: 100;
-  backdrop-filter: blur(10px);
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: 
-      radial-gradient(circle at 30% 70%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
-      radial-gradient(circle at 70% 30%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
-    pointer-events: none;
-  }
-  
-  &::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: ${colors.gradients.accent};
-  }
 `;
 
 const HeaderContent = styled.div`
   max-width: 1200px;
   margin: 0 auto;
-  padding: ${spacing.lg} ${spacing['2xl']};
+  padding: 0 ${spacing.lg};
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  position: relative;
-  z-index: 1;
-  
+  gap: ${spacing.xl};
+
   ${media['max-md']} {
-    padding: ${spacing.md} ${spacing.xl};
+    flex-direction: column;
+    gap: ${spacing.md};
   }
 `;
 
 const BackToPortal = styled(Link)`
-  color: rgba(255, 255, 255, 0.7);
+  color: ${colors.neutral[500]};
   text-decoration: none;
   font-size: ${typography.fontSize.sm};
-  margin-right: ${spacing.lg};
   display: flex;
   align-items: center;
   gap: 4px;
-  transition: color 0.2s;
   
   &:hover {
-    color: white;
-  }
-  
-  ${media['max-md']} {
-    // Mobile navigation visibility adjustment
+    color: ${colors.neutral[800]};
   }
 `;
 
-const HomeLink = styled(Link)`
+const Title = styled(Link)`
+  font-size: ${typography.fontSize.xl};
+  font-weight: ${typography.fontWeight.bold};
+  color: ${colors.primary[600]};
   text-decoration: none;
-`;
-
-const Logo = styled.h1`
-  font-size: ${typography.fontSize['2xl']};
-  font-weight: ${typography.fontWeight.extrabold};
-  font-family: ${typography.fontFamily.heading};
-  color: white;
-  margin: 0;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  display: flex;
-  align-items: center;
-  gap: ${spacing.sm};
-  
-  &::before {
-    content: '👑';
-    font-size: ${typography.fontSize.lg};
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-  }
+  margin-right: auto;
   
   ${media['max-md']} {
-    font-size: ${typography.fontSize.xl};
-    
-    &::before {
-      font-size: ${typography.fontSize.base};
-    }
+    margin-right: 0;
   }
-`;
-
-const MenuButton = styled.button`
-  display: none;
-  background: none;
-  border: none;
-  color: white;
-  font-size: 1.5rem;
-  cursor: pointer;
-  padding: 0.5rem;
-  
-  @media (max-width: 768px) {
-    display: block;
-  }
-`;
-
-const MenuIcon = styled.span`
-  display: block;
-  line-height: 1;
 `;
 
 const Nav = styled.nav`
   display: flex;
-  gap: ${spacing.xl};
+  gap: ${spacing.sm};
   
   ${media['max-md']} {
-    display: ${props => props.$isOpen ? 'flex' : 'none'};
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: linear-gradient(135deg, ${colors.secondary[700]} 0%, ${colors.primary[700]} 100%);
-    backdrop-filter: blur(20px);
-    padding: ${spacing.lg};
-    flex-direction: column;
-    gap: ${spacing.md};
-    box-shadow: ${shadows.xl};
-    border-top: 2px solid ${colors.gradients.accent};
+    gap: ${spacing.xs};
+    flex-wrap: wrap;
+    justify-content: center;
   }
 `;
 
 const NavLink = styled(Link)`
-  color: white;
   text-decoration: none;
-  font-weight: ${typography.fontWeight.bold};
-  font-size: ${typography.fontSize.base};
-  padding: ${spacing.sm} ${spacing.lg};
-  border-radius: ${borderRadius.lg};
-  transition: all 0.3s ease;
-  background-color: ${props => props.$isActive ? 'rgba(255, 255, 255, 0.3)' : 'transparent'};
-  backdrop-filter: blur(10px);
-  position: relative;
-  overflow: hidden;
-  border: 1px solid ${props => props.$isActive ? 'rgba(255, 255, 255, 0.3)' : 'transparent'};
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: ${colors.gradients.accent};
-    opacity: 0.2;
-    transition: left 0.5s ease;
-  }
-  
+  color: ${props => props.$isActive ? colors.primary[600] : colors.neutral[600]};
+  font-weight: ${props => props.$isActive ? typography.fontWeight.bold : typography.fontWeight.medium};
+  padding: ${spacing.xs} ${spacing.md};
+  border-radius: ${borderRadius.md};
+  transition: all 0.2s;
+  background-color: ${props => props.$isActive ? colors.primary[50] : 'transparent'};
+
   &:hover {
-    background-color: rgba(255, 255, 255, 0.3);
-    transform: translateY(-2px);
-    border-color: rgba(255, 255, 255, 0.4);
-    
-    &::before {
-      left: 100%;
-    }
-  }
-  
-  ${media['max-md']} {
-    font-size: ${typography.fontSize.sm};
-    width: 100%;
-    text-align: center;
-    padding: ${spacing.md} ${spacing.lg};
+    background-color: ${colors.neutral[100]};
+    color: ${colors.primary[600]};
   }
 `;
 
@@ -229,32 +113,7 @@ const Main = styled.main`
   flex: 1;
   width: 100%;
   margin: 0 auto;
-`;
-
-const Footer = styled.footer`
-  background: linear-gradient(135deg, ${colors.neutral[50]} 0%, ${colors.secondary[50]} 100%);
-  padding: ${spacing['2xl']} 0;
-  margin-top: auto;
-  border-top: 1px solid ${colors.neutral[200]};
-`;
-
-const FooterContent = styled.div`
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 ${spacing['2xl']};
-  text-align: center;
-`;
-
-const FooterText = styled.p`
-  color: ${colors.neutral[600]};
-  font-size: ${typography.fontSize.sm};
-  font-weight: ${typography.fontWeight.medium};
-  margin: 0;
-  
-  &::before {
-    content: '👑 ';
-    color: ${colors.secondary[500]};
-  }
+  padding: 0;
 `;
 
 export default AdminLayout;

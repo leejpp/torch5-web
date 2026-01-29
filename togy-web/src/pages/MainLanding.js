@@ -4,6 +4,12 @@ import { Link } from 'react-router-dom';
 import { colors, typography, spacing, borderRadius, shadows, media } from '../styles/designSystem';
 
 const MainLanding = () => {
+  const [openSection, setOpenSection] = React.useState('');
+
+  const toggleSection = (section) => {
+    setOpenSection(openSection === section ? '' : section);
+  };
+
   return (
     <Container>
       <ContentWrapper>
@@ -15,34 +21,124 @@ const MainLanding = () => {
 
         <AdminLink to="/admin">⚙️</AdminLink>
 
-        <ButtonGroup>
-          <PrimaryButton to="/togy">
-            <ButtonIcon>🌱</ButtonIcon>
-            <ButtonText>
-              <ButtonTitle>TOGY 청년부</ButtonTitle>
-              <ButtonDesc>Torch Of God Youth</ButtonDesc>
-            </ButtonText>
-            <ArrowIcon>→</ArrowIcon>
-          </PrimaryButton>
+        {/* 1. 횃불교회 (Torch Church) */}
+        <SectionGroup>
+          <AccordionHeader
+            isOpen={openSection === 'church'}
+            onClick={() => toggleSection('church')}
+          >
+            <HeaderIcon>⛪</HeaderIcon>
+            <HeaderText>
+              <HeaderTitle>횃불교회</HeaderTitle>
+              <HeaderDesc>Torch Church</HeaderDesc>
+            </HeaderText>
+            <HeaderArrow isOpen={openSection === 'church'}>▼</HeaderArrow>
+          </AccordionHeader>
 
-          <SecondaryButton to="/birthdays">
-            <ButtonIcon>🎂</ButtonIcon>
-            <ButtonText>
-              <ButtonTitle>전교인 생일 보기</ButtonTitle>
-              <ButtonDesc>Celebrating Together</ButtonDesc>
-            </ButtonText>
-            <ArrowIcon>→</ArrowIcon>
-          </SecondaryButton>
+          <AccordionContent isOpen={openSection === 'church'}>
+            <SubButton to="/schedule" style={{ borderColor: colors.primary[200] }}>
+              <ButtonIcon>📅</ButtonIcon>
+              <ButtonText>
+                <ButtonTitle>교회 일정 보기</ButtonTitle>
+                <ButtonDesc>Church Calendar</ButtonDesc>
+              </ButtonText>
+              <ArrowIcon>→</ArrowIcon>
+            </SubButton>
 
-          <SecondaryButton to="/talant-rank" style={{ borderColor: colors.primary[200] }}>
-            <ButtonIcon>🏆</ButtonIcon>
-            <ButtonText>
-              <ButtonTitle>달란트 랭킹 보기</ButtonTitle>
-              <ButtonDesc>Talant Hall of Fame</ButtonDesc>
-            </ButtonText>
-            <ArrowIcon>→</ArrowIcon>
-          </SecondaryButton>
-        </ButtonGroup>
+            <SubButton to="/birthdays">
+              <ButtonIcon>🎂</ButtonIcon>
+              <ButtonText>
+                <ButtonTitle>전교인 생일 보기</ButtonTitle>
+                <ButtonDesc>Celebrating Together</ButtonDesc>
+              </ButtonText>
+              <ArrowIcon>→</ArrowIcon>
+            </SubButton>
+          </AccordionContent>
+        </SectionGroup>
+
+        {/* 2. TOGY 청년부 (TOGY Youth) */}
+        <SectionGroup>
+          <AccordionHeader
+            isOpen={openSection === 'youth'}
+            onClick={() => toggleSection('youth')}
+            style={{ borderColor: colors.primary[400] }}
+          >
+            <HeaderIcon>🌱</HeaderIcon>
+            <HeaderText>
+              <HeaderTitle>TOGY 청년부</HeaderTitle>
+              <HeaderDesc>Torch Of God Youth</HeaderDesc>
+            </HeaderText>
+            <HeaderArrow isOpen={openSection === 'youth'}>▼</HeaderArrow>
+          </AccordionHeader>
+
+          <AccordionContent isOpen={openSection === 'youth'}>
+            <SubButton to="/togy" style={{ borderColor: colors.primary[400] }}>
+              <ButtonIcon>🏠</ButtonIcon>
+              <ButtonText>
+                <ButtonTitle>청년부 메인</ButtonTitle>
+                <ButtonDesc>Main Dashboard</ButtonDesc>
+              </ButtonText>
+              <ArrowIcon>→</ArrowIcon>
+            </SubButton>
+
+            <SubButton to="/togy/prayer" style={{ borderColor: colors.primary[400] }}>
+              <ButtonIcon>🙏</ButtonIcon>
+              <ButtonText>
+                <ButtonTitle>중보기도</ButtonTitle>
+                <ButtonDesc>Prayer Requests</ButtonDesc>
+              </ButtonText>
+              <ArrowIcon>→</ArrowIcon>
+            </SubButton>
+
+            <SubButton to="/togy/voices" style={{ borderColor: colors.primary[400] }}>
+              <ButtonIcon>💬</ButtonIcon>
+              <ButtonText>
+                <ButtonTitle>마음의 소리</ButtonTitle>
+                <ButtonDesc>Anonymous Voice</ButtonDesc>
+              </ButtonText>
+              <ArrowIcon>→</ArrowIcon>
+            </SubButton>
+          </AccordionContent>
+        </SectionGroup>
+
+        {/* 3. 교회학교 (Church School) */}
+        <SectionGroup>
+          <AccordionHeader
+            isOpen={openSection === 'school'}
+            onClick={() => toggleSection('school')}
+            style={{ borderColor: colors.secondary[200] }}
+          >
+            <HeaderIcon>🏫</HeaderIcon>
+            <HeaderText>
+              <HeaderTitle>교회학교</HeaderTitle>
+              <HeaderDesc>Church School</HeaderDesc>
+            </HeaderText>
+            <HeaderArrow isOpen={openSection === 'school'}>▼</HeaderArrow>
+          </AccordionHeader>
+
+          <AccordionContent isOpen={openSection === 'school'}>
+            <SubButton to="/talant-rank" style={{ borderColor: colors.secondary[200] }}>
+              <ButtonIcon>🏆</ButtonIcon>
+              <ButtonText>
+                <ButtonTitle>달란트 랭킹 보기</ButtonTitle>
+                <ButtonDesc>Talant Hall of Fame</ButtonDesc>
+              </ButtonText>
+              <ArrowIcon>→</ArrowIcon>
+            </SubButton>
+          </AccordionContent>
+        </SectionGroup>
+
+        <SocialSection>
+          <SocialTitle>Follow Us</SocialTitle>
+          <SocialLinks>
+            <SocialLink href="https://www.instagram.com/the__seomgim" target="_blank" rel="noopener noreferrer">
+              <SocialIcon>📷</SocialIcon> The섬김 중등부
+            </SocialLink>
+            <SocialLink href="https://www.youtube.com/@JR_worship" target="_blank" rel="noopener noreferrer">
+              <SocialIcon>📺</SocialIcon> JR워십
+            </SocialLink>
+          </SocialLinks>
+        </SocialSection>
 
         <Footer>
           © 2026 Torch Church. All rights reserved.
@@ -244,10 +340,150 @@ const ArrowIcon = styled.div`
   transition: all 0.3s ease;
 `;
 
+// Accordion Styles
+const SectionGroup = styled.div`
+  margin-bottom: ${spacing.md};
+  width: 100%;
+`;
+
+const AccordionHeader = styled.button`
+  display: flex;
+  align-items: center;
+  width: 100%;
+  background: white;
+  padding: ${spacing.lg}; // Slightly smaller than primary
+  border-radius: ${borderRadius.xl};
+  border: 1px solid ${colors.neutral[200]};
+  box-shadow: ${shadows.sm};
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+  position: relative;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: ${shadows.md};
+    border-color: ${colors.primary[200]};
+  }
+`;
+
+const HeaderIcon = styled.div`
+  font-size: ${typography.fontSize['2xl']};
+  margin-right: ${spacing.lg};
+`;
+
+const HeaderText = styled.div`
+  flex: 1;
+`;
+
+const HeaderTitle = styled.h3`
+  font-family: ${typography.fontFamily.heading};
+  font-size: ${typography.fontSize.lg}; 
+  font-weight: ${typography.fontWeight.bold};
+  color: ${colors.neutral[800]};
+  margin-bottom: 2px;
+`;
+
+const HeaderDesc = styled.p`
+  font-family: ${typography.fontFamily.body};
+  font-size: ${typography.fontSize.sm};
+  color: ${colors.neutral[500]};
+`;
+
+const HeaderArrow = styled.div`
+  font-size: ${typography.fontSize.sm};
+  color: ${colors.neutral[400]};
+  transition: transform 0.3s;
+  transform: rotate(${props => props.isOpen ? '180deg' : '0deg'});
+`;
+
+const AccordionContent = styled.div`
+  overflow: hidden;
+  max-height: ${props => props.isOpen ? '500px' : '0'};
+  opacity: ${props => props.isOpen ? '1' : '0'};
+  transform: translateY(${props => props.isOpen ? '0' : '-10px'});
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  gap: ${spacing.sm};
+  padding-top: ${props => props.isOpen ? spacing.sm : '0'};
+  padding-left: ${spacing.md}; // Indent content
+`;
+
+// SubButton (Based on SecondaryButton but smaller)
+const SubButton = styled(Link)`
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.8);
+  padding: ${spacing.md} ${spacing.lg};
+  border-radius: ${borderRadius.xl};
+  border: 1px solid ${colors.neutral[200]};
+  text-decoration: none;
+  transition: all 0.2s;
+
+  &:hover {
+    background: white;
+    transform: translateX(4px);
+    border-color: ${colors.primary[300]};
+    
+    & > div:last-child { // Arrow
+      transform: translateX(4px);
+      color: ${colors.primary[600]};
+    }
+  }
+`;
+
 const Footer = styled.footer`
   font-family: ${typography.fontFamily.body};
   font-size: ${typography.fontSize.sm};
   color: ${colors.neutral[400]};
+`;
+
+const SocialSection = styled.div`
+  margin-top: ${spacing.lg};
+  margin-bottom: ${spacing.xl};
+  animation: ${fadeInUp} 1s ease-out;
+`;
+
+const SocialTitle = styled.div`
+  font-size: 11px;
+  font-weight: ${typography.fontWeight.bold};
+  color: ${colors.neutral[400]};
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: ${spacing.md};
+`;
+
+const SocialLinks = styled.div`
+  display: flex;
+  justify-content: center;
+  gap: ${spacing.lg};
+`;
+
+const SocialLink = styled.a`
+  display: flex;
+  align-items: center;
+  font-size: ${typography.fontSize.sm};
+  color: ${colors.neutral[500]};
+  text-decoration: none;
+  transition: all 0.2s;
+  padding: 6px 12px;
+  border-radius: ${borderRadius.full};
+  background: white;
+  box-shadow: ${shadows.sm};
+  border: 1px solid ${colors.neutral[200]};
+
+  &:hover {
+    color: ${colors.primary[600]};
+    transform: translateY(-2px);
+    box-shadow: ${shadows.md};
+    border-color: ${colors.primary[200]};
+  }
+`;
+
+const SocialIcon = styled.span`
+  margin-right: 6px;
+  font-size: 1.1em;
 `;
 
 export default MainLanding;

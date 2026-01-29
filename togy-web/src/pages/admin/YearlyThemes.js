@@ -42,7 +42,7 @@ const YearlyThemes = () => {
     e.preventDefault();
     const yearStr = String(formData.year || '').trim();
     const themeStr = String(formData.theme || '').trim();
-    
+
     if (!yearStr || !themeStr || isSubmitting) return;
 
     const filteredDirection = formData.direction.filter(item => item.trim() !== '');
@@ -152,29 +152,14 @@ const YearlyThemes = () => {
 
   return (
     <Container>
-      <BackgroundOverlay />
-      
-      <Header>
-        <HeaderContent>
-          <AdminBadge>
-            <BadgeIcon>👑</BadgeIcon>
-            <BadgeText>관리자</BadgeText>
-          </AdminBadge>
-          
-          <TitleSection>
-            <HeaderIcon>📅</HeaderIcon>
-            <Title>연간 테마 관리</Title>
-            <Subtitle>청년부 연간 주제와 비전 관리</Subtitle>
-          </TitleSection>
-          
-          <StatsCard>
-            <StatsIcon>📊</StatsIcon>
-            <StatsText>총 {themes.length}개의 테마가 등록되어 있습니다</StatsText>
-          </StatsCard>
-        </HeaderContent>
-      </Header>
-
       <MainContent>
+        <HeaderSection>
+          <StatBadge>
+            <span>📊</span>
+            <span>총 {themes.length}개</span>
+          </StatBadge>
+        </HeaderSection>
+
         <FormSection>
           <SectionTitle>
             <SectionIcon>{editingTheme ? '✏️' : '➕'}</SectionIcon>
@@ -186,7 +171,7 @@ const YearlyThemes = () => {
               </AddButton>
             )}
           </SectionTitle>
-          
+
           {(showForm || editingTheme) && (
             <FormCard>
               <Form onSubmit={handleSubmit}>
@@ -195,7 +180,7 @@ const YearlyThemes = () => {
                   <Input
                     type="text"
                     value={formData.year}
-                    onChange={(e) => setFormData({...formData, year: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, year: e.target.value })}
                     placeholder="예: 2025"
                     required
                   />
@@ -205,7 +190,7 @@ const YearlyThemes = () => {
                   <Label>연간 주제</Label>
                   <ThemeTextarea
                     value={formData.theme}
-                    onChange={(e) => setFormData({...formData, theme: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, theme: e.target.value })}
                     placeholder="연간 주제를 입력하세요. 줄바꿈은 \n으로 표시됩니다."
                     required
                   />
@@ -231,7 +216,7 @@ const YearlyThemes = () => {
                         />
                       </DirectionGroup>
                     ))}
-                    
+
                     <AddDirectionButton type="button" onClick={addDirectionItem}>
                       <AddIcon>+</AddIcon>
                       <AddText>비전 추가</AddText>
@@ -294,7 +279,7 @@ const YearlyThemes = () => {
                       <EditButton onClick={() => handleEdit(theme)}>
                         <ActionIcon>✏️</ActionIcon>
                       </EditButton>
-                      <DeleteButton 
+                      <DeleteButton
                         onClick={() => setDeleteConfirm({ isOpen: true, themeId: theme.id })}
                         disabled={isSubmitting}
                       >
@@ -329,11 +314,11 @@ const YearlyThemes = () => {
             <ModalIcon>⚠️</ModalIcon>
             <ModalTitle>테마 삭제</ModalTitle>
             <ModalDescription>
-              정말 이 테마를 삭제하시겠습니까?<br/>
+              정말 이 테마를 삭제하시겠습니까?<br />
               <DeleteWarning>삭제된 데이터는 복구할 수 없습니다.</DeleteWarning>
             </ModalDescription>
             <ModalButtons>
-              <DeleteConfirmButton 
+              <DeleteConfirmButton
                 onClick={() => handleDelete(deleteConfirm.themeId)}
                 disabled={isSubmitting}
               >
@@ -349,7 +334,7 @@ const YearlyThemes = () => {
                   </>
                 )}
               </DeleteConfirmButton>
-              <ModalCancelButton 
+              <ModalCancelButton
                 onClick={() => setDeleteConfirm({ isOpen: false, themeId: null })}
                 disabled={isSubmitting}
               >
@@ -368,7 +353,7 @@ const YearlyThemes = () => {
 const fadeInUp = keyframes`
   from {
     opacity: 0;
-    transform: translateY(30px);
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
@@ -381,181 +366,15 @@ const fadeIn = keyframes`
   to { opacity: 1; }
 `;
 
-const float = keyframes`
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-`;
-
 const spin = keyframes`
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 `;
 
-const pulse = keyframes`
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.8;
-    transform: scale(1.05);
-  }
-`;
-
 // 스타일 컴포넌트
 const Container = styled.div`
   min-height: 100vh;
-  position: relative;
-  overflow-x: hidden;
-`;
-
-const BackgroundOverlay = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  z-index: -2;
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: 
-      radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
-      radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.05) 0%, transparent 50%),
-      radial-gradient(circle at 40% 60%, rgba(236, 72, 153, 0.03) 0%, transparent 50%);
-  }
-`;
-
-const Header = styled.header`
-  background: ${colors.gradients.primary};
-  position: relative;
-  overflow: hidden;
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: 
-      radial-gradient(circle at 30% 70%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-      radial-gradient(circle at 70% 30%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
-  }
-`;
-
-const HeaderContent = styled.div`
-  position: relative;
-  padding: ${spacing['4xl']} ${spacing['2xl']} ${spacing['3xl']};
-  text-align: center;
-  max-width: 1200px;
-  margin: 0 auto;
-  
-  ${media['max-md']} {
-    padding: ${spacing['3xl']} ${spacing.lg} ${spacing['2xl']};
-  }
-`;
-
-const AdminBadge = styled.div`
-  display: inline-flex;
-  align-items: center;
-  gap: ${spacing.sm};
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: ${borderRadius.full};
-  padding: ${spacing.sm} ${spacing.lg};
-  margin-bottom: ${spacing.xl};
-  animation: ${fadeInUp} 0.8s ease-out;
-`;
-
-const BadgeIcon = styled.span`
-  font-size: ${typography.fontSize.lg};
-`;
-
-const BadgeText = styled.span`
-  color: white;
-  font-size: ${typography.fontSize.sm};
-  font-weight: ${typography.fontWeight.semibold};
-`;
-
-const TitleSection = styled.div`
-  margin-bottom: ${spacing.xl};
-`;
-
-const HeaderIcon = styled.div`
-  font-size: ${typography.fontSize['4xl']};
-  margin-bottom: ${spacing.lg};
-  animation: ${float} 3s ease-in-out infinite, ${fadeInUp} 0.8s ease-out 0.2s both;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
-  
-  ${media['max-md']} {
-    font-size: ${typography.fontSize['3xl']};
-  }
-`;
-
-const Title = styled.h1`
-  color: white;
-  font-size: ${typography.fontSize['4xl']};
-  font-weight: ${typography.fontWeight.extrabold};
-  margin-bottom: ${spacing.sm};
-  font-family: ${typography.fontFamily.heading};
-  animation: ${fadeInUp} 0.8s ease-out 0.4s both;
-  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  
-  ${media['max-md']} {
-    font-size: ${typography.fontSize['2xl']};
-  }
-`;
-
-const Subtitle = styled.p`
-  color: rgba(255, 255, 255, 0.9);
-  font-size: ${typography.fontSize.xl};
-  font-weight: ${typography.fontWeight.medium};
-  animation: ${fadeInUp} 0.8s ease-out 0.6s both;
-  
-  ${media['max-md']} {
-    font-size: ${typography.fontSize.lg};
-  }
-`;
-
-const StatsCard = styled.div`
-  display: inline-flex;
-  align-items: center;
-  gap: ${spacing.sm};
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  border-radius: ${borderRadius.xl};
-  padding: ${spacing.lg} ${spacing.xl};
-  animation: ${fadeInUp} 0.8s ease-out 0.8s both;
-  
-  ${media['max-md']} {
-    padding: ${spacing.md} ${spacing.lg};
-  }
-`;
-
-const StatsIcon = styled.span`
-  font-size: ${typography.fontSize.lg};
-`;
-
-const StatsText = styled.span`
-  color: white;
-  font-size: ${typography.fontSize.base};
-  font-weight: ${typography.fontWeight.medium};
-  
-  ${media['max-md']} {
-    font-size: ${typography.fontSize.sm};
-  }
+  background-color: ${colors.background};
 `;
 
 const MainContent = styled.main`
@@ -568,265 +387,257 @@ const MainContent = styled.main`
   }
 `;
 
+const HeaderSection = styled.header`
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: ${spacing['3xl']};
+  padding-bottom: ${spacing.xl};
+  border-bottom: 1px solid ${colors.neutral[200]};
+  animation: ${fadeInUp} 0.6s ease-out;
+
+  ${media['max-md']} {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: ${spacing.lg};
+  }
+`;
+
+const Title = styled.h1`
+  font-size: ${typography.fontSize['3xl']};
+  font-weight: ${typography.fontWeight.bold};
+  color: ${colors.neutral[900]};
+  margin-bottom: ${spacing.xs};
+  font-family: ${typography.fontFamily.heading};
+`;
+
+const Subtitle = styled.p`
+  font-size: ${typography.fontSize.lg};
+  color: ${colors.neutral[500]};
+`;
+
+const StatBadge = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${spacing.xs};
+  padding: ${spacing.sm} ${spacing.md};
+  background-color: white;
+  border: 1px solid ${colors.neutral[200]};
+  border-radius: ${borderRadius.full};
+  font-size: ${typography.fontSize.sm};
+  color: ${colors.neutral[600]};
+  font-weight: ${typography.fontWeight.medium};
+`;
+
 const FormSection = styled.section`
   margin-bottom: ${spacing['4xl']};
-  animation: ${fadeInUp} 0.8s ease-out 1s both;
+  animation: ${fadeInUp} 0.8s ease-out 0.2s both;
 `;
 
 const ListSection = styled.section`
-  animation: ${fadeInUp} 0.8s ease-out 1.2s both;
+  animation: ${fadeInUp} 0.8s ease-out 0.4s both;
 `;
 
 const SectionTitle = styled.h2`
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: ${spacing.lg};
+  gap: ${spacing.md};
   color: ${colors.neutral[800]};
-  font-size: ${typography.fontSize['2xl']};
+  font-size: ${typography.fontSize.xl};
   font-weight: ${typography.fontWeight.bold};
-  margin-bottom: ${spacing['2xl']};
+  margin-bottom: ${spacing.xl};
   font-family: ${typography.fontFamily.heading};
-  
-  ${media['max-md']} {
-    font-size: ${typography.fontSize.xl};
-    margin-bottom: ${spacing.xl};
-    flex-direction: column;
-    align-items: flex-start;
-  }
+  justify-content: space-between;
 `;
 
 const SectionIcon = styled.span`
   font-size: ${typography.fontSize['2xl']};
-  margin-right: ${spacing.md};
-  
-  ${media['max-md']} {
-    font-size: ${typography.fontSize.xl};
-  }
+  margin-right: ${spacing.sm};
 `;
 
 const AddButton = styled.button`
   display: flex;
   align-items: center;
   gap: ${spacing.sm};
-  padding: ${spacing.md} ${spacing.lg};
-  background: ${colors.gradients.primary};
-  color: white;
-  border: none;
-  border-radius: ${borderRadius.xl};
+  padding: ${spacing.sm} ${spacing.md};
+  background: ${colors.primary[50]};
+  color: ${colors.primary[600]};
+  border: 1px solid ${colors.primary[200]};
+  border-radius: ${borderRadius.lg};
   font-size: ${typography.fontSize.sm};
-  font-weight: ${typography.fontWeight.semibold};
+  font-weight: ${typography.fontWeight.medium};
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: ${shadows.lg};
-  }
-  
-  ${media['max-md']} {
-    padding: ${spacing.sm} ${spacing.md};
+    background: ${colors.primary[100]};
+    transform: translateY(-1px);
   }
 `;
 
 const FormCard = styled.div`
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: ${borderRadius['2xl']};
-  box-shadow: ${shadows.lg};
-  padding: ${spacing['3xl']};
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: white;
+  border-radius: ${borderRadius.xl};
+  box-shadow: ${shadows.md};
+  padding: ${spacing['2xl']};
+  border: 1px solid ${colors.neutral[200]};
   
   ${media['max-md']} {
-    padding: ${spacing['2xl']};
+    padding: ${spacing.xl};
   }
 `;
 
 const Form = styled.form`
   display: flex;
   flex-direction: column;
-  gap: ${spacing['2xl']};
+  gap: ${spacing.xl};
 `;
 
 const FormGroup = styled.div`
   display: flex;
   flex-direction: column;
-  gap: ${spacing.lg};
+  gap: ${spacing.sm};
 `;
 
 const Label = styled.label`
   color: ${colors.neutral[700]};
-  font-size: ${typography.fontSize.lg};
+  font-size: ${typography.fontSize.base};
   font-weight: ${typography.fontWeight.semibold};
-  
-  ${media['max-md']} {
-    font-size: ${typography.fontSize.base};
-  }
 `;
 
 const Input = styled.input`
-  padding: ${spacing.lg};
-  border: 2px solid ${colors.neutral[200]};
-  border-radius: ${borderRadius.xl};
+  padding: ${spacing.md};
+  border: 1px solid ${colors.neutral[300]};
+  border-radius: ${borderRadius.lg};
   font-size: ${typography.fontSize.base};
-  transition: all 0.3s ease;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
+  transition: all 0.2s ease;
   
   &:focus {
     outline: none;
-    border-color: ${colors.primary[400]};
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    background: rgba(255, 255, 255, 0.95);
-  }
-  
-  &::placeholder {
-    color: ${colors.neutral[400]};
+    border-color: ${colors.primary[500]};
+    box-shadow: 0 0 0 2px ${colors.primary[100]};
   }
 `;
 
 const ThemeTextarea = styled.textarea`
-  padding: ${spacing.lg};
-  border: 2px solid ${colors.neutral[200]};
-  border-radius: ${borderRadius.xl};
+  padding: ${spacing.md};
+  border: 1px solid ${colors.neutral[300]};
+  border-radius: ${borderRadius.lg};
   font-size: ${typography.fontSize.base};
-  transition: all 0.3s ease;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
+  transition: all 0.2s ease;
   resize: vertical;
-  min-height: 100px;
-  font-family: inherit;
+  min-height: 80px;
   line-height: 1.5;
   
   &:focus {
     outline: none;
-    border-color: ${colors.primary[400]};
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    background: rgba(255, 255, 255, 0.95);
-  }
-  
-  &::placeholder {
-    color: ${colors.neutral[400]};
+    border-color: ${colors.primary[500]};
+    box-shadow: 0 0 0 2px ${colors.primary[100]};
   }
 `;
 
 const HelpText = styled.p`
   color: ${colors.neutral[500]};
-  font-size: ${typography.fontSize.sm};
-  margin: -${spacing.md} 0 0 0;
+  font-size: ${typography.fontSize.xs};
+  margin-left: ${spacing.xs};
 `;
 
 const DirectionContainer = styled.div`
   display: flex;
   flex-direction: column;
-  gap: ${spacing.lg};
+  gap: ${spacing.md};
 `;
 
 const DirectionGroup = styled.div`
   display: flex;
-  align-items: center;
-  gap: ${spacing.md};
-  background: rgba(255, 255, 255, 0.6);
-  border-radius: ${borderRadius.xl};
-  padding: ${spacing.md};
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  align-items: flex-start;
+  gap: ${spacing.sm};
 `;
 
 const DirectionNumber = styled.div`
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
   border-radius: ${borderRadius.full};
-  background: ${colors.gradients.primary};
+  background: ${colors.primary[100]};
+  color: ${colors.primary[700]};
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  font-size: ${typography.fontSize.sm};
+  font-size: ${typography.fontSize.xs};
   font-weight: ${typography.fontWeight.bold};
+  margin-top: 10px;
   flex-shrink: 0;
 `;
 
 const RemoveButton = styled.button`
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
   border-radius: ${borderRadius.full};
   border: none;
-  background: ${colors.red[500]};
-  color: white;
+  background: ${colors.neutral[200]};
+  color: ${colors.neutral[600]};
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
-  flex-shrink: 0;
+  transition: all 0.2s;
+  margin-top: 10px;
   
   &:hover {
-    background: ${colors.red[600]};
-    transform: scale(1.1);
+    background: ${colors.red[100]};
+    color: ${colors.red[600]};
   }
 `;
 
 const RemoveIcon = styled.span`
-  font-size: ${typography.fontSize.lg};
-  font-weight: bold;
+  line-height: 1;
 `;
 
 const DirectionInput = styled.textarea`
   flex: 1;
-  padding: ${spacing.lg};
-  border: none;
+  padding: ${spacing.md};
+  border: 1px solid ${colors.neutral[300]};
   border-radius: ${borderRadius.lg};
   font-size: ${typography.fontSize.base};
-  background: transparent;
   resize: vertical;
-  min-height: 60px;
-  font-family: inherit;
+  min-height: 48px;
   line-height: 1.5;
+  transition: all 0.2s;
   
   &:focus {
     outline: none;
-  }
-  
-  &::placeholder {
-    color: ${colors.neutral[400]};
+    border-color: ${colors.primary[500]};
+    box-shadow: 0 0 0 2px ${colors.primary[100]};
   }
 `;
 
 const AddDirectionButton = styled.button`
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: ${spacing.sm};
-  padding: ${spacing.lg};
-  border: 2px dashed ${colors.primary[300]};
-  border-radius: ${borderRadius.xl};
-  background: rgba(59, 130, 246, 0.05);
-  color: ${colors.primary[600]};
+  padding: ${spacing.md};
+  border: 1px dashed ${colors.neutral[300]};
+  border-radius: ${borderRadius.lg};
+  background: white;
+  color: ${colors.neutral[600]};
   cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: ${typography.fontSize.base};
-  font-weight: ${typography.fontWeight.medium};
+  transition: all 0.2s;
+  font-size: ${typography.fontSize.sm};
   
   &:hover {
-    border-color: ${colors.primary[400]};
-    background: rgba(59, 130, 246, 0.1);
-    transform: translateY(-2px);
+    border-color: ${colors.primary[500]};
+    color: ${colors.primary[600]};
+    background: ${colors.primary[50]};
   }
 `;
 
-const AddIcon = styled.span`
-  font-size: ${typography.fontSize.lg};
-  font-weight: bold;
-`;
-
+const AddIcon = styled.span``;
 const AddText = styled.span``;
 
 const ButtonGroup = styled.div`
   display: flex;
-  gap: ${spacing.lg};
-  
-  ${media['max-md']} {
-    flex-direction: column;
-  }
+  gap: ${spacing.md};
 `;
 
 const SubmitButton = styled.button`
@@ -835,55 +646,44 @@ const SubmitButton = styled.button`
   align-items: center;
   justify-content: center;
   gap: ${spacing.sm};
-  padding: ${spacing.lg} ${spacing.xl};
-  background: ${colors.gradients.primary};
+  padding: ${spacing.md};
+  background: ${colors.primary[600]};
   color: white;
   border: none;
-  border-radius: ${borderRadius.xl};
+  border-radius: ${borderRadius.lg};
   font-size: ${typography.fontSize.base};
-  font-weight: ${typography.fontWeight.semibold};
+  font-weight: ${typography.fontWeight.medium};
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background 0.2s;
   
   &:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: ${shadows.lg};
+    background: ${colors.primary[700]};
   }
   
   &:disabled {
     opacity: 0.7;
     cursor: not-allowed;
-    transform: none;
   }
 `;
 
 const CancelButton = styled.button`
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: ${spacing.sm};
-  padding: ${spacing.lg} ${spacing.xl};
-  background: rgba(255, 255, 255, 0.8);
+  padding: ${spacing.md} ${spacing.xl};
+  background: white;
   color: ${colors.neutral[600]};
-  border: 2px solid ${colors.neutral[300]};
-  border-radius: ${borderRadius.xl};
+  border: 1px solid ${colors.neutral[300]};
+  border-radius: ${borderRadius.lg};
   font-size: ${typography.fontSize.base};
-  font-weight: ${typography.fontWeight.semibold};
+  font-weight: ${typography.fontWeight.medium};
   cursor: pointer;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
+  transition: all 0.2s;
   
   &:hover {
-    background: rgba(255, 255, 255, 0.95);
+    background: ${colors.neutral[50]};
     border-color: ${colors.neutral[400]};
-    transform: translateY(-2px);
   }
 `;
 
-const ButtonIcon = styled.span`
-  font-size: ${typography.fontSize.base};
-`;
+const ButtonIcon = styled.span``;
 
 const LoadingSpinner = styled.div`
   width: 20px;
@@ -898,65 +698,58 @@ const LoadingContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: ${spacing.lg};
+  gap: ${spacing.md};
   padding: ${spacing['4xl']};
-  color: ${colors.neutral[600]};
+  color: ${colors.neutral[500]};
 `;
 
-const LoadingText = styled.p`
-  font-size: ${typography.fontSize.lg};
-  font-weight: ${typography.fontWeight.medium};
-`;
+const LoadingText = styled.p``;
 
 const EmptyState = styled.div`
   text-align: center;
   padding: ${spacing['4xl']};
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: ${borderRadius['2xl']};
-  box-shadow: ${shadows.lg};
+  background: white;
+  border-radius: ${borderRadius.xl};
+  border: 1px dashed ${colors.neutral[300]};
 `;
 
 const EmptyIcon = styled.div`
   font-size: ${typography.fontSize['4xl']};
-  margin-bottom: ${spacing.lg};
-  animation: ${pulse} 2s ease-in-out infinite;
+  margin-bottom: ${spacing.md};
+  opacity: 0.5;
 `;
 
 const EmptyTitle = styled.h3`
-  color: ${colors.neutral[700]};
-  font-size: ${typography.fontSize.xl};
+  color: ${colors.neutral[800]};
+  font-size: ${typography.fontSize.lg};
   font-weight: ${typography.fontWeight.bold};
-  margin-bottom: ${spacing.sm};
-  font-family: ${typography.fontFamily.heading};
+  margin-bottom: ${spacing.xs};
 `;
 
 const EmptyDescription = styled.p`
   color: ${colors.neutral[500]};
-  font-size: ${typography.fontSize.base};
 `;
 
 const ThemeList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: ${spacing.xl};
+  gap: ${spacing.lg};
 `;
 
 const ThemeCard = styled.div`
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: ${borderRadius['2xl']};
-  box-shadow: ${shadows.lg};
+  background: white;
+  border-radius: ${borderRadius.xl};
+  box-shadow: ${shadows.sm};
+  border: 1px solid ${colors.neutral[200]};
   overflow: hidden;
-  transition: all 0.4s ease;
+  transition: all 0.2s;
   ${props => css`
-    animation: ${fadeInUp} 0.8s ease-out ${1.4 + props.delay}s both;
+    animation: ${fadeInUp} 0.5s ease-out ${props.delay}s both;
   `}
-  border: 1px solid rgba(255, 255, 255, 0.3);
   
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: ${shadows['2xl']};
+    box-shadow: ${shadows.md};
+    transform: translateY(-2px);
   }
 `;
 
@@ -964,134 +757,114 @@ const CardHeader = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: ${spacing['2xl']};
-  background: rgba(255, 255, 255, 0.5);
-  
-  ${media['max-md']} {
-    padding: ${spacing.xl};
-  }
+  padding: ${spacing.lg};
+  border-bottom: 1px solid ${colors.neutral[100]};
+  background: ${colors.neutral[50]};
 `;
 
 const ThemeInfo = styled.div`
   display: flex;
   align-items: center;
-  gap: ${spacing.lg};
+  gap: ${spacing.md};
 `;
 
 const YearBadge = styled.div`
-  background: ${colors.gradients.primary};
+  background: ${colors.primary[600]};
   color: white;
-  padding: ${spacing.sm} ${spacing.lg};
+  padding: 4px 12px;
   border-radius: ${borderRadius.full};
-  font-size: ${typography.fontSize.sm};
   font-weight: ${typography.fontWeight.bold};
+  font-size: ${typography.fontSize.sm};
 `;
 
-const ThemeDate = styled.p`
+const ThemeDate = styled.span`
   color: ${colors.neutral[500]};
-  font-size: ${typography.fontSize.sm};
-  margin: 0;
+  font-size: ${typography.fontSize.xs};
 `;
 
 const CardActions = styled.div`
   display: flex;
   align-items: center;
-  gap: ${spacing.sm};
+  gap: ${spacing.xs};
 `;
 
 const EditButton = styled.button`
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: ${borderRadius.lg};
   border: none;
-  background: rgba(59, 130, 246, 0.1);
-  color: ${colors.primary[600]};
+  background: white;
+  color: ${colors.neutral[400]};
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  transition: all 0.2s;
+  border: 1px solid ${colors.neutral[200]};
   
   &:hover {
-    background: rgba(59, 130, 246, 0.2);
-    transform: scale(1.1);
+    background: ${colors.blue[50]};
+    color: ${colors.blue[600]};
+    border-color: ${colors.blue[200]};
   }
 `;
 
 const DeleteButton = styled.button`
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: ${borderRadius.lg};
   border: none;
-  background: rgba(239, 68, 68, 0.1);
-  color: ${colors.red[600]};
+  background: white;
+  color: ${colors.neutral[400]};
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  transition: all 0.2s;
+  border: 1px solid ${colors.neutral[200]};
   
-  &:hover:not(:disabled) {
-    background: rgba(239, 68, 68, 0.2);
-    transform: scale(1.1);
-  }
-  
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
+  &:hover {
+    background: ${colors.red[50]};
+    color: ${colors.red[600]};
+    border-color: ${colors.red[200]};
   }
 `;
 
 const ActionIcon = styled.span`
-  font-size: ${typography.fontSize.base};
+  font-size: ${typography.fontSize.sm};
 `;
 
 const ThemeContent = styled.div`
-  padding: 0 ${spacing['2xl']} ${spacing.xl};
-  
-  ${media['max-md']} {
-    padding: 0 ${spacing.xl} ${spacing.lg};
-  }
+  padding: ${spacing.lg};
+  border-bottom: 1px solid ${colors.neutral[100]};
 `;
 
-const ThemeText = styled.p`
-  color: ${colors.neutral[700]};
-  font-size: ${typography.fontSize.lg};
-  line-height: ${typography.lineHeight.relaxed};
+const ThemeText = styled.h3`
+  font-size: ${typography.fontSize.xl};
+  font-weight: ${typography.fontWeight.bold};
+  color: ${colors.neutral[800]};
   margin: 0;
   white-space: pre-wrap;
-  font-weight: ${typography.fontWeight.medium};
-  
-  ${media['max-md']} {
-    font-size: ${typography.fontSize.base};
-  }
+  line-height: 1.4;
 `;
 
 const DirectionList = styled.div`
-  padding: 0 ${spacing['2xl']} ${spacing['2xl']};
-  
-  ${media['max-md']} {
-    padding: 0 ${spacing.xl} ${spacing.xl};
-  }
+  padding: ${spacing.lg};
+  background: ${colors.neutral[50]};
 `;
 
 const DirectionTitle = styled.h4`
-  color: ${colors.neutral[700]};
-  font-size: ${typography.fontSize.base};
-  font-weight: ${typography.fontWeight.semibold};
-  margin-bottom: ${spacing.lg};
+  font-size: ${typography.fontSize.sm};
+  color: ${colors.neutral[500]};
+  margin-bottom: ${spacing.md};
+  font-weight: ${typography.fontWeight.bold};
 `;
 
 const DirectionItem = styled.div`
   display: flex;
   align-items: flex-start;
-  gap: ${spacing.lg};
-  padding: ${spacing.lg};
-  background: rgba(255, 255, 255, 0.6);
-  border-radius: ${borderRadius.xl};
-  margin-bottom: ${spacing.lg};
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  gap: ${spacing.md};
+  margin-bottom: ${spacing.md};
   
   &:last-child {
     margin-bottom: 0;
@@ -1099,25 +872,25 @@ const DirectionItem = styled.div`
 `;
 
 const ItemNumber = styled.div`
-  width: 28px;
-  height: 28px;
+  width: 20px;
+  height: 20px;
   border-radius: ${borderRadius.full};
-  background: ${colors.gradients.secondary};
+  background: ${colors.primary[100]};
+  color: ${colors.primary[700]};
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  font-size: ${typography.fontSize.sm};
+  font-size: ${typography.fontSize.xs};
   font-weight: ${typography.fontWeight.bold};
   flex-shrink: 0;
+  margin-top: 2px;
 `;
 
 const DirectionText = styled.p`
   color: ${colors.neutral[700]};
   font-size: ${typography.fontSize.base};
-  line-height: ${typography.lineHeight.relaxed};
+  line-height: 1.5;
   margin: 0;
-  flex: 1;
 `;
 
 const DeleteModal = styled.div`
@@ -1127,53 +900,49 @@ const DeleteModal = styled.div`
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(5px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  animation: ${fadeIn} 0.3s ease-out;
+  animation: ${fadeIn} 0.2s ease-out;
 `;
 
 const ModalContent = styled.div`
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: ${borderRadius['2xl']};
-  padding: ${spacing['3xl']};
+  background: white;
+  border-radius: ${borderRadius.xl};
+  padding: ${spacing['2xl']};
   max-width: 400px;
   width: 90%;
   text-align: center;
-  box-shadow: ${shadows['2xl']};
-  animation: ${fadeInUp} 0.3s ease-out;
+  box-shadow: ${shadows.xl};
 `;
 
 const ModalIcon = styled.div`
-  font-size: ${typography.fontSize['4xl']};
-  margin-bottom: ${spacing.lg};
+  font-size: ${typography.fontSize['3xl']};
+  margin-bottom: ${spacing.md};
 `;
 
 const ModalTitle = styled.h3`
-  color: ${colors.neutral[800]};
+  color: ${colors.neutral[900]};
   font-size: ${typography.fontSize.xl};
   font-weight: ${typography.fontWeight.bold};
-  margin-bottom: ${spacing.lg};
-  font-family: ${typography.fontFamily.heading};
+  margin-bottom: ${spacing.sm};
 `;
 
-const ModalDescription = styled.p`
+const ModalDescription = styled.div`
   color: ${colors.neutral[600]};
-  font-size: ${typography.fontSize.base};
-  line-height: ${typography.lineHeight.relaxed};
-  margin-bottom: ${spacing['2xl']};
+  margin-bottom: ${spacing.xl};
+`;
+
+const DeleteWarning = styled.div`
+  color: ${colors.red[500]};
+  font-size: ${typography.fontSize.sm};
+  margin-top: ${spacing.sm};
 `;
 
 const ModalButtons = styled.div`
   display: flex;
-  gap: ${spacing.lg};
-  
-  ${media['max-md']} {
-    flex-direction: column;
-  }
+  gap: ${spacing.md};
 `;
 
 const DeleteConfirmButton = styled.button`
@@ -1182,25 +951,21 @@ const DeleteConfirmButton = styled.button`
   align-items: center;
   justify-content: center;
   gap: ${spacing.sm};
-  padding: ${spacing.lg};
+  padding: ${spacing.md};
   background: ${colors.red[500]};
   color: white;
   border: none;
-  border-radius: ${borderRadius.xl};
-  font-size: ${typography.fontSize.base};
-  font-weight: ${typography.fontWeight.semibold};
+  border-radius: ${borderRadius.lg};
+  font-weight: ${typography.fontWeight.medium};
   cursor: pointer;
-  transition: all 0.3s ease;
   
   &:hover:not(:disabled) {
     background: ${colors.red[600]};
-    transform: translateY(-2px);
   }
   
   &:disabled {
     opacity: 0.7;
     cursor: not-allowed;
-    transform: none;
   }
 `;
 
@@ -1210,34 +975,17 @@ const ModalCancelButton = styled.button`
   align-items: center;
   justify-content: center;
   gap: ${spacing.sm};
-  padding: ${spacing.lg};
-  background: rgba(255, 255, 255, 0.8);
-  color: ${colors.neutral[600]};
-  border: 2px solid ${colors.neutral[300]};
-  border-radius: ${borderRadius.xl};
-  font-size: ${typography.fontSize.base};
-  font-weight: ${typography.fontWeight.semibold};
+  padding: ${spacing.md};
+  background: white;
+  color: ${colors.neutral[700]};
+  border: 1px solid ${colors.neutral[300]};
+  border-radius: ${borderRadius.lg};
+  font-weight: ${typography.fontWeight.medium};
   cursor: pointer;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
   
   &:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.95);
-    border-color: ${colors.neutral[400]};
-    transform: translateY(-2px);
-  }
-  
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
+    background: ${colors.neutral[50]};
   }
 `;
 
-const DeleteWarning = styled.span`
-  color: ${colors.red[600]};
-  font-weight: ${typography.fontWeight.semibold};
-  font-size: ${typography.fontSize.sm};
-`;
-
-export default YearlyThemes; 
+export default YearlyThemes;

@@ -190,19 +190,6 @@ const TalantBoard = () => {
 
   return (
     <PageContainer>
-      <Header>
-        <HeaderContent>
-          <BackButton onClick={() => navigate('/admin/talant')}>
-            ← 대시보드
-          </BackButton>
-          <PageTitle>달란트 현황판</PageTitle>
-          <HistoryLink onClick={() => navigate('/admin/talant/history')}>
-            <span>전체 내역</span>
-            <span>📊</span>
-          </HistoryLink>
-        </HeaderContent>
-      </Header>
-
       <ContentArea>
         <Controls>
           <MonthNav>
@@ -341,61 +328,6 @@ const pop = keyframes`
 const PageContainer = styled.div`
   min-height: 100vh;
   background-color: ${colors.neutral[50]};
-`;
-
-const Header = styled.header`
-  background: white;
-  border-bottom: 1px solid ${colors.neutral[200]};
-  padding: ${spacing.md} 0;
-  position: sticky;
-  top: 0;
-  z-index: 20;
-`;
-
-const HeaderContent = styled.div`
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 ${spacing.lg};
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-`;
-
-const BackButton = styled.button`
-  background: none;
-  border: none;
-  font-size: ${typography.fontSize.sm};
-  color: ${colors.neutral[600]};
-  cursor: pointer;
-  padding: ${spacing.sm};
-  
-  &:hover { color: ${colors.neutral[900]}; }
-`;
-
-const PageTitle = styled.h1`
-  font-size: ${typography.fontSize.lg};
-  font-weight: ${typography.fontWeight.bold};
-  color: ${colors.neutral[900]};
-  margin: 0;
-  
-  ${media['max-sm']} {
-    font-size: ${typography.fontSize.base};
-  }
-`;
-
-const HistoryLink = styled.button`
-  background: ${colors.neutral[100]};
-  border: none;
-  padding: ${spacing.sm} ${spacing.md};
-  border-radius: ${borderRadius.full};
-  font-size: ${typography.fontSize.sm};
-  color: ${colors.neutral[700]};
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  
-  &:hover { background: ${colors.neutral[200]}; }
 `;
 
 const ContentArea = styled.main`

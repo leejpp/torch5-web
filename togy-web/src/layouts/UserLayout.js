@@ -15,16 +15,24 @@ const UserLayout = () => {
           <HomeLink to="/togy">
             <Logo>TorchChurch</Logo>
           </HomeLink>
-          <MenuButton onClick={() => setIsMenuOpen(!isMenuOpen)}>
-            <MenuIcon>{isMenuOpen ? '✕' : '☰'}</MenuIcon>
-          </MenuButton>
-          <Nav $isOpen={isMenuOpen}>
-            <NavLink to="/togy/birthdays" $isActive={location.pathname === '/togy/birthdays'}>전교인 생일</NavLink>
-            <NavLink to="/togy/prayer" $isActive={location.pathname === '/togy/prayer'}>중보기도</NavLink>
-            <NavLink to="/togy/voices" $isActive={location.pathname === '/togy/voices'}>마음의 소리</NavLink>
-            <NavLink to="/togy/calendar" $isActive={location.pathname === '/togy/calendar'}>일정</NavLink>
-          </Nav>
         </HeaderContent>
+        {/* New Visible Navigation Bar */}
+        <NavBar>
+          <NavContainer>
+            <NavLink to="/togy" $isActive={location.pathname === '/togy'}>
+              <NavIcon>🏠</NavIcon>
+              <NavText>청년부메인</NavText>
+            </NavLink>
+            <NavLink to="/togy/prayer" $isActive={location.pathname === '/togy/prayer'}>
+              <NavIcon>🙏</NavIcon>
+              <NavText>중보기도</NavText>
+            </NavLink>
+            <NavLink to="/togy/voices" $isActive={location.pathname === '/togy/voices'}>
+              <NavIcon>💬</NavIcon>
+              <NavText>마음의소리</NavText>
+            </NavLink>
+          </NavContainer>
+        </NavBar>
       </Header>
       <Main>
         <Outlet />
@@ -34,7 +42,7 @@ const UserLayout = () => {
           <FooterText>© 2026 TorchChurch. All rights reserved.</FooterText>
         </FooterContent>
       </Footer>
-    </Container>
+    </Container >
   );
 };
 
@@ -112,65 +120,77 @@ const Logo = styled.h1`
   }
 `;
 
-const MenuButton = styled.button`
-  display: none;
-  background: none;
-  border: none;
-  color: ${colors.primary[700]};
-  font-size: 1.5rem;
-  cursor: pointer;
-  padding: 0.5rem;
+const NavBar = styled.div`
+  border-top: 1px solid ${colors.neutral[200]};
+  background: white;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch; // Smooth scrolling for iOS
   
-  @media (max-width: 768px) {
-    display: block;
+  /* Hide scrollbar but keep functionality */
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
   }
 `;
 
-const MenuIcon = styled.span`
-  display: block;
-  line-height: 1;
-`;
-
-const Nav = styled.nav`
+const NavContainer = styled.div`
+  max-width: 1200px;
+  margin: 0 auto;
   display: flex;
-  gap: ${spacing.xl};
-  
+  justify-content: space-around; // Even spacing
+  padding: 0 ${spacing.md};
+  min-width: min-content; // Ensure content doesn't squash too much
+
   ${media['max-md']} {
-    display: ${props => props.$isOpen ? 'flex' : 'none'};
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: ${colors.neutral[50]};
-    border-bottom: 1px solid ${colors.neutral[200]};
-    padding: ${spacing.lg};
-    flex-direction: column;
-    gap: ${spacing.md};
-    box-shadow: ${shadows.lg};
+     justify-content: space-between;
+     padding: 0 ${spacing.sm};
   }
 `;
 
 const NavLink = styled(Link)`
-  color: ${colors.primary[700]}; // Deep Green
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-decoration: none;
-  font-weight: ${typography.fontWeight.semibold};
-  font-size: ${typography.fontSize.base};
-  padding: ${spacing.sm} ${spacing.lg};
-  border-radius: ${borderRadius.lg};
-  transition: all 0.2s ease;
-  background-color: ${props => props.$isActive ? colors.primary[100] : 'transparent'};
+  padding: ${spacing.md} ${spacing.lg};
+  color: ${props => props.$isActive ? colors.primary[700] : colors.neutral[500]};
+  position: relative;
+  transition: all 0.2s;
+  min-width: 70px; // Minimum touch target size
   
+  &:after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: ${colors.primary[600]};
+    transform: scaleX(${props => props.$isActive ? 1 : 0});
+    transition: transform 0.2s ease;
+  }
+
   &:hover {
-    background-color: ${colors.primary[50]};
-    transform: translateY(-1px);
+    color: ${colors.primary[800]};
+    background-color: ${colors.neutral[50]};
   }
   
   ${media['max-md']} {
-    font-size: ${typography.fontSize.sm};
-    width: 100%;
-    text-align: center;
-    padding: ${spacing.md} ${spacing.lg};
+    padding: ${spacing.sm} ${spacing.xs}; // Reduce padding on mobile
   }
+`;
+
+const NavIcon = styled.span`
+  font-size: 1.2rem;
+  margin-bottom: 4px;
+  display: block; // Always show icon
+`;
+
+const NavText = styled.span`
+  font-size: ${typography.fontSize.xs};
+  font-weight: ${typography.fontWeight.bold};
+  white-space: nowrap;
 `;
 
 const Main = styled.main`

@@ -49,7 +49,6 @@ const Schedule = () => {
     end: '',
     description: '',
     location: '',
-    location: '',
     type: 'DEFAULT',
     isLunar: false, // Add isLunar state
     repeat: { type: REPEAT_TYPES.NONE }
@@ -60,7 +59,6 @@ const Schedule = () => {
   const [deleteOption, setDeleteOption] = useState('single');
   const [date, setDate] = useState(new Date());
   const calendarRef = useRef(null);
-  const navigate = useNavigate();
 
   // Filters
   const currentYear = new Date().getFullYear();
@@ -103,8 +101,6 @@ const Schedule = () => {
       title: '',
       start: format(new Date(start), "yyyy-MM-dd"),
       end: format(new Date(start), "yyyy-MM-dd"),
-      description: '',
-      location: '',
       description: '',
       location: '',
       type: 'DEFAULT',
@@ -609,52 +605,6 @@ const HeaderContent = styled.div`
   ${media['max-md']} {
     padding: ${spacing.md};
   }
-`;
-
-const HeaderTopRow = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: ${spacing.md};
-`;
-
-const TitleGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: ${spacing.xs};
-`;
-
-const BackButton = styled.button`
-  display: flex;
-  align-items: center;
-  gap: ${spacing.xs};
-  background: transparent;
-  border: none;
-  padding: ${spacing.xs} 0;
-  color: ${colors.neutral[500]};
-  cursor: pointer;
-  transition: all 0.2s ease;
-  width: fit-content;
-  
-  &:hover {
-    color: ${colors.neutral[800]};
-  }
-`;
-
-const BackIcon = styled.span`
-  font-size: ${typography.fontSize.md};
-`;
-
-const BackText = styled.span`
-  font-size: ${typography.fontSize.sm};
-  font-weight: ${typography.fontWeight.medium};
-`;
-
-const PageTitle = styled.h1`
-  font-size: ${typography.fontSize.xl};
-  font-weight: ${typography.fontWeight.bold};
-  color: ${colors.neutral[800]};
-  margin: 0;
 `;
 
 const ControlBar = styled.div`

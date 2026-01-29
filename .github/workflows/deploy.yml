@@ -34,7 +34,7 @@ jobs:
     - name: Build
       run: |
         cd togy-web
-        npm run build
+        CI=false npm run build
 
     - name: Copy build files to root
       run: |

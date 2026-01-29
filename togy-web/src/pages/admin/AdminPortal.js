@@ -116,16 +116,7 @@ const AdminCard = styled(Link)`
     }
 `;
 
-const DisabledCard = styled.div`
-    background: ${colors.neutral[100]};
-    border-radius: ${borderRadius.xl};
-    padding: ${spacing['2xl']};
-    display: flex;
-    align-items: center;
-    border: 1px dashed ${colors.neutral[300]};
-    cursor: not-allowed;
-    opacity: 0.7;
-`;
+
 
 const CardIcon = styled.div`
     font-size: 3rem;

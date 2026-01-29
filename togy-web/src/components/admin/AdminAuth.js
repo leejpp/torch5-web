@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import styled, { keyframes, css } from 'styled-components';
-import { Outlet, Navigate } from 'react-router-dom'; // Changed to use Outlet
+import { Outlet } from 'react-router-dom'; // Changed to use Outlet
 import { db } from '../../firebase/config';
 import { doc, getDoc } from 'firebase/firestore';
 import CryptoJS from 'crypto-js';
-import { colors, typography, spacing, shadows, borderRadius, media } from '../../styles/designSystem';
+import { colors, typography, spacing, shadows, borderRadius } from '../../styles/designSystem';
 
 const AdminAuth = () => {
   // Check sessionStorage for existing session

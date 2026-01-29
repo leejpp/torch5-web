@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
-import { collection, addDoc, serverTimestamp, getDoc, doc, setDoc, query, where, getDocs, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, getDoc, doc, setDoc, Timestamp } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { loadStudentsFromFirebase, TALANT_CATEGORIES } from '../../utils/talantUtils';
 import { colors, typography, spacing, shadows, borderRadius, media } from '../../styles/designSystem';

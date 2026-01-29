@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import styled, { keyframes } from 'styled-components';
+import styled from 'styled-components';
 import { collection, query, where, orderBy, limit, onSnapshot, getDocs, deleteDoc, doc, getDoc, setDoc, updateDoc, Timestamp } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { colors, typography, spacing, shadows, borderRadius, media } from '../../styles/designSystem';
 import {
-  formatDate,
+
   formatTime,
   getAvailableMonths
 } from '../../utils/talantUtils';

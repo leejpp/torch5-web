@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import { db } from '../../../firebase/config';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
-import { colors, typography, spacing, shadows, borderRadius, media } from '../../../styles/designSystem';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query } from 'firebase/firestore';
+import { colors, typography, spacing, shadows, borderRadius } from '../../../styles/designSystem';
 
 const Members = () => {
     const [members, setMembers] = useState([]);
@@ -29,11 +29,13 @@ const Members = () => {
     // Delete Confirmation State
     const [deleteModal, setDeleteModal] = useState({ show: false, memberId: null, memberName: '' });
 
-    useEffect(() => {
-        fetchMembers();
+    // Toast Function
+    const showToast = useCallback((message, type = 'success') => {
+        setToast({ show: true, message, type });
+        setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
     }, []);
 
-    const fetchMembers = async () => {
+    const fetchMembers = useCallback(async () => {
         setIsLoading(true);
         try {
             const q = query(collection(db, 'church_member'));
@@ -53,7 +55,11 @@ const Members = () => {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [showToast]);
+
+    useEffect(() => {
+        fetchMembers();
+    }, [fetchMembers]);
 
     const handleInputChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -140,11 +146,6 @@ const Members = () => {
             birthDay: '',
             isLunar: false
         });
-    };
-
-    const showToast = (message, type = 'success') => {
-        setToast({ show: true, message, type });
-        setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
     };
 
     // Filter Logic

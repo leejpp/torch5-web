@@ -195,14 +195,8 @@ const float = keyframes`
   }
 `;
 
-const shimmer = keyframes`
-  0% {
-    background-position: -200px 0;
-  }
-  100% {
-    background-position: calc(200px + 100%) 0;
-  }
-`;
+
+
 
 const pulse = keyframes`
   0%, 100% {

@@ -30,13 +30,13 @@ const Home = () => {
     try {
       const q = query(collection(db, 'yearlyThemes'), orderBy('year', 'desc'));
       const querySnapshot = await getDocs(q);
-      
+
       if (!querySnapshot.empty) {
         const themes = querySnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
         }));
-        
+
         // 가장 최신 테마를 사용
         const latestTheme = themes[0];
         if (latestTheme.theme) {
@@ -45,14 +45,14 @@ const Home = () => {
             year: latestTheme.year || '2025'
           });
         }
-        
+
         // direction 배열이 있으면 비전 아이템들로 업데이트
         if (latestTheme.direction && Array.isArray(latestTheme.direction)) {
           const updatedVisionItems = latestTheme.direction.map((item, index) => ({
             id: index + 1,
             text: typeof item === 'string' ? item : item.text || item,
             emoji: [
-              '❤️', '❤️', '❤️', '❤️', '❤️', 
+              '❤️', '❤️', '❤️', '❤️', '❤️',
               '❤️', '❤️', '❤️', '❤️', '❤️'
             ][index % 10],
             color: [
@@ -74,27 +74,27 @@ const Home = () => {
   };
 
   const quickActions = [
-    { 
-      title: '중보기도', 
-      subtitle: '서로를 위해 기도해요', 
-      emoji: '💙', 
-      path: '/prayer',
+    {
+      title: '중보기도',
+      subtitle: '서로를 위해 기도해요',
+      emoji: '💙',
+      path: '/togy/prayer',
       gradient: colors.gradients.primary,
       isPrimary: true
     },
-    { 
-      title: '마음의 소리', 
-      subtitle: '마음을 나누어요', 
-      emoji: '💬', 
-      path: '/voices',
-      gradient: colors.gradients.secondary 
+    {
+      title: '마음의 소리',
+      subtitle: '마음을 나누어요',
+      emoji: '💬',
+      path: '/togy/voices',
+      gradient: colors.gradients.secondary
     },
-    { 
-      title: '캘린더', 
-      subtitle: '일정을 확인해요', 
-      emoji: '🗓️', 
-      path: '/calendar',
-      gradient: colors.gradients.success 
+    {
+      title: '캘린더',
+      subtitle: '일정을 확인해요',
+      emoji: '🗓️',
+      path: '/togy/calendar',
+      gradient: colors.gradients.success
     }
   ];
 
@@ -102,8 +102,7 @@ const Home = () => {
 
   return (
     <Container>
-      <BackgroundOverlay />
-      
+
       <Header>
         <HeaderContent>
           {isLoading ? (
@@ -151,19 +150,19 @@ const Home = () => {
         <QuickActionsSection>
           <QuickActionsGrid>
             {quickActions.map((action, index) => (
-              <ActionCard 
+              <ActionCard
                 key={action.title}
                 onClick={() => navigate(action.path)}
-                isPrimary={action.isPrimary}
+                $isPrimary={action.isPrimary}
                 delay={index * 0.1}
               >
                 <ActionCardBackground gradient={action.gradient} />
                 <ActionCardContent>
                   <ActionEmoji>{action.emoji}</ActionEmoji>
-                  <ActionTitle isPrimary={action.isPrimary}>{action.title}</ActionTitle>
-                  <ActionSubtitle isPrimary={action.isPrimary}>{action.subtitle}</ActionSubtitle>
+                  <ActionTitle $isPrimary={action.isPrimary}>{action.title}</ActionTitle>
+                  <ActionSubtitle>{action.subtitle}</ActionSubtitle>
                 </ActionCardContent>
-                <ActionButton isPrimary={action.isPrimary}>
+                <ActionButton $isPrimary={action.isPrimary}>
                   이동하기 →
                 </ActionButton>
               </ActionCard>
@@ -215,62 +214,32 @@ const pulse = keyframes`
 `;
 
 // 스타일 컴포넌트
+// 스타일 컴포넌트
 const Container = styled.div`
   min-height: 100vh;
   position: relative;
   overflow-x: hidden;
+  background-color: ${colors.neutral[50]}; // Cream White
 `;
 
-const BackgroundOverlay = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  z-index: -2;
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: 
-      radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.1) 0%, transparent 50%),
-      radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.3) 0%, transparent 50%),
-      radial-gradient(circle at 40% 40%, rgba(120, 119, 198, 0.05) 0%, transparent 50%);
-  }
-`;
+// BackgroundOverlay removed for minimal look
 
 const Header = styled.header`
-  background: ${colors.gradients.primary};
+  background: ${colors.neutral[50]}; // Cream White
   position: relative;
   overflow: hidden;
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: 
-      radial-gradient(circle at 30% 70%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-      radial-gradient(circle at 70% 30%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
-  }
+  padding-bottom: ${spacing.xl};
 `;
 
 const HeaderContent = styled.div`
   position: relative;
-  padding: ${spacing['4xl']} ${spacing['2xl']} ${spacing['3xl']};
+  padding: ${spacing['4xl']} ${spacing['2xl']} ${spacing['2xl']};
   text-align: center;
   max-width: 1200px;
   margin: 0 auto;
   
   ${media['max-md']} {
-    padding: ${spacing['3xl']} ${spacing.lg} ${spacing['2xl']};
+    padding: ${spacing['3xl']} ${spacing.lg} ${spacing.xl};
   }
 `;
 
@@ -278,7 +247,7 @@ const ThemeIcon = styled.div`
   font-size: ${typography.fontSize['4xl']};
   margin-bottom: ${spacing.lg};
   animation: ${float} 3s ease-in-out infinite, ${fadeInUp} 0.8s ease-out;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+  color: ${colors.primary[500]}; // Green icon
   
   ${media['max-md']} {
     font-size: ${typography.fontSize['3xl']};
@@ -286,13 +255,12 @@ const ThemeIcon = styled.div`
 `;
 
 const YearlyThemeTitle = styled.h1`
-  color: white;
+  color: ${colors.primary[700]}; // Deep Green Title
   font-size: ${typography.fontSize['4xl']};
   font-weight: ${typography.fontWeight.extrabold};
   margin-bottom: ${spacing.lg};
   font-family: ${typography.fontFamily.heading};
   animation: ${fadeInUp} 0.8s ease-out 0.2s both;
-  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
   line-height: ${typography.lineHeight.tight};
   
   ${media['max-md']} {
@@ -304,7 +272,7 @@ const YearlyThemeTitle = styled.h1`
 `;
 
 const ThemeYear = styled.p`
-  color: rgba(255, 255, 255, 0.9);
+  color: ${colors.primary[400]}; // Soft Green
   font-size: ${typography.fontSize.xl};
   font-weight: ${typography.fontWeight.semibold};
   animation: ${fadeInUp} 0.8s ease-out 0.4s both;
@@ -327,7 +295,7 @@ const LoadingIcon = styled.div`
 `;
 
 const HeaderLoadingText = styled.p`
-  color: rgba(255, 255, 255, 0.9);
+  color: ${colors.neutral[500]};
   font-size: ${typography.fontSize.xl};
   font-weight: ${typography.fontWeight.medium};
   
@@ -335,8 +303,6 @@ const HeaderLoadingText = styled.p`
     font-size: ${typography.fontSize.lg};
   }
 `;
-
-
 
 const MainContent = styled.main`
   max-width: 1200px;
@@ -349,70 +315,47 @@ const MainContent = styled.main`
 `;
 
 const VisionSection = styled.section`
-  padding: ${spacing['4xl']} 0;
+  padding: ${spacing['2xl']} 0; // Reduced padding
   
   ${media['max-md']} {
-    padding: ${spacing['2xl']} 0;
+    padding: ${spacing.xl} 0;
   }
 `;
 
-
-
 const VisionTitle = styled.h3`
-  font-size: ${typography.fontSize['3xl']};
+  font-size: ${typography.fontSize['2xl']};
   font-weight: ${typography.fontWeight.bold};
   text-align: center;
   margin-bottom: ${spacing['2xl']};
-  color: ${colors.neutral[800]};
+  color: ${colors.primary[700]};
   font-family: ${typography.fontFamily.heading};
   animation: ${fadeInUp} 0.8s ease-out 0.3s both;
   position: relative;
   z-index: 2;
   
+  // Underline removed or simplified
   &::after {
-    content: '';
-    position: absolute;
-    bottom: -${spacing.md};
-    left: 50%;
-    transform: translateX(-50%);
-    width: 60px;
-    height: 3px;
-    background: ${colors.gradients.primary};
-    border-radius: ${borderRadius.full};
+    display: none;
   }
   
   ${media['max-md']} {
-    font-size: ${typography.fontSize['2xl']};
+    font-size: ${typography.fontSize.xl};
     margin-bottom: ${spacing.xl};
   }
 `;
 
 const VisionCard = styled.div`
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: ${borderRadius['2xl']};
+  background: #FFFFFF;
+  border: 1px solid ${colors.neutral[200]};
+  border-radius: ${borderRadius['xl']};
   padding: ${spacing['2xl']};
-  box-shadow: ${shadows.glass};
+  box-shadow: ${shadows.base};
   animation: ${fadeInUp} 0.8s ease-out 0.4s both;
   position: relative;
   overflow: hidden;
   margin-bottom: ${spacing['4xl']};
   
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -200px;
-    width: 200px;
-    height: 100%;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.4),
-      transparent
-    );
-    animation: ${shimmer} 3s infinite;
-  }
+  // Shimmer effect removed for cleaner look or kept subtle
   
   ${media['max-md']} {
     padding: ${spacing.xl};
@@ -428,10 +371,10 @@ const VisionCardContent = styled.div`
 const VisionList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: ${spacing.lg};
+  gap: ${spacing.md}; // Tighter gap
   
   ${media['max-md']} {
-    gap: ${spacing.md};
+    gap: ${spacing.sm};
   }
 `;
 
@@ -440,16 +383,17 @@ const VisionItem = styled.div`
   align-items: flex-start;
   gap: ${spacing.lg};
   padding: ${spacing.lg};
-  background: linear-gradient(135deg, ${colors.neutral[50]} 0%, ${colors.neutral[100]} 100%);
-  border-radius: ${borderRadius.xl};
-  border-left: 4px solid transparent;
-  border-image: ${colors.gradients.primary} 1;
-  transition: all 0.3s ease;
+  background: ${colors.neutral[50]}; // Lightest Grey/Cream
+  border-radius: ${borderRadius.lg};
+  transition: all 0.2s ease;
   animation: ${fadeInUp} 0.6s ease-out ${props => 0.5 + props.delay}s both;
-  
+  border: 1px solid transparent;
+
   &:hover {
-    transform: translateX(4px);
-    background: linear-gradient(135deg, ${colors.neutral[100]} 0%, ${colors.neutral[200]} 100%);
+    background: #FFFFFF;
+    border-color: ${colors.primary[200]};
+    transform: translateY(-2px);
+    box-shadow: ${shadows.sm};
   }
   
   ${media['max-md']} {
@@ -459,22 +403,22 @@ const VisionItem = styled.div`
 `;
 
 const VisionItemNumber = styled.div`
-  width: 32px;
-  height: 32px;
-  background: ${colors.gradients.primary};
-  color: white;
+  width: 28px;
+  height: 28px;
+  background: ${colors.primary[100]};
+  color: ${colors.primary[700]};
   border-radius: ${borderRadius.full};
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: ${typography.fontWeight.bold};
-  font-size: ${typography.fontSize.sm};
+  font-size: ${typography.fontSize.xs};
   flex-shrink: 0;
   
   ${media['max-md']} {
-    width: 28px;
-    height: 28px;
-    font-size: ${typography.fontSize.xs};
+    width: 24px;
+    height: 24px;
+    font-size: 10px;
   }
 `;
 
@@ -490,11 +434,11 @@ const VisionItemContent = styled.div`
 `;
 
 const VisionItemEmoji = styled.div`
-  font-size: ${typography.fontSize.xl};
+  font-size: ${typography.fontSize.lg};
   flex-shrink: 0;
   
   ${media['max-md']} {
-    font-size: ${typography.fontSize.lg};
+    font-size: ${typography.fontSize.base};
   }
 `;
 
@@ -507,7 +451,6 @@ const VisionItemText = styled.p`
   
   ${media['max-md']} {
     font-size: ${typography.fontSize.sm};
-    line-height: ${typography.lineHeight.tight};
   }
 `;
 
@@ -519,59 +462,47 @@ const QuickActionsSection = styled.section`
   }
 `;
 
-
-
 const QuickActionsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: ${spacing.xl};
+  gap: ${spacing.lg};
   
   ${media['max-md']} {
     grid-template-columns: 1fr;
-    gap: ${spacing.lg};
+    gap: ${spacing.md};
   }
 `;
 
 const ActionCard = styled.div`
   position: relative;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: ${borderRadius['2xl']};
-  padding: ${spacing['2xl']};
+  background: #FFFFFF;
+  border: 1px solid ${colors.neutral[200]};
+  border-radius: ${borderRadius.xl};
+  padding: ${spacing.xl};
   cursor: pointer;
-  transition: all 0.4s ease;
-  box-shadow: ${shadows.md};
+  transition: all 0.2s ease;
+  box-shadow: ${shadows.sm};
   animation: ${fadeInUp} 0.8s ease-out ${props => 0.7 + props.delay}s both;
   overflow: hidden;
   
   &:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: ${shadows['2xl']};
+    border-color: ${colors.primary[300]};
+    transform: translateY(-4px);
+    box-shadow: ${shadows.md};
   }
   
-  ${props => props.isPrimary && `
-    background: ${colors.gradients.primary};
-    color: white;
+  ${props => props.$isPrimary && `
+    background: ${colors.primary[50]};
+    border-color: ${colors.primary[100]};
     
     &:hover {
-      box-shadow: 0 25px 50px rgba(102, 126, 234, 0.4);
+       border-color: ${colors.primary[300]};
     }
   `}
 `;
 
 const ActionCardBackground = styled.div`
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: ${props => props.gradient};
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  
-  ${ActionCard}:hover & {
-    opacity: 0.1;
-  }
+  display: none; // Removed gradient background
 `;
 
 const ActionCardContent = styled.div`
@@ -582,46 +513,46 @@ const ActionCardContent = styled.div`
 
 const ActionEmoji = styled.div`
   font-size: ${typography.fontSize['3xl']};
-  margin-bottom: ${spacing.lg};
+  margin-bottom: ${spacing.md};
   animation: ${float} 3s ease-in-out infinite;
 `;
 
 const ActionTitle = styled.h4`
-  font-size: ${typography.fontSize.xl};
+  font-size: ${typography.fontSize.lg};
   font-weight: ${typography.fontWeight.bold};
-  margin-bottom: ${spacing.sm};
-  color: ${props => props.isPrimary ? 'white' : colors.neutral[800]};
+  margin-bottom: ${spacing.xs};
+  color: ${props => props.$isPrimary ? colors.primary[800] : colors.neutral[800]};
 `;
 
 const ActionSubtitle = styled.p`
   font-size: ${typography.fontSize.sm};
-  color: ${props => props.isPrimary ? 'rgba(255,255,255,0.9)' : colors.neutral[600]};
-  margin-bottom: ${spacing.xl};
+  color: ${colors.neutral[500]};
+  margin-bottom: ${spacing.lg};
 `;
 
 const ActionButton = styled.div`
-  padding: ${spacing.md} ${spacing.lg};
-  border-radius: ${borderRadius.xl};
+  padding: ${spacing.sm} ${spacing.md};
+  border-radius: ${borderRadius.md};
   font-size: ${typography.fontSize.sm};
   font-weight: ${typography.fontWeight.semibold};
   text-align: center;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   
-  ${props => props.isPrimary ? `
-    background: rgba(255, 255, 255, 0.2);
+  ${props => props.$isPrimary ? `
+    background: ${colors.primary[700]};
     color: white;
-    border: 1px solid rgba(255, 255, 255, 0.3);
   ` : `
-    background: ${colors.gradients.primary};
-    color: white;
+    background: ${colors.secondary[300]};
+    color: ${colors.primary[900]};
   `}
   
   ${ActionCard}:hover & {
-    transform: translateY(-2px);
-    ${props => props.isPrimary ? `
-      background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+    
+    ${props => props.$isPrimary ? `
+      background: ${colors.primary[600]};
     ` : `
-      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+      background: ${colors.secondary[400]};
     `}
   }
 `;

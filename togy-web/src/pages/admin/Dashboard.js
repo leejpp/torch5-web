@@ -7,20 +7,20 @@ const Dashboard = () => {
   return (
     <Container>
       <BackgroundOverlay />
-      
+
       <Header>
         <HeaderContent>
           <AdminBadge>
             <BadgeIcon>👑</BadgeIcon>
             <BadgeText>관리자</BadgeText>
           </AdminBadge>
-          
+
           <TitleSection>
             <HeaderIcon>🎛️</HeaderIcon>
             <Title>관리자 대시보드</Title>
             <Subtitle>청년부 운영을 위한 관리 도구</Subtitle>
           </TitleSection>
-          
+
           <WelcomeMessage>
             <WelcomeIcon>✨</WelcomeIcon>
             <WelcomeText>환영합니다! 오늘도 좋은 하루 되세요</WelcomeText>
@@ -36,7 +36,7 @@ const Dashboard = () => {
           </SectionHeader>
 
           <MenuGrid>
-            <MenuCard to="/admin/prayer" delay={0}>
+            <MenuCard to="/admin/togy/prayer" delay={0}>
               <CardGradient color="primary" />
               <CardContent>
                 <MenuIconContainer>
@@ -46,7 +46,7 @@ const Dashboard = () => {
                 <MenuInfo>
                   <MenuTitle>중보기도 관리</MenuTitle>
                   <MenuDescription>
-                    기도제목 등록, 수정, 삭제 관리<br/>
+                    기도제목 등록, 수정, 삭제 관리<br />
                     청년부 기도 요청 현황 확인
                   </MenuDescription>
                 </MenuInfo>
@@ -54,7 +54,7 @@ const Dashboard = () => {
               </CardContent>
             </MenuCard>
 
-            <MenuCard to="/admin/voices" delay={0.1}>
+            <MenuCard to="/admin/togy/voices" delay={0.1}>
               <CardGradient color="secondary" />
               <CardContent>
                 <MenuIconContainer>
@@ -64,7 +64,7 @@ const Dashboard = () => {
                 <MenuInfo>
                   <MenuTitle>마음의 소리 관리</MenuTitle>
                   <MenuDescription>
-                    청년부 의견 및 제안사항 확인<br/>
+                    청년부 의견 및 제안사항 확인<br />
                     소중한 마음의 소리 관리
                   </MenuDescription>
                 </MenuInfo>
@@ -72,7 +72,7 @@ const Dashboard = () => {
               </CardContent>
             </MenuCard>
 
-            <MenuCard to="/admin/calendar" delay={0.2}>
+            <MenuCard to="/admin/togy/calendar" delay={0.2}>
               <CardGradient color="accent" />
               <CardContent>
                 <MenuIconContainer>
@@ -82,7 +82,7 @@ const Dashboard = () => {
                 <MenuInfo>
                   <MenuTitle>일정 관리</MenuTitle>
                   <MenuDescription>
-                    청년부 행사 및 모임 일정 등록<br/>
+                    청년부 행사 및 모임 일정 등록<br />
                     이벤트 생성, 수정, 삭제 관리
                   </MenuDescription>
                 </MenuInfo>
@@ -90,7 +90,7 @@ const Dashboard = () => {
               </CardContent>
             </MenuCard>
 
-            <MenuCard to="/admin/yearlythemes" delay={0.3}>
+            <MenuCard to="/admin/togy/yearlythemes" delay={0.3}>
               <CardGradient color="warm" />
               <CardContent>
                 <MenuIconContainer>
@@ -100,7 +100,7 @@ const Dashboard = () => {
                 <MenuInfo>
                   <MenuTitle>연간 테마 관리</MenuTitle>
                   <MenuDescription>
-                    청년부 연간 주제와 비전 관리<br/>
+                    청년부 연간 주제와 비전 관리<br />
                     테마 등록, 수정, 삭제 관리
                   </MenuDescription>
                 </MenuInfo>
@@ -108,7 +108,7 @@ const Dashboard = () => {
               </CardContent>
             </MenuCard>
 
-            <MenuCard to="/admin/cells" delay={0.4}>
+            <MenuCard to="/admin/togy/cells" delay={0.4}>
               <CardGradient color="success" />
               <CardContent>
                 <MenuIconContainer>
@@ -118,7 +118,7 @@ const Dashboard = () => {
                 <MenuInfo>
                   <MenuTitle>셀 재편성</MenuTitle>
                   <MenuDescription>
-                    청년부 셀 구성 최적화<br/>
+                    청년부 셀 구성 최적화<br />
                     스마트 알고리즘으로 균형있는 셀 배치
                   </MenuDescription>
                 </MenuInfo>
@@ -410,10 +410,10 @@ const CardGradient = styled.div`
   left: 0;
   right: 0;
   height: 4px;
-  background: ${props => 
+  background: ${props =>
     props.color === 'primary' ? colors.gradients.primary :
-    props.color === 'secondary' ? colors.gradients.secondary :
-    colors.gradients.accent
+      props.color === 'secondary' ? colors.gradients.secondary :
+        colors.gradients.accent
   };
 `;
 

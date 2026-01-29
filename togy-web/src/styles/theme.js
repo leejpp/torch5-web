@@ -1,20 +1,23 @@
 export const theme = {
   colors: {
-    primary: '#7B4AFF',
-    secondary: '#FFB6C1',
+    primary: '#1A4D2E', // Deep Green
+    secondary: '#F9E076', // Butter Yellow
     neutral: {
-      1: '#1A1A1A',
-      2: '#F5F5F7',
-      3: '#666666',
-      4: '#333333'
+      1: '#333333',
+      2: '#FDFBF7', // Cream White Background
+      3: '#5C5A55',
+      4: '#1A1918'
     },
-    success: '#4CAF50',
-    error: '#FF4444',
-    background: '#FFFFFF',
-    surface: '#F8F8F8'
+    success: '#43A047',
+    error: '#E53935',
+    background: '#FDFBF7', // Minimal Cream White
+    surface: '#FFFFFF'
   },
   typography: {
-    fontFamily: "'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    fontFamily: {
+      heading: "'Pretendard', 'Noto Sans KR', sans-serif",
+      body: "'Spoqa Han Sans Neo', 'Noto Sans KR', sans-serif"
+    },
     fontSize: {
       xs: '0.75rem',
       sm: '0.875rem',
@@ -48,10 +51,10 @@ export const theme = {
     full: '9999px'
   },
   shadows: {
-    sm: '0 2px 4px rgba(0, 0, 0, 0.1)',
-    md: '0 4px 6px rgba(0, 0, 0, 0.1)',
-    lg: '0 8px 16px rgba(0, 0, 0, 0.1)',
-    xl: '0 12px 24px rgba(0, 0, 0, 0.1)'
+    sm: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+    md: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
+    lg: '0 10px 15px -3px rgba(0, 0, 0, 0.05)',
+    xl: '0 20px 25px -5px rgba(0, 0, 0, 0.05)'
   },
   breakpoints: {
     sm: '640px',

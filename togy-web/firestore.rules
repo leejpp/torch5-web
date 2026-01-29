@@ -50,5 +50,10 @@ service cloud.firestore {
     match /voices/{document} {
       allow read, write: if true;  // 테스트를 위해 모든 작업 허용
     }
+    
+    // church_member 컬렉션 추가 (초기 설정을 위해 임시 허용)
+    match /church_member/{document} {
+      allow read, write: if true;
+    }
   }
 } 

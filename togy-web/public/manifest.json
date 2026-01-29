@@ -1,6 +1,6 @@
 {
-  "short_name": "TOGY 청년부",
-  "name": "TOGY 청년부 웹사이트",
+  "short_name": "TorchChurch",
+  "name": "TorchChurch",
   "icons": [
     {
       "src": "favicon.ico",
@@ -12,4 +12,4 @@
   "display": "standalone",
   "theme_color": "#4285F4",
   "background_color": "#ffffff"
-} 
+}

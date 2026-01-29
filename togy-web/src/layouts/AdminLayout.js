@@ -2,42 +2,39 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { colors, typography, spacing, shadows, borderRadius, media } from '../styles/designSystem';
-import AdminAuth from '../components/admin/AdminAuth';
-
 const AdminLayout = () => {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <AdminAuth>
-      <Container>
-        <Header>
-          <HeaderContent>
-            <HomeLink to="/admin">
-              <Logo>TOGY 관리자</Logo>
-            </HomeLink>
-            <MenuButton onClick={() => setIsMenuOpen(!isMenuOpen)}>
-              <MenuIcon>{isMenuOpen ? '✕' : '☰'}</MenuIcon>
-            </MenuButton>
-            <Nav $isOpen={isMenuOpen}>
-              <NavLink to="/admin/prayer" $isActive={location.pathname === '/admin/prayer'}>중보기도</NavLink>
-              <NavLink to="/admin/voices" $isActive={location.pathname === '/admin/voices'}>마음의 소리</NavLink>
-              <NavLink to="/admin/calendar" $isActive={location.pathname === '/admin/calendar'}>일정관리</NavLink>
-              <NavLink to="/admin/yearlythemes" $isActive={location.pathname === '/admin/yearlythemes'}>연간테마</NavLink>
-              <NavLink to="/admin/cells" $isActive={location.pathname === '/admin/cells'}>셀 재편성</NavLink>
-            </Nav>
-          </HeaderContent>
-        </Header>
-        <Main>
-          <Outlet />
-        </Main>
-        <Footer>
-          <FooterContent>
-            <FooterText>© 2025 TOGY 청년부 관리자. All rights reserved.</FooterText>
-          </FooterContent>
-        </Footer>
-      </Container>
-    </AdminAuth>
+    <Container>
+      <Header>
+        <HeaderContent>
+          <BackToPortal to="/admin">⬅︎ 전체 관리자</BackToPortal>
+          <HomeLink to="/admin/togy">
+            <Logo>TOGY 관리자</Logo>
+          </HomeLink>
+          <MenuButton onClick={() => setIsMenuOpen(!isMenuOpen)}>
+            <MenuIcon>{isMenuOpen ? '✕' : '☰'}</MenuIcon>
+          </MenuButton>
+          <Nav $isOpen={isMenuOpen}>
+            <NavLink to="/admin/togy/prayer" $isActive={location.pathname === '/admin/togy/prayer'}>중보기도</NavLink>
+            <NavLink to="/admin/togy/voices" $isActive={location.pathname === '/admin/togy/voices'}>마음의 소리</NavLink>
+            <NavLink to="/admin/togy/calendar" $isActive={location.pathname === '/admin/togy/calendar'}>일정관리</NavLink>
+            <NavLink to="/admin/togy/yearlythemes" $isActive={location.pathname === '/admin/togy/yearlythemes'}>연간테마</NavLink>
+            <NavLink to="/admin/togy/cells" $isActive={location.pathname === '/admin/togy/cells'}>셀 재편성</NavLink>
+          </Nav>
+        </HeaderContent>
+      </Header>
+      <Main>
+        <Outlet />
+      </Main>
+      <Footer>
+        <FooterContent>
+          <FooterText>© 2026 TOGY 청년부 관리자. All rights reserved.</FooterText>
+        </FooterContent>
+      </Footer>
+    </Container>
   );
 };
 
@@ -93,6 +90,25 @@ const HeaderContent = styled.div`
   
   ${media['max-md']} {
     padding: ${spacing.md} ${spacing.xl};
+  }
+`;
+
+const BackToPortal = styled(Link)`
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  font-size: ${typography.fontSize.sm};
+  margin-right: ${spacing.lg};
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 0.2s;
+  
+  &:hover {
+    color: white;
+  }
+  
+  ${media['max-md']} {
+    // Mobile navigation visibility adjustment
   }
 `;
 

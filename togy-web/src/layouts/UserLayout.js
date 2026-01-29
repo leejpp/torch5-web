@@ -11,16 +11,18 @@ const UserLayout = () => {
     <Container>
       <Header>
         <HeaderContent>
-          <HomeLink to="/">
-            <Logo>TOGY 청년부</Logo>
+          <BackToMain to="/">⬅︎ 메인으로</BackToMain>
+          <HomeLink to="/togy">
+            <Logo>TorchChurch</Logo>
           </HomeLink>
           <MenuButton onClick={() => setIsMenuOpen(!isMenuOpen)}>
             <MenuIcon>{isMenuOpen ? '✕' : '☰'}</MenuIcon>
           </MenuButton>
           <Nav $isOpen={isMenuOpen}>
-            <NavLink to="/prayer" $isActive={location.pathname === '/prayer'}>중보기도</NavLink>
-            <NavLink to="/voices" $isActive={location.pathname === '/voices'}>마음의 소리</NavLink>
-            <NavLink to="/calendar" $isActive={location.pathname === '/calendar'}>일정</NavLink>
+            <NavLink to="/togy/birthdays" $isActive={location.pathname === '/togy/birthdays'}>전교인 생일</NavLink>
+            <NavLink to="/togy/prayer" $isActive={location.pathname === '/togy/prayer'}>중보기도</NavLink>
+            <NavLink to="/togy/voices" $isActive={location.pathname === '/togy/voices'}>마음의 소리</NavLink>
+            <NavLink to="/togy/calendar" $isActive={location.pathname === '/togy/calendar'}>일정</NavLink>
           </Nav>
         </HeaderContent>
       </Header>
@@ -29,7 +31,7 @@ const UserLayout = () => {
       </Main>
       <Footer>
         <FooterContent>
-          <FooterText>© 2026 TOGY 청년부. All rights reserved.</FooterText>
+          <FooterText>© 2026 TorchChurch. All rights reserved.</FooterText>
         </FooterContent>
       </Footer>
     </Container>
@@ -40,30 +42,16 @@ const Container = styled.div`
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: #f8f9fa;
+  background-color: ${colors.neutral[50]}; // Cream White
 `;
 
 const Header = styled.header`
-  background: ${colors.gradients.primary};
-  color: white;
-  box-shadow: ${shadows.lg};
+  background: ${colors.neutral[50]}; // Cream White
+  border-bottom: 1px solid ${colors.neutral[200]};
   position: sticky;
   top: 0;
   z-index: 100;
   backdrop-filter: blur(10px);
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: 
-      radial-gradient(circle at 30% 70%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-      radial-gradient(circle at 70% 30%, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
-    pointer-events: none;
-  }
 `;
 
 const HeaderContent = styled.div`
@@ -79,6 +67,33 @@ const HeaderContent = styled.div`
   ${media['max-md']} {
     padding: ${spacing.md} ${spacing.xl};
   }
+  ${media['max-md']} {
+    padding: ${spacing.md} ${spacing.xl};
+  }
+`;
+
+const BackToMain = styled(Link)`
+  position: absolute;
+  left: ${spacing['2xl']};
+  color: ${colors.neutral[500]};
+  text-decoration: none;
+  font-size: ${typography.fontSize.sm};
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  
+  &:hover {
+    color: ${colors.primary[700]};
+  }
+  
+  ${media['max-md']} {
+    position: static;
+    font-size: 0;
+    &::before {
+      content: '⬅︎';
+      font-size: ${typography.fontSize.lg};
+    }
+  }
 `;
 
 const HomeLink = styled(Link)`
@@ -89,9 +104,8 @@ const Logo = styled.h1`
   font-size: ${typography.fontSize['2xl']};
   font-weight: ${typography.fontWeight.extrabold};
   font-family: ${typography.fontFamily.heading};
-  color: white;
+  color: ${colors.primary[700]}; // Deep Green
   margin: 0;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   
   ${media['max-md']} {
     font-size: ${typography.fontSize.xl};
@@ -102,7 +116,7 @@ const MenuButton = styled.button`
   display: none;
   background: none;
   border: none;
-  color: white;
+  color: ${colors.primary[700]};
   font-size: 1.5rem;
   cursor: pointer;
   padding: 0.5rem;
@@ -127,46 +141,28 @@ const Nav = styled.nav`
     top: 100%;
     left: 0;
     right: 0;
-    background: linear-gradient(135deg, ${colors.primary[700]} 0%, ${colors.primary[800]} 100%);
-    backdrop-filter: blur(20px);
+    background: ${colors.neutral[50]};
+    border-bottom: 1px solid ${colors.neutral[200]};
     padding: ${spacing.lg};
     flex-direction: column;
     gap: ${spacing.md};
-    box-shadow: ${shadows.xl};
+    box-shadow: ${shadows.lg};
   }
 `;
 
 const NavLink = styled(Link)`
-  color: white;
+  color: ${colors.primary[700]}; // Deep Green
   text-decoration: none;
   font-weight: ${typography.fontWeight.semibold};
   font-size: ${typography.fontSize.base};
   padding: ${spacing.sm} ${spacing.lg};
   border-radius: ${borderRadius.lg};
-  transition: all 0.3s ease;
-  background-color: ${props => props.$isActive ? 'rgba(255, 255, 255, 0.25)' : 'transparent'};
-  backdrop-filter: blur(10px);
-  position: relative;
-  overflow: hidden;
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: left 0.5s ease;
-  }
+  transition: all 0.2s ease;
+  background-color: ${props => props.$isActive ? colors.primary[100] : 'transparent'};
   
   &:hover {
-    background-color: rgba(255, 255, 255, 0.25);
-    transform: translateY(-2px);
-    
-    &::before {
-      left: 100%;
-    }
+    background-color: ${colors.primary[50]};
+    transform: translateY(-1px);
   }
   
   ${media['max-md']} {
@@ -184,10 +180,9 @@ const Main = styled.main`
 `;
 
 const Footer = styled.footer`
-  background: linear-gradient(135deg, ${colors.neutral[50]} 0%, ${colors.neutral[100]} 100%);
+  background: ${colors.primary[700]}; // Deep Green
   padding: ${spacing['2xl']} 0;
   margin-top: auto;
-  border-top: 1px solid ${colors.neutral[200]};
 `;
 
 const FooterContent = styled.div`
@@ -198,7 +193,7 @@ const FooterContent = styled.div`
 `;
 
 const FooterText = styled.p`
-  color: ${colors.neutral[600]};
+  color: rgba(255, 255, 255, 0.8);
   font-size: ${typography.fontSize.sm};
   font-weight: ${typography.fontWeight.medium};
   margin: 0;

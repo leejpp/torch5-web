@@ -1,681 +1,541 @@
-import React, { useState, useEffect, useCallback, memo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import styled, { keyframes } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
-import { theme } from '../../styles/theme';
+import { collection, addDoc, serverTimestamp, getDoc, doc, setDoc, query, where, getDocs, Timestamp } from 'firebase/firestore';
 import { db } from '../../firebase/config';
-import { collection, addDoc, doc, getDoc, setDoc, updateDoc, Timestamp, query, where, getDocs } from 'firebase/firestore';
-import { 
-  CommonContainer, 
-  CommonHeader, 
-  HeaderContent, 
-  HeaderTop, 
-  PrimaryButton, 
-  SecondaryButton, 
-  PageTitle, 
-  LoadingSpinner, 
-  ErrorMessage,
-  fadeInUp 
-} from '../../components/common/TalantStyles';
-import { TALANT_CATEGORIES, STUDENT_LIST, loadStudentsFromFirebase } from '../../utils/talantUtils';
+import { loadStudentsFromFirebase, TALANT_CATEGORIES } from '../../utils/talantUtils';
+import { colors, typography, spacing, shadows, borderRadius, media } from '../../styles/designSystem';
 
-// Container, Header, HeaderContent, HeaderTop은 TalantStyles에서 import됨
+const TalantInput = () => {
+  const navigate = useNavigate();
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingButtons, setLoadingButtons] = useState(new Set());
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
 
-const DateSelect = styled.input`
-  padding: 12px 16px;
-  border: 2px solid rgba(59, 130, 246, 0.2);
-  border-radius: 10px;
-  font-size: 16px;
-  width: 100%;
-  font-family: 'Pretendard', 'Noto Sans KR', 'Apple SD Gothic Neo', Arial, sans-serif;
-  outline: none;
-  transition: all 0.2s ease;
+  // Custom Input Modal State
+  const [showCustomModal, setShowCustomModal] = useState(false);
+  const [currentStudent, setCurrentStudent] = useState('');
+  const [customReason, setCustomReason] = useState('');
+  const [customAmount, setCustomAmount] = useState('');
+
+  // Toast state
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+
+  // Load students
+  useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        const loadedStudents = await loadStudentsFromFirebase();
+        setStudents(loadedStudents);
+      } catch (error) {
+        console.error("Error fetching students:", error);
+        showToast('학생 목록을 불러오는데 실패했습니다.', 'error');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStudents();
+  }, []);
+
+  const showToast = (message, type = 'success') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
+  };
+
+  const handleTalantSubmit = async (studentName, reason, amount, isCustom = false) => {
+    const buttonId = `${studentName}-${reason}`;
+    setLoadingButtons(prev => new Set(prev).add(buttonId));
+
+    try {
+      // 0. Check for duplicates (optional, based on logic)
+      // For now, allow multiple entries as per original logic, 
+      // but maybe strict check for daily fixed items if needed?
+      // Original logic had checkDuplicateEntry. Let's implement a simple version if needed.
+      // For simplicity and speed, we'll proceed similar to the original reliable logic.
+
+      // 1. Add to talant_history
+      const dateParts = selectedDate.split('-');
+      const targetDate = new Date(
+        parseInt(dateParts[0]),
+        parseInt(dateParts[1]) - 1,
+        parseInt(dateParts[2]),
+        0, 0, 0
+      );
+
+      await addDoc(collection(db, 'talant_history'), {
+        name: studentName,
+        reason: reason,
+        talant: parseInt(amount),
+        createdAt: serverTimestamp(),
+        type: 'credit',
+        receivedDate: Timestamp.fromDate(targetDate)
+      });
+
+      // 2. Update user_stats
+      const userStatsRef = doc(db, 'user_stats', studentName);
+      const userStatsDoc = await getDoc(userStatsRef);
+
+      if (userStatsDoc.exists()) {
+        const currentTotal = userStatsDoc.data().total || 0;
+        await setDoc(userStatsRef, {
+          total: currentTotal + parseInt(amount),
+          lastUpdated: serverTimestamp()
+        }, { merge: true });
+      } else {
+        await setDoc(userStatsRef, {
+          name: studentName,
+          total: parseInt(amount),
+          lastUpdated: serverTimestamp()
+        });
+      }
+
+      showToast(`${studentName}에게 ${amount}달란트 (${reason}) 지급 완료!`);
+
+    } catch (error) {
+      console.error("Error submitting talant:", error);
+      showToast('달란트 지급 중 오류가 발생했습니다.', 'error');
+    } finally {
+      setLoadingButtons(prev => {
+        const next = new Set(prev);
+        next.delete(buttonId);
+        return next;
+      });
+      if (isCustom) setShowCustomModal(false);
+    }
+  };
+
+  const openCustomModal = (studentName) => {
+    setCurrentStudent(studentName);
+    setCustomReason('');
+    setCustomAmount('');
+    setShowCustomModal(true);
+  };
+
+  const handleCustomSubmit = () => {
+    if (!customReason || !customAmount) {
+      showToast('사유와 달란트를 모두 입력해주세요.', 'error');
+      return;
+    }
+    handleTalantSubmit(currentStudent, customReason, customAmount, true);
+  };
+
+  // Categories + 'Others'
+  const categories = [
+    ...TALANT_CATEGORIES,
+    { reason: '기타', value: 0, emoji: '✨' }
+  ];
+
+  return (
+    <PageContainer>
+      <Header>
+        <HeaderContent>
+          <BackButton onClick={() => navigate('/admin/talant')}>
+            ← 대시보드
+          </BackButton>
+          <PageTitle>달란트 입력</PageTitle>
+          <HistoryLink onClick={() => navigate('/admin/talant/history')}>
+            <span>전체 내역</span>
+            <span>📋</span>
+          </HistoryLink>
+        </HeaderContent>
+      </Header>
+
+      <ContentArea>
+        <Controls>
+          <DateLabel>날짜 선택</DateLabel>
+          <DateInput
+            type="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+          />
+        </Controls>
+
+        {loading ? (
+          <LoadingState>학생 목록을 불러오는 중...</LoadingState>
+        ) : (
+          <Grid>
+            {students.map((student) => (
+              <StudentCard key={student}>
+                <CardHeader>
+                  <StudentName>{student}</StudentName>
+                </CardHeader>
+                <ButtonsGrid>
+                  {categories.map((cat) => (
+                    <TalantButton
+                      key={cat.reason}
+                      $isCustom={cat.reason === '기타'}
+                      disabled={loadingButtons.has(`${student}-${cat.reason}`)}
+                      onClick={() => {
+                        if (cat.reason === '기타') {
+                          openCustomModal(student);
+                        } else {
+                          handleTalantSubmit(student, cat.reason, cat.value);
+                        }
+                      }}
+                    >
+                      {loadingButtons.has(`${student}-${cat.reason}`) ? (
+                        <Spinner />
+                      ) : (
+                        <>
+                          <Emoji>{cat.emoji}</Emoji>
+                          <Label>{cat.reason}</Label>
+                          {cat.value > 0 && <Value>{cat.value}</Value>}
+                        </>
+                      )}
+                    </TalantButton>
+                  ))}
+                </ButtonsGrid>
+              </StudentCard>
+            ))}
+          </Grid>
+        )}
+      </ContentArea>
+
+      {/* Custom Modal */}
+      {showCustomModal && (
+        <ModalBackdrop onClick={() => setShowCustomModal(false)}>
+          <Modal onClick={e => e.stopPropagation()}>
+            <ModalTitle>{currentStudent} - 기타 입력</ModalTitle>
+            <ModalContent>
+              <InputGroup>
+                <InputLabel>사유</InputLabel>
+                <Input
+                  placeholder="예: 심부름, 특별활동"
+                  value={customReason}
+                  onChange={e => setCustomReason(e.target.value)}
+                  autoFocus
+                />
+              </InputGroup>
+              <InputGroup>
+                <InputLabel>달란트</InputLabel>
+                <Input
+                  type="number"
+                  placeholder="0"
+                  value={customAmount}
+                  onChange={e => setCustomAmount(e.target.value)}
+                />
+              </InputGroup>
+            </ModalContent>
+            <ModalActions>
+              <ModalButton onClick={() => setShowCustomModal(false)}>취소</ModalButton>
+              <ModalButton $primary onClick={handleCustomSubmit}>지급하기</ModalButton>
+            </ModalActions>
+          </Modal>
+        </ModalBackdrop>
+      )}
+
+      <Toast $show={toast.show} $type={toast.type}>
+        {toast.message}
+      </Toast>
+    </PageContainer>
+  );
+};
+
+// Animations
+const fadeIn = keyframes`
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+`;
+
+const spin = keyframes`
+  to { transform: rotate(360deg); }
+`;
+
+// Styled Components
+const PageContainer = styled.div`
+  min-height: 100vh;
+  background-color: ${colors.neutral[50]};
+`;
+
+const Header = styled.header`
   background: white;
-  color: #222;
-
-  &:focus {
-    border-color: #3B82F6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-  }
-  
-  @media (max-width: 480px) {
-    padding: 10px 12px;
-    font-size: 14px;
-  }
+  border-bottom: 1px solid ${colors.neutral[200]};
+  padding: ${spacing.md} 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 `;
 
-const LogDisplay = styled.div`
-  background: rgba(59, 130, 246, 0.1);
-  border-radius: 10px;
-  padding: 12px 16px;
-  font-size: 14px;
-  color: #3B82F6;
-  border: 1px solid rgba(59, 130, 246, 0.2);
-  margin-top: 12px;
-  transition: all 0.3s ease;
-  animation: ${fadeInUp} 0.5s ease-out;
-  font-family: 'Pretendard', 'Noto Sans KR', 'Apple SD Gothic Neo', Arial, sans-serif;
-`;
-
-// ErrorMessage는 TalantStyles에서 import됨
-
-const PersonGrid = styled.div`
+const HeaderContent = styled.div`
   max-width: 1200px;
   margin: 0 auto;
-  padding: 16px;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 16px;
-  
-  @media (max-width: 480px) {
-    padding: 12px;
-    gap: 12px;
-    grid-template-columns: 1fr;
-  }
+  padding: 0 ${spacing.lg};
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 `;
 
-const PersonCard = styled.div`
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  overflow: hidden;
-  transition: all 0.2s ease;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  animation: ${fadeInUp} 0.8s ease-out ${props => props.delay}s both;
+const BackButton = styled.button`
+  background: none;
+  border: none;
+  font-size: ${typography.fontSize.sm};
+  color: ${colors.neutral[600]};
+  cursor: pointer;
+  padding: ${spacing.sm};
+  
+  &:hover { color: ${colors.neutral[900]}; }
+`;
 
+const PageTitle = styled.h1`
+  font-size: ${typography.fontSize.lg};
+  font-weight: ${typography.fontWeight.bold};
+  color: ${colors.neutral[900]};
+  margin: 0;
+`;
+
+const HistoryLink = styled.button`
+  background: ${colors.neutral[100]};
+  border: none;
+  padding: ${spacing.sm} ${spacing.md};
+  border-radius: ${borderRadius.full};
+  font-size: ${typography.fontSize.sm};
+  color: ${colors.neutral[700]};
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  
+  &:hover { background: ${colors.neutral[200]}; }
+`;
+
+const ContentArea = styled.main`
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: ${spacing.xl} ${spacing.lg};
+  
+  ${media['max-md']} { padding: ${spacing.lg} ${spacing.md}; }
+`;
+
+const Controls = styled.div`
+  margin-bottom: ${spacing.lg};
+  display: flex;
+  align-items: center;
+  gap: ${spacing.md};
+  background: white;
+  padding: ${spacing.md};
+  border-radius: ${borderRadius.lg};
+  box-shadow: ${shadows.sm};
+  width: fit-content;
+`;
+
+const DateLabel = styled.label`
+  font-weight: ${typography.fontWeight.bold};
+  color: ${colors.neutral[700]};
+  font-size: ${typography.fontSize.sm};
+`;
+
+const DateInput = styled.input`
+  padding: ${spacing.sm} ${spacing.md};
+  border: 1px solid ${colors.neutral[300]};
+  border-radius: ${borderRadius.md};
+  font-size: ${typography.fontSize.base};
+  color: ${colors.neutral[900]};
+  outline: none;
+  
+  &:focus { border-color: ${colors.primary[500]}; }
+`;
+
+const Grid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: ${spacing.lg};
+  
+  ${media['max-sm']} { grid-template-columns: 1fr; }
+`;
+
+const StudentCard = styled.div`
+  background: white;
+  border-radius: ${borderRadius.xl};
+  box-shadow: ${shadows.sm};
+  border: 1px solid ${colors.neutral[200]};
+  overflow: hidden;
+  animation: ${fadeIn} 0.5s ease-out;
+  transition: transform 0.2s;
+  
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    box-shadow: ${shadows.md};
   }
 `;
 
-const PersonName = styled.div`
-  font-weight: 700;
-  padding: 16px;
-  font-size: 18px;
-  background: rgba(59, 130, 246, 0.05);
-  color: #222;
-  text-align: center;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-  font-family: 'Pretendard', 'Noto Sans KR', 'Apple SD Gothic Neo', Arial, sans-serif;
-  
-  @media (max-width: 480px) {
-    padding: 12px;
-    font-size: 16px;
-  }
+const CardHeader = styled.div`
+  padding: ${spacing.md} ${spacing.lg};
+  background: ${colors.neutral[50]};
+  border-bottom: 1px solid ${colors.neutral[100]};
+`;
+
+const StudentName = styled.h3`
+  margin: 0;
+  font-size: ${typography.fontSize.lg};
+  font-weight: ${typography.fontWeight.bold};
+  color: ${colors.neutral[800]};
 `;
 
 const ButtonsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  padding: 16px;
-  
-  @media (max-width: 480px) {
-    gap: 6px;
-    padding: 12px;
-  }
+  gap: ${spacing.xs};
+  padding: ${spacing.md};
 `;
 
 const TalantButton = styled.button`
-  position: relative;
-  padding: 12px 8px;
-  border: none;
-  border-radius: 8px;
-  background: #3182F6;
-  color: white;
-  cursor: pointer;
-  font-size: 14px;
-  font-family: 'Pretendard', 'Noto Sans KR', 'Apple SD Gothic Neo', Arial, sans-serif;
-  min-height: 76px;
-  font-weight: 600;
-  transition: all 0.2s ease;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 2px;
-  text-align: center;
-  line-height: 1.2;
-
-  &:hover:not(:disabled) {
-    background: #2B6CB0;
-    transform: translateY(-2px);
-  }
-
-  &:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-    transform: none;
-  }
-
-  &.etc {
-    background: #F59E0B;
-    
-    &:hover:not(:disabled) {
-      background: #D97706;
-    }
+  background: ${props => props.$isCustom ? colors.primary[50] : 'white'};
+  border: 1px solid ${props => props.$isCustom ? colors.primary[200] : colors.neutral[200]};
+  border-radius: ${borderRadius.lg};
+  padding: ${spacing.sm};
+  cursor: pointer;
+  transition: all 0.1s;
+  min-height: 80px;
+  
+  &:hover {
+    background: ${props => props.$isCustom ? colors.primary[100] : colors.neutral[50]};
+    border-color: ${colors.primary[300]};
+    transform: scale(1.02);
   }
   
-  @media (max-width: 480px) {
-    font-size: 12px;
-    min-height: 68px;
-    padding: 10px 4px;
-    gap: 1px;
+  &:active { transform: scale(0.98); }
+  
+  &:disabled {
+    opacity: 0.7;
+    cursor: wait;
   }
 `;
 
-// LoadingSpinner는 TalantStyles에서 import됨
+const Emoji = styled.span`
+  font-size: 24px;
+  line-height: 1.2;
+`;
 
-// 모달 스타일
+const Label = styled.span`
+  font-size: ${typography.fontSize.xs};
+  font-weight: ${typography.fontWeight.semibold};
+  color: ${colors.neutral[700]};
+`;
+
+const Value = styled.span`
+  font-size: 10px;
+  font-weight: ${typography.fontWeight.bold};
+  color: ${colors.primary[600]};
+  background: ${colors.primary[50]};
+  padding: 1px 4px;
+  border-radius: ${borderRadius.sm};
+`;
+
+const Spinner = styled.div`
+  width: 20px;
+  height: 20px;
+  border: 2px solid ${colors.primary[200]};
+  border-top-color: ${colors.primary[600]};
+  border-radius: 50%;
+  animation: ${spin} 0.8s linear infinite;
+`;
+
 const ModalBackdrop = styled.div`
-  display: ${props => props.show ? 'flex' : 'none'};
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(5px);
-  z-index: 1000;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
 `;
 
 const Modal = styled.div`
   background: white;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 400px;
-  animation: ${fadeInUp} 0.3s ease-out;
+  border-radius: ${borderRadius.xl};
+  padding: ${spacing.xl};
+  width: 90%;
+  max-width: 360px;
+  box-shadow: ${shadows.xl};
+  animation: ${fadeIn} 0.3s ease-out;
 `;
 
-const ModalTitle = styled.div`
-  color: #222;
-  font-size: 20px;
-  font-weight: 700;
-  margin-bottom: 20px;
+const ModalTitle = styled.h3`
+  margin: 0 0 ${spacing.lg} 0;
+  font-size: ${typography.fontSize.lg};
   text-align: center;
-  font-family: 'Pretendard', 'Noto Sans KR', 'Apple SD Gothic Neo', Arial, sans-serif;
 `;
 
-const ModalInput = styled.input`
-  width: 100%;
-  padding: 12px 16px;
-  border: 2px solid rgba(59, 130, 246, 0.2);
-  border-radius: 8px;
-  font-size: 16px;
-  font-family: 'Pretendard', 'Noto Sans KR', 'Apple SD Gothic Neo', Arial, sans-serif;
-  outline: none;
-  transition: all 0.2s ease;
-  margin-bottom: 16px;
-  box-sizing: border-box;
-
-  &:focus {
-    border-color: #3B82F6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-  }
-
-  &::placeholder {
-    color: #A0AEC0;
-  }
-`;
-
-const ModalButtons = styled.div`
+const ModalContent = styled.div`
   display: flex;
-  gap: 12px;
+  flex-direction: column;
+  gap: ${spacing.md};
+  margin-bottom: ${spacing.xl};
+`;
+
+const InputGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${spacing.xs};
+`;
+
+const InputLabel = styled.label`
+  font-size: ${typography.fontSize.xs};
+  font-weight: ${typography.fontWeight.bold};
+  color: ${colors.neutral[500]};
+`;
+
+const Input = styled.input`
+  padding: ${spacing.md};
+  border: 1px solid ${colors.neutral[300]};
+  border-radius: ${borderRadius.lg};
+  width: 100%;
+  font-size: ${typography.fontSize.base};
+  &:focus { outline: none; border-color: ${colors.primary[500]}; }
+`;
+
+const ModalActions = styled.div`
+  display: flex;
+  gap: ${spacing.md};
 `;
 
 const ModalButton = styled.button`
   flex: 1;
-  padding: 12px;
+  padding: ${spacing.md};
+  border-radius: ${borderRadius.lg};
   border: none;
-  border-radius: 8px;
+  font-weight: ${typography.fontWeight.bold};
   cursor: pointer;
-  font-size: 16px;
-  font-weight: 600;
-  transition: all 0.2s ease;
-  font-family: 'Pretendard', 'Noto Sans KR', 'Apple SD Gothic Neo', Arial, sans-serif;
   
-  &.cancel {
-    background: #E5E7EB;
-    color: #6B7280;
-    
-    &:hover {
-      background: #D1D5DB;
-    }
-  }
-  
-  &.confirm {
-    background: #3182F6;
+  ${props => props.$primary ? `
+    background: ${colors.primary[600]};
     color: white;
-    
-    &:hover {
-      background: #2B6CB0;
-    }
-  }
+    &:hover { background: ${colors.primary[700]}; }
+  ` : `
+    background: ${colors.neutral[100]};
+    color: ${colors.neutral[700]};
+    &:hover { background: ${colors.neutral[200]}; }
+  `}
 `;
 
-const ResultModal = styled.div`
-  display: ${props => props.show ? 'block' : 'none'};
+const Toast = styled.div`
   position: fixed;
-  top: 50%;
+  bottom: 30px;
   left: 50%;
-  transform: translate(-50%, -50%);
-  background: white;
-  border-radius: ${theme.borderRadius.xl};
-  padding: ${theme.spacing['2xl']};
-  box-shadow: ${theme.shadows.xl};
-  z-index: 1001;
-  width: 90%;
-  max-width: 400px;
-  text-align: center;
-  animation: ${fadeInUp} 0.3s ease-out;
-`;
-
-const ResultMessage = styled.div`
-  color: ${theme.colors.neutral[1]};
-  font-size: ${theme.typography.fontSize.lg};
-  line-height: 1.6;
-  margin-bottom: ${theme.spacing.xl};
-  white-space: pre-line;
-`;
-
-const ResultButton = styled.button`
-  background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+  transform: translateX(-50%) translateY(${props => props.$show ? '0' : '100px'});
+  background: ${props => props.$type === 'error' ? colors.error[500] : colors.neutral[800]};
   color: white;
-  border: none;
-  padding: ${theme.spacing.md} ${theme.spacing.xl};
-  border-radius: ${theme.borderRadius.lg};
-  cursor: pointer;
-  font-size: ${theme.typography.fontSize.base};
-  font-weight: ${theme.typography.fontWeight.semibold};
-  transition: ${theme.transitions.default};
-
-  &:hover {
-    background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
-    transform: translateY(-1px);
-  }
+  padding: ${spacing.md} ${spacing.xl};
+  border-radius: ${borderRadius.full};
+  box-shadow: ${shadows.xl};
+  font-weight: ${typography.fontWeight.medium};
+  opacity: ${props => props.$show ? 1 : 0};
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 100;
 `;
 
-const TalantInput = () => {
-  const navigate = useNavigate();
-  
-  // 상태 관리
-  const [selectedDate, setSelectedDate] = useState('');
-  const [logMessage, setLogMessage] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
-  const [showCustomModal, setShowCustomModal] = useState(false);
-  const [showResultModal, setShowResultModal] = useState(false);
-  const [resultMessage, setResultMessage] = useState('');
-  const [currentPerson, setCurrentPerson] = useState(null);
-  const [customReason, setCustomReason] = useState('');
-  const [customValue, setCustomValue] = useState('');
-  const [loadingButtons, setLoadingButtons] = useState(new Set());
-  const [lastSubmissionTime, setLastSubmissionTime] = useState(0);
+const LoadingState = styled.div`
+  text-align: center;
+  padding: 40px;
+  color: ${colors.neutral[500]};
+`;
 
-  // 데이터 정의 (유틸리티에서 가져옴)
-  const [people, setPeople] = useState([]);
-  const categories = [
-    ...TALANT_CATEGORIES.map(cat => ({ name: cat.reason, value: cat.value, icon: cat.emoji })),
-    { name: '기타', value: 'custom', icon: '➕' }
-  ];
-
-  // 학생 목록 로드
-  useEffect(() => {
-    const loadStudents = async () => {
-      try {
-        const studentList = await loadStudentsFromFirebase();
-        setPeople(studentList);
-      } catch (error) {
-        console.error('학생 목록 로드 실패:', error);
-        // 오류 시 기본 목록 사용
-        setPeople(STUDENT_LIST);
-      }
-    };
-    loadStudents();
-  }, []);
-
-  // 초기화
-  useEffect(() => {
-    const today = new Date();
-    const dateStr = today.toISOString().split('T')[0];
-    setSelectedDate(dateStr);
-  }, []);
-
-  // 로그 표시 함수
-  const addLogEntry = useCallback((name, talant, reason) => {
-    setLogMessage(`${name} / ${talant}점 / ${reason}`);
-    setTimeout(() => {
-      setLogMessage('');
-    }, 3000);
-  }, []);
-
-  // 에러 표시 함수
-  const showError = useCallback((message, duration = 5000) => {
-    setErrorMessage(message);
-    setTimeout(() => {
-      setErrorMessage('');
-    }, duration);
-  }, []);
-
-  // 중복 제출 방지
-  const preventDuplicateSubmission = useCallback(() => {
-    const now = Date.now();
-    if (now - lastSubmissionTime < 2000) {
-      return false;
-    }
-    setLastSubmissionTime(now);
-    return true;
-  }, [lastSubmissionTime]);
-
-  // user_stats 업데이트 함수
-  const updateUserStats = useCallback(async (studentName, talantValue) => {
-    try {
-      const userStatsRef = doc(db, 'user_stats', studentName);
-      const userStatsDoc = await getDoc(userStatsRef);
-      
-      if (userStatsDoc.exists()) {
-        // 기존 문서가 있으면 값을 더함
-        const currentTotal = userStatsDoc.data().total || 0;
-        await updateDoc(userStatsRef, {
-          total: currentTotal + talantValue
-        });
-      } else {
-        // 새 문서 생성
-        await setDoc(userStatsRef, {
-          total: talantValue
-        });
-      }
-    } catch (error) {
-      console.error('user_stats 업데이트 오류:', error);
-    }
-  }, []);
-
-  // 중복 데이터 체크 함수 (고정 카테고리만 체크)
-  const checkDuplicateEntry = useCallback(async (name, reason, selectedDate) => {
-    try {
-      // 고정 카테고리인지 확인
-      const isFixedCategory = TALANT_CATEGORIES.some(cat => cat.reason === reason);
-      
-      // 기타 항목(커스텀 입력)은 중복 체크하지 않음
-      if (!isFixedCategory) {
-        console.log(`📝 기타 항목은 중복 체크 안함: ${name} - ${reason}`);
-        return false;
-      }
-      
-      const [year, month, day] = selectedDate.split('-').map(Number);
-      const targetDateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-      
-      // 해당 날짜의 모든 데이터를 가져와서 클라이언트에서 필터링
-      const startDate = new Date(year, month - 1, day, 0, 0, 0);
-      const endDate = new Date(year, month - 1, day, 23, 59, 59);
-      
-      const q = query(
-        collection(db, 'talant_history'),
-        where('receivedDate', '>=', Timestamp.fromDate(startDate)),
-        where('receivedDate', '<=', Timestamp.fromDate(endDate))
-      );
-      
-      const querySnapshot = await getDocs(q);
-      
-      // 클라이언트에서 이름과 사유로 필터링
-      const duplicateFound = querySnapshot.docs.some(doc => {
-        const data = doc.data();
-        return data.name === name && data.reason === reason;
-      });
-      
-      if (duplicateFound) {
-        console.log(`🚨 고정 항목 중복 발견: ${name} - ${reason} - ${targetDateStr}`);
-      }
-      
-      return duplicateFound;
-    } catch (error) {
-      console.error('중복 체크 오류:', error);
-      return false; // 오류 시 중복 아님으로 처리
-    }
-  }, []);
-
-  // 달란트 제출 함수
-  const submitTalant = useCallback(async (name, reason, talant, buttonKey = null) => {
-    if (!selectedDate) {
-      setResultMessage('날짜를 선택해주세요!');
-      setShowResultModal(true);
-      return;
-    }
-
-    if (!preventDuplicateSubmission()) {
-      return;
-    }
-
-    if (buttonKey) {
-      setLoadingButtons(prev => new Set([...prev, buttonKey]));
-    }
-
-    try {
-      // 중복 데이터 체크 (고정 카테고리만)
-      const isDuplicate = await checkDuplicateEntry(name, reason, selectedDate);
-      if (isDuplicate) {
-        const [year, month, day] = selectedDate.split('-').map(Number);
-        const formattedDate = `${year}년 ${month}월 ${day}일`;
-        setResultMessage(`⚠️ 중복 데이터 발견!\n\n${name}님은 ${formattedDate}에\n이미 "${reason}" 달란트를 받았습니다.\n\n※ 고정 항목은 하루에 한 번만 가능합니다.`);
-        setShowResultModal(true);
-        return;
-      }
-
-      // 선택한 날짜에 현재 시간을 조합하여 정확한 날짜 생성
-      const [year, month, day] = selectedDate.split('-').map(Number);
-      
-      // receivedDate는 선택한 날짜의 시작 시간(00:00:00)
-      const receivedDate = new Date(year, month - 1, day, 0, 0, 0);
-      
-      // createdAt은 현재 시간
-      const createdAt = new Date();
-      
-      const talantData = {
-        name: name,
-        reason: reason,
-        talant: talant.toString(),
-        receivedDate: Timestamp.fromDate(receivedDate),
-        createdAt: Timestamp.fromDate(createdAt)
-      };
-      
-      // talant_history에 기록 추가
-      await addDoc(collection(db, 'talant_history'), talantData);
-      
-      // user_stats에 누적 개수 업데이트
-      await updateUserStats(name, talant);
-      
-      addLogEntry(name, talant, reason);
-      const formattedDate = `${year}년 ${month}월 ${day}일`;
-      setResultMessage(`✅ 입력 완료!\n\n이름: ${name}\n사유: ${reason}\n달란트: ${talant}\n날짜: ${formattedDate}`);
-      setShowResultModal(true);
-    } catch (error) {
-      console.error("달란트 저장 오류:", error);
-      showError(`데이터 저장 중 오류가 발생했습니다: ${error.message}`);
-      setResultMessage('오류가 발생했습니다. 다시 시도해주세요.');
-      setShowResultModal(true);
-    } finally {
-      if (buttonKey) {
-        setTimeout(() => {
-          setLoadingButtons(prev => {
-            const newSet = new Set(prev);
-            newSet.delete(buttonKey);
-            return newSet;
-          });
-        }, 1000);
-      }
-    }
-  }, [selectedDate, preventDuplicateSubmission, addLogEntry, showError, updateUserStats, checkDuplicateEntry]);
-
-  // 커스텀 모달 열기
-  const openCustomModal = useCallback((person) => {
-    setCurrentPerson(person);
-    setCustomReason('');
-    setCustomValue('');
-    setShowCustomModal(true);
-  }, []);
-
-  // 커스텀 달란트 제출
-  const submitCustomTalant = useCallback(async () => {
-    if (!customReason.trim()) {
-      return;
-    }
-    
-    if (!customValue || isNaN(customValue)) {
-      return;
-    }
-
-    await submitTalant(currentPerson, customReason, parseInt(customValue));
-    setShowCustomModal(false);
-  }, [customReason, customValue, currentPerson, submitTalant]);
-
-  // 키보드 이벤트 처리
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Enter' && showCustomModal) {
-        submitCustomTalant();
-      }
-      
-      if (e.key === 'Escape') {
-        if (showCustomModal) {
-          setShowCustomModal(false);
-        }
-        if (showResultModal) {
-          setShowResultModal(false);
-        }
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [showCustomModal, showResultModal, submitCustomTalant]);
-
-  return (
-    <CommonContainer>
-      <CommonHeader>
-        <HeaderContent>
-          <HeaderTop>
-            <PrimaryButton onClick={() => navigate('/talant')}>
-              ← 대시보드
-            </PrimaryButton>
-            <PageTitle>달란트 입력</PageTitle>
-            <SecondaryButton onClick={() => navigate('/talant/history')}>
-              <span>전체 내역</span>
-              <span>📋</span>
-            </SecondaryButton>
-          </HeaderTop>
-          
-          <DateSelect
-            type="date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-          />
-          
-          {logMessage && (
-            <LogDisplay>{logMessage}</LogDisplay>
-          )}
-          
-          {errorMessage && (
-            <ErrorMessage>{errorMessage}</ErrorMessage>
-          )}
-        </HeaderContent>
-      </CommonHeader>
-
-      <PersonGrid>
-        {people.map((person, index) => (
-          <PersonCard key={person} delay={index * 0.1}>
-            <PersonName>{person}</PersonName>
-                         <ButtonsGrid>
-               {categories.map((category) => {
-                 const buttonKey = `${person}-${category.name}`;
-                 const isLoading = loadingButtons.has(buttonKey);
-                 
-                 return (
-                   <TalantButton
-                     key={category.name}
-                     className={category.name === '기타' ? 'etc' : ''}
-                     disabled={isLoading}
-                     onClick={() => {
-                       if (category.value === 'custom') {
-                         openCustomModal(person);
-                       } else {
-                         submitTalant(person, category.name, category.value, buttonKey);
-                       }
-                     }}
-                   >
-                     {isLoading ? (
-                       <LoadingSpinner />
-                     ) : (
-                       <>
-                         <div>{category.icon}</div>
-                         <div>{category.name}</div>
-                         {category.value !== 'custom' && (
-                           <div style={{ fontSize: '0.8em', opacity: 0.9 }}>
-                             {category.value}점
-                           </div>
-                         )}
-                       </>
-                     )}
-                   </TalantButton>
-                 );
-               })}
-             </ButtonsGrid>
-          </PersonCard>
-        ))}
-      </PersonGrid>
-
-      {/* 커스텀 달란트 모달 */}
-      <ModalBackdrop show={showCustomModal}>
-        <Modal>
-          <ModalTitle>기타 달란트 입력</ModalTitle>
-          <ModalInput
-            type="text"
-            placeholder="달란트 사유"
-            value={customReason}
-            onChange={(e) => setCustomReason(e.target.value)}
-            autoFocus
-          />
-          <ModalInput
-            type="number"
-            placeholder="달란트 수"
-            value={customValue}
-            onChange={(e) => setCustomValue(e.target.value)}
-          />
-          <ModalButtons>
-            <ModalButton 
-              className="cancel" 
-              onClick={() => setShowCustomModal(false)}
-            >
-              취소
-            </ModalButton>
-            <ModalButton 
-              className="confirm" 
-              onClick={submitCustomTalant}
-              disabled={!customReason.trim() || !customValue}
-            >
-              확인
-            </ModalButton>
-          </ModalButtons>
-        </Modal>
-      </ModalBackdrop>
-
-      {/* 결과 모달 */}
-      {showResultModal && (
-        <>
-          <ModalBackdrop show={true} />
-          <ResultModal show={showResultModal}>
-            <ResultMessage>{resultMessage}</ResultMessage>
-            <ResultButton onClick={() => setShowResultModal(false)}>
-              확인
-            </ResultButton>
-          </ResultModal>
-        </>
-      )}
-    </CommonContainer>
-  );
-};
-
-export default memo(TalantInput); 
+export default TalantInput;

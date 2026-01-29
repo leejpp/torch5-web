@@ -423,7 +423,7 @@ const RankPage = () => {
     if (previousRanking.length === 0) return '-';
     const previousIndex = previousRanking.findIndex(item => item.name === name);
     if (previousIndex === -1) return '-';
-    
+
     const previousRank = previousIndex + 1;
     if (currentRank < previousRank) return 'up';
     if (currentRank > previousRank) return 'down';
@@ -435,21 +435,21 @@ const RankPage = () => {
     try {
       // 등록된 모든 학생 목록 가져오기
       const allStudents = await loadStudentsFromFirebase();
-      
+
       if (allStudents.length === 0) {
         return [];
       }
 
       const rankingData = [];
-      
+
       // 각 학생의 점수를 user_stats에서 가져오기
       for (const studentName of allStudents) {
         try {
           const userStatsRef = doc(db, 'user_stats', studentName);
           const userStatsDoc = await getDoc(userStatsRef);
-          
+
           const score = userStatsDoc.exists() ? (userStatsDoc.data().total || 0) : 0;
-          
+
           // 모든 학생을 랭킹에 포함 (점수가 0이어도 포함)
           rankingData.push({ name: studentName, score });
         } catch (error) {
@@ -461,7 +461,7 @@ const RankPage = () => {
 
       // 점수 기준 내림차순 정렬
       rankingData.sort((a, b) => b.score - a.score);
-      
+
       return rankingData;
     } catch (error) {
       console.error('랭킹 계산 에러:', error);
@@ -473,14 +473,14 @@ const RankPage = () => {
   const loadInitialRanking = useCallback(async () => {
     try {
       setLoading(true);
-      
+
       const rankingData = await calculateRanking();
-      
+
       // 타임스탬프 업데이트
       const now = new Date();
       const days = ['일', '월', '화', '수', '목', '금', '토'];
       const timestampText = `집계 기준일: ${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} (${days[now.getDay()]}) ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-      
+
       setTimestamp(timestampText);
       setPreviousRanking([]); // 초기 로드시에는 이전 랭킹 없음
       setRanking(rankingData);
@@ -494,21 +494,21 @@ const RankPage = () => {
   // 랭킹 새로고침 (버튼 클릭용)
   const updateRanking = useCallback(async () => {
     if (refreshing) return;
-    
+
     try {
       setRefreshing(true);
-      
+
       const rankingData = await calculateRanking();
-      
+
       // 타임스탬프 업데이트
       const now = new Date();
       const days = ['일', '월', '화', '수', '목', '금', '토'];
       const timestampText = `집계 기준일: ${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} (${days[now.getDay()]}) ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-      
+
       setTimestamp(timestampText);
       setPreviousRanking([...ranking]); // 이전 랭킹 저장
       setRanking(rankingData);
-      
+
       showToast('랭킹이 업데이트되었습니다.');
     } catch (error) {
       console.error('랭킹 업데이트 에러:', error);
@@ -521,7 +521,7 @@ const RankPage = () => {
   // 학생 상세 정보 팝업
   const showStudentPopup = useCallback(async (name) => {
     setPopup({ show: true, name, history: [], loading: true });
-    
+
     try {
       const q = query(
         collection(db, 'talant_history'),
@@ -529,7 +529,7 @@ const RankPage = () => {
         orderBy('receivedDate', 'desc'),
         limit(5)
       );
-      
+
       onSnapshot(q, (snapshot) => {
         if (snapshot.empty) {
           setPopup(prev => ({ ...prev, history: [], loading: false }));
@@ -540,14 +540,14 @@ const RankPage = () => {
         snapshot.forEach(doc => {
           const data = doc.data();
           const receivedDate = data.receivedDate?.toDate() || new Date();
-          
+
           history.push({
             date: `${receivedDate.getFullYear()}-${String(receivedDate.getMonth() + 1).padStart(2, '0')}-${String(receivedDate.getDate()).padStart(2, '0')}`,
             reason: data.reason || '사유 없음',
             amount: data.talant || '0'
           });
         });
-        
+
         setPopup(prev => ({ ...prev, history, loading: false }));
       });
     } catch (error) {
@@ -565,11 +565,21 @@ const RankPage = () => {
   return (
     <TossRankContainer>
       <TossRankHeader>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+          <TossPrimaryButton
+            onClick={() => window.location.href = '/'}
+            style={{ width: 'auto', padding: '8px 16px', fontSize: '14px', background: 'transparent', color: TossColors.grey700, border: `1px solid ${TossColors.grey300}` }}
+          >
+            ← 메인으로
+          </TossPrimaryButton>
+          {timestamp && <Timestamp style={{ marginTop: 0 }}>{timestamp}</Timestamp>}
+        </div>
+
         <TossGradientTitle>🏆 달란트 랭킹</TossGradientTitle>
         <TossSubtitle>주일학교 학생들의 달란트 점수 순위를 확인하세요</TossSubtitle>
-        
+
         <TossRankControls>
-          <TossPrimaryButton 
+          <TossPrimaryButton
             onClick={updateRanking}
             disabled={refreshing}
           >
@@ -577,8 +587,6 @@ const RankPage = () => {
             {refreshing ? '로딩 중...' : '랭킹 새로고침'}
           </TossPrimaryButton>
         </TossRankControls>
-        
-        {timestamp && <Timestamp>{timestamp}</Timestamp>}
       </TossRankHeader>
 
       <div>
@@ -614,12 +622,12 @@ const RankPage = () => {
                 <RankingHeader>
                   <h2>🎯 전체 순위</h2>
                 </RankingHeader>
-                
+
                 <RankingList>
                   {ranking.slice(1).map((item, index) => {
                     const currentRank = index + 2;
                     const movement = determineMovement(currentRank, item.name);
-                    
+
                     return (
                       <RankingItem key={item.name}>
                         <RankNumber rank={currentRank}>{currentRank}</RankNumber>
@@ -648,9 +656,9 @@ const RankPage = () => {
           <CloseButton onClick={() => setPopup({ show: false, name: '', history: [], loading: false })}>
             ×
           </CloseButton>
-          
+
           <h3>{popup.name}님의 달란트 내역</h3>
-          
+
           {popup.loading ? (
             <LoadingMessage>
               <div className="loading-icon">⏳</div>

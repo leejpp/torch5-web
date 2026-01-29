@@ -1,192 +1,95 @@
 import { keyframes } from 'styled-components';
 
-// 🎨 컬러 팔레트
+// 🎨 컬러 팔레트 - Minimal Green & Yellow Theme
 export const colors = {
-  // Primary Colors (보라색 그라데이션 계열)
+  // Primary (Deep Forest Green: #1A4D2E) - 차분하고 신뢰감 있는 짙은 초록
   primary: {
-    50: '#f5f3ff',
-    100: '#ede9fe',
-    200: '#ddd6fe',
-    300: '#c4b5fd',
-    400: '#a78bfa',
-    500: '#8b5cf6',
-    600: '#7c3aed',
-    700: '#6d28d9',
-    800: '#5b21b6',
-    900: '#4c1d95',
+    50: '#F2F7F4',
+    100: '#E1EFE6',
+    200: '#C3DFCC',
+    300: '#9FBFA9',
+    400: '#759F82',
+    500: '#4F7F5E',
+    600: '#346642',
+    700: '#1A4D2E', // Main
+    800: '#143A24',
+    900: '#0E2919',
   },
-  
-  // Secondary Colors (그라데이션 보조색)
+
+  // Secondary (Butter Yellow: #F9E076) - 부드럽고 따뜻한 노랑
   secondary: {
-    50: '#fdf2f8',
-    100: '#fce7f3',
-    200: '#fbcfe8',
-    300: '#f9a8d4',
-    400: '#f472b6',
-    500: '#ec4899',
-    600: '#db2777',
-    700: '#be185d',
-    800: '#9d174d',
-    900: '#831843',
+    50: '#FFFEF0',
+    100: '#FFFBD1',
+    200: '#FFF6A3',
+    300: '#F9E076', // Main
+    400: '#F4C542',
+    500: '#EDA615',
+    600: '#D1840B',
+    700: '#A65F06',
+    800: '#804505',
+    900: '#5F3003',
   },
-  
-  // Neutral Colors (회색 계열)
+
+  // Neutral (Warm Grey) - 차가운 회색 대신 따뜻한 크림/베이지 톤이 섞인 회색
   neutral: {
-    50: '#f8fafc',
-    100: '#f1f5f9',
-    200: '#e2e8f0',
-    300: '#cbd5e1',
-    400: '#94a3b8',
-    500: '#64748b',
-    600: '#475569',
-    700: '#334155',
-    800: '#1e293b',
-    900: '#0f172a',
+    50: '#FDFBF7', // Background (Cream White)
+    100: '#F5F2EB',
+    200: '#EBE6DC',
+    300: '#D6D1C7',
+    400: '#A8A49D',
+    500: '#807D77',
+    600: '#5C5A55',
+    700: '#403E3B', // Body Text Light
+    800: '#2B2A28', // Body Text Dark
+    900: '#1A1918',
   },
-  
-  // Semantic Colors
+
+  // Semantic Colors (Clean & Muted)
   success: {
-    50: '#f0fdf4',
-    100: '#dcfce7',
-    200: '#bbf7d0',
-    300: '#86efac',
-    400: '#4ade80',
-    500: '#22c55e',
-    600: '#16a34a',
-    700: '#15803d',
-    800: '#166534',
-    900: '#14532d',
+    50: '#F0F9F4',
+    500: '#43A047',
+    900: '#1B5E20',
   },
-  
+
   warning: {
-    50: '#fffbeb',
-    100: '#fef3c7',
-    200: '#fed7aa',
-    300: '#fdba74',
-    400: '#fb923c',
-    500: '#f59e0b',
-    600: '#d97706',
-    700: '#b45309',
-    800: '#92400e',
-    900: '#78350f',
+    50: '#FFF8E1',
+    500: '#FB8C00',
+    900: '#E65100',
   },
-  
+
   error: {
-    50: '#fef2f2',
-    100: '#fee2e2',
-    200: '#fecaca',
-    300: '#fca5a5',
-    400: '#f87171',
-    500: '#ef4444',
-    600: '#dc2626',
-    700: '#b91c1c',
-    800: '#991b1b',
-    900: '#7f1d1d',
+    50: '#FFEBEE',
+    500: '#E53935',
+    900: '#B71C1C',
   },
-  
-  // Red Colors (error와 동일하게 유지)
-  red: {
-    50: '#fef2f2',
-    100: '#fee2e2',
-    200: '#fecaca',
-    300: '#fca5a5',
-    400: '#f87171',
-    500: '#ef4444',
-    600: '#dc2626',
-    700: '#b91c1c',
-    800: '#991b1b',
-    900: '#7f1d1d',
-  },
-  
-  // Green Colors
-  green: {
-    50: '#f0fdf4',
-    100: '#dcfce7',
-    200: '#bbf7d0',
-    300: '#86efac',
-    400: '#4ade80',
-    500: '#22c55e',
-    600: '#16a34a',
-    700: '#15803d',
-    800: '#166534',
-    900: '#14532d',
-  },
-  
-  // Blue Colors
-  blue: {
-    50: '#eff6ff',
-    100: '#dbeafe',
-    200: '#bfdbfe',
-    300: '#93c5fd',
-    400: '#60a5fa',
-    500: '#3b82f6',
-    600: '#2563eb',
-    700: '#1d4ed8',
-    800: '#1e40af',
-    900: '#1e3a8a',
-  },
-  
-  // Amber Colors
-  amber: {
-    50: '#fffbeb',
-    100: '#fef3c7',
-    200: '#fde68a',
-    300: '#fcd34d',
-    400: '#fbbf24',
-    500: '#f59e0b',
-    600: '#d97706',
-    700: '#b45309',
-    800: '#92400e',
-    900: '#78350f',
-  },
-  
-  // Orange Colors
-  orange: {
-    50: '#fff7ed',
-    100: '#ffedd5',
-    200: '#fed7aa',
-    300: '#fdba74',
-    400: '#fb923c',
-    500: '#f97316',
-    600: '#ea580c',
-    700: '#c2410c',
-    800: '#9a3412',
-    900: '#7c2d12',
-  },
-  
-  // Accent Colors (추가)
-  accent: {
-    50: '#fef7ff',
-    100: '#fde4ff',
-    200: '#fcbfff',
-    300: '#f987ff',
-    400: '#f441ff',
-    500: '#e809eb',
-    600: '#c002c5',
-    700: '#9f00a2',
-    800: '#820b84',
-    900: '#6b126c',
-  },
-  
-  // Background Gradients
+
+  // Red/Green/Blue/Amber/Orange/Accent - 기본 유지하되 톤 다운
+  red: { 500: '#E53935' },
+  green: { 500: '#43A047' },
+  blue: { 500: '#1E88E5' },
+  amber: { 500: '#FFB300' },
+  orange: { 500: '#FB8C00' },
+  accent: { 500: '#8E24AA' },
+
+  // Background Gradients - Removed or Minimal
   gradients: {
-    primary: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    secondary: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-    accent: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
-    success: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-    warm: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
-    cool: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+    primary: '#1A4D2E', // Solid Green for minimal look
+    secondary: '#F9E076', // Solid Yellow
+    primarySoft: 'linear-gradient(180deg, #1A4D2E 0%, #143A24 100%)', // Very subtle
+    accent: 'linear-gradient(135deg, #F9E076 0%, #F4C542 100%)',
+    glass: 'rgba(255, 255, 255, 0.8)', // for glassmorphism if needed
   }
 };
 
-// 📝 타이포그래피
+// 📝 타이포그래피 (유지)
 export const typography = {
   fontFamily: {
-    primary: "'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif",
-    heading: "'Pretendard Variable', 'Pretendard', sans-serif",
+    primary: "'Pretendard', 'Noto Sans KR', sans-serif",
+    heading: "'Pretendard', 'Noto Sans KR', sans-serif",
+    body: "'Spoqa Han Sans Neo', 'Noto Sans KR', sans-serif",
     mono: "'JetBrains Mono', 'Monaco', 'Consolas', monospace",
   },
-  
+
   fontSize: {
     xs: '0.75rem',    // 12px
     sm: '0.875rem',   // 14px
@@ -199,7 +102,7 @@ export const typography = {
     '5xl': '3rem',    // 48px
     '6xl': '3.75rem', // 60px
   },
-  
+
   fontWeight: {
     light: 300,
     normal: 400,
@@ -208,11 +111,11 @@ export const typography = {
     bold: 700,
     extrabold: 800,
   },
-  
+
   lineHeight: {
     tight: 1.25,
-    normal: 1.5,
-    relaxed: 1.75,
+    normal: 1.6,
+    relaxed: 1.8,
   }
 };
 
@@ -256,7 +159,7 @@ export const animations = {
       transform: translateY(0);
     }
   `,
-  
+
   fadeInUp: keyframes`
     from {
       opacity: 0;
@@ -267,7 +170,7 @@ export const animations = {
       transform: translateY(0);
     }
   `,
-  
+
   // Float animation
   float: keyframes`
     0%, 100% {
@@ -277,7 +180,7 @@ export const animations = {
       transform: translateY(-10px);
     }
   `,
-  
+
   // Bounce animation
   bounce: keyframes`
     0%, 20%, 53%, 80%, 100% {
@@ -293,7 +196,7 @@ export const animations = {
       transform: translate3d(0, -4px, 0);
     }
   `,
-  
+
   // Shake animation
   shake: keyframes`
     0%, 100% {
@@ -306,7 +209,7 @@ export const animations = {
       transform: translateX(5px);
     }
   `,
-  
+
   // Spin animation
   spin: keyframes`
     0% {
@@ -316,7 +219,7 @@ export const animations = {
       transform: rotate(360deg);
     }
   `,
-  
+
   // Scale animation
   scaleIn: keyframes`
     from {
@@ -328,7 +231,7 @@ export const animations = {
       transform: scale(1);
     }
   `,
-  
+
   // Slide animations
   slideInRight: keyframes`
     from {
@@ -340,7 +243,7 @@ export const animations = {
       transform: translateX(0);
     }
   `,
-  
+
   slideInLeft: keyframes`
     from {
       opacity: 0;
@@ -353,19 +256,19 @@ export const animations = {
   `,
 };
 
-// 🌫️ 그림자
+// 🌫️ 그림자 (Minimal & Soft)
 export const shadows = {
   sm: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-  base: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
-  md: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-  lg: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-  xl: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-  '2xl': '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-  inner: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.06)',
-  
-  // Glass morphism shadows
-  glass: '0 25px 50px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.1) inset',
-  glassHover: '0 35px 60px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.15) inset',
+  base: '0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03)',
+  md: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
+  lg: '0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02)',
+  xl: '0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02)',
+  '2xl': '0 25px 50px -12px rgba(0, 0, 0, 0.1)',
+  inner: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.02)',
+
+  // Glass effect replaced with soft solid style
+  glass: '0 4px 20px rgba(0, 0, 0, 0.03)',
+  glassHover: '0 10px 30px rgba(0, 0, 0, 0.06)',
 };
 
 // 📱 반응형 Breakpoints
@@ -384,7 +287,7 @@ export const media = {
   lg: `@media (min-width: ${breakpoints.lg})`,
   xl: `@media (min-width: ${breakpoints.xl})`,
   '2xl': `@media (min-width: ${breakpoints['2xl']})`,
-  
+
   // Max-width queries
   'max-sm': `@media (max-width: ${breakpoints.sm})`,
   'max-md': `@media (max-width: ${breakpoints.md})`,
@@ -394,35 +297,36 @@ export const media = {
 
 // 🎨 컴포넌트 스타일 프리셋
 export const components = {
-  // Glass morphism card
+  // Card - Solid & Clean
   glassCard: {
-    background: 'rgba(255, 255, 255, 0.95)',
-    backdropFilter: 'blur(20px)',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
-    boxShadow: shadows.glass,
+    background: '#FFFFFF',
+    border: `1px solid ${colors.neutral[200]}`,
+    boxShadow: shadows.md,
+    borderRadius: borderRadius['2xl'],
   },
-  
+
   // Button variants
   button: {
     primary: {
-      background: colors.gradients.primary,
-      color: colors.neutral[50],
-      boxShadow: `0 8px 25px ${colors.primary[500]}33`,
+      background: colors.primary[700],
+      color: '#FFFFFF',
+      boxShadow: 'none',
     },
     secondary: {
-      background: `${colors.neutral[100]}`,
-      color: colors.neutral[700],
-      border: `2px solid ${colors.neutral[200]}`,
+      background: colors.secondary[300],
+      color: colors.primary[900],
+      border: 'none',
+      fontWeight: typography.fontWeight.bold,
     },
     ghost: {
       background: 'transparent',
-      color: colors.primary[600],
-      border: `2px solid ${colors.primary[200]}`,
+      color: colors.primary[700],
+      border: `1px solid ${colors.primary[200]}`,
     }
   }
 };
 
-// 🎭 테마 (라이트/다크 모드 준비)
+// 🎭 테마
 export const theme = {
   colors,
   typography,
@@ -435,4 +339,4 @@ export const theme = {
   components,
 };
 
-export default theme; 
+export default theme;

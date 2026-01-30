@@ -5,7 +5,7 @@ import { SermonService } from '../../services/SermonService';
 import { getYoutubeId, getThumbnailUrl } from '../../utils/youtube';
 import { colors, typography, spacing, borderRadius, shadows, media } from '../../styles/designSystem';
 
-const SERVICE_TYPES = ['주일대예배', '주일오후예배', '수요저녁예배', '금요철야예배', '기타'];
+const SERVICE_TYPES = ['주일대예배', '주일오후예배', '수요저녁예배', '금요철야예배', '청년부예배', '주일학교예배', '기타'];
 
 const SermonsAdmin = () => {
     const [sermons, setSermons] = useState([]);

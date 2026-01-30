@@ -31,9 +31,9 @@ const REPEAT_TYPES = {
 const EVENT_TYPES = {
   DEFAULT: { label: '기본', bgColor: '#F5F5F5', color: '#616161' },
   BIRTHDAY: { label: '생일', bgColor: '#E1BEE7', color: '#6A1B9A' },
-  MEETING: { label: '모임', bgColor: '#BBDEFB', color: '#1565C0' },
+  MEETING: { label: '예배', bgColor: '#BBDEFB', color: '#1565C0' },
   ACTIVITY: { label: '활동', bgColor: '#C8E6C9', color: '#2E7D32' },
-  EVENT: { label: '행사', bgColor: '#FFF9C4', color: '#F57F17' },
+  EVENT: { label: '기타', bgColor: '#FFF9C4', color: '#F57F17' },
   HOLIDAY: { label: '공휴일', bgColor: '#FFD1D1', color: '#C62828' }
 };
 

@@ -25,41 +25,41 @@ const localizer = dateFnsLocalizer({
 });
 
 const EVENT_TYPES = {
-  DEFAULT: { 
-    label: '기본', 
-    bgColor: colors.primary[100], 
+  DEFAULT: {
+    label: '기본',
+    bgColor: colors.primary[100],
     color: colors.primary[700],
-    gradient: colors.gradients.primary 
+    gradient: colors.gradients.primary
   },
-  BIRTHDAY: { 
-    label: '생일', 
-    bgColor: colors.accent[100], 
+  BIRTHDAY: {
+    label: '생일',
+    bgColor: colors.accent[100],
     color: colors.accent[700],
-    gradient: colors.gradients.accent 
+    gradient: colors.gradients.accent
   },
-  MEETING: { 
-    label: '모임', 
-    bgColor: colors.secondary[100], 
+  MEETING: {
+    label: '예배',
+    bgColor: colors.secondary[100],
     color: colors.secondary[700],
-    gradient: colors.gradients.secondary 
+    gradient: colors.gradients.secondary
   },
-  ACTIVITY: { 
-    label: '활동', 
-    bgColor: colors.success[100], 
+  ACTIVITY: {
+    label: '활동',
+    bgColor: colors.success[100],
     color: colors.success[700],
-    gradient: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' 
+    gradient: 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
   },
-  EVENT: { 
-    label: '행사', 
-    bgColor: colors.warning[100], 
+  EVENT: {
+    label: '기타',
+    bgColor: colors.warning[100],
     color: colors.warning[700],
-    gradient: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' 
+    gradient: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'
   },
-  HOLIDAY: { 
-    label: '공휴일', 
-    bgColor: colors.error[100], 
+  HOLIDAY: {
+    label: '공휴일',
+    bgColor: colors.error[100],
     color: colors.error[700],
-    gradient: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)' 
+    gradient: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'
   }
 };
 
@@ -140,8 +140,8 @@ const Calendar = () => {
     const currentYear = date.getFullYear();
     const monthEvents = events.filter(event => {
       const eventDate = new Date(event.start);
-      return eventDate.getMonth() === currentMonth && 
-             eventDate.getFullYear() === currentYear;
+      return eventDate.getMonth() === currentMonth &&
+        eventDate.getFullYear() === currentYear;
     });
     return monthEvents.length;
   };
@@ -149,7 +149,7 @@ const Calendar = () => {
   return (
     <Container>
       <BackgroundOverlay />
-      
+
       <Header>
         <HeaderContent>
           <NavigationSection>
@@ -158,7 +158,7 @@ const Calendar = () => {
               <BackText>홈으로</BackText>
             </BackButton>
           </NavigationSection>
-          
+
           <TitleSection>
             <HeaderIconContainer>
               <HeaderIcon onClick={handleTitleClick}>📅</HeaderIcon>
@@ -245,8 +245,8 @@ const Calendar = () => {
                   dayPropGetter={date => {
                     const today = new Date();
                     const isToday = date.getDate() === today.getDate() &&
-                                   date.getMonth() === today.getMonth() &&
-                                   date.getYear() === today.getYear();
+                      date.getMonth() === today.getMonth() &&
+                      date.getYear() === today.getYear();
                     const isSunday = date.getDay() === 0;
                     return {
                       className: isToday ? 'today' : '',
@@ -273,10 +273,10 @@ const Calendar = () => {
               <EventTitleSection>
                 <EventIcon>
                   {selectedEvent.type === 'BIRTHDAY' ? '🎂' :
-                   selectedEvent.type === 'MEETING' ? '👥' :
-                   selectedEvent.type === 'ACTIVITY' ? '🎯' :
-                   selectedEvent.type === 'EVENT' ? '🎉' :
-                   selectedEvent.type === 'HOLIDAY' ? '🏖️' : '📅'}
+                    selectedEvent.type === 'MEETING' ? '👥' :
+                      selectedEvent.type === 'ACTIVITY' ? '🎯' :
+                        selectedEvent.type === 'EVENT' ? '📌' :
+                          selectedEvent.type === 'HOLIDAY' ? '🏖️' : '📅'}
                 </EventIcon>
                 <EventTitle>{selectedEvent.title}</EventTitle>
               </EventTitleSection>
@@ -295,13 +295,13 @@ const Calendar = () => {
                   <DetailLabel>날짜</DetailLabel>
                   <DetailValue>
                     {format(selectedEvent.start, 'yyyy년 MM월 dd일 (eee)', { locale: ko })}
-                    {format(selectedEvent.start, 'yyyy-MM-dd') !== format(selectedEvent.end, 'yyyy-MM-dd') && 
+                    {format(selectedEvent.start, 'yyyy-MM-dd') !== format(selectedEvent.end, 'yyyy-MM-dd') &&
                       ` ~ ${format(selectedEvent.end, 'yyyy년 MM월 dd일 (eee)', { locale: ko })}`
                     }
                   </DetailValue>
                 </DetailContent>
               </DetailCard>
-              
+
               {selectedEvent.location && (
                 <DetailCard>
                   <DetailIcon>📍</DetailIcon>
@@ -311,7 +311,7 @@ const Calendar = () => {
                   </DetailContent>
                 </DetailCard>
               )}
-              
+
               {selectedEvent.description && (
                 <DetailCard>
                   <DetailIcon>📝</DetailIcon>

@@ -39,7 +39,7 @@ const EVENT_TYPES = {
     gradient: 'linear-gradient(135deg, #E1BEE7 0%, #CE93D8 100%)'
   },
   MEETING: {
-    label: '모임',
+    label: '예배',
     bgColor: '#BBDEFB',
     color: '#1565C0',
     gradient: 'linear-gradient(135deg, #BBDEFB 0%, #90CAF9 100%)'
@@ -51,7 +51,7 @@ const EVENT_TYPES = {
     gradient: 'linear-gradient(135deg, #C8E6C9 0%, #A5D6A7 100%)'
   },
   EVENT: {
-    label: '행사',
+    label: '기타',
     bgColor: '#FFF9C4',
     color: '#F57F17',
     gradient: 'linear-gradient(135deg, #FFF9C4 0%, #FFF59D 100%)'
@@ -264,7 +264,7 @@ const ChurchSchedule = () => {
                   {selectedEvent.type === 'BIRTHDAY' ? '🎂' :
                     selectedEvent.type === 'MEETING' ? '👥' :
                       selectedEvent.type === 'ACTIVITY' ? '🎯' :
-                        selectedEvent.type === 'EVENT' ? '🎉' :
+                        selectedEvent.type === 'EVENT' ? '📌' :
                           selectedEvent.type === 'HOLIDAY' ? '🏖️' : '📅'}
                 </EventIcon>
                 <EventTitle>{selectedEvent.title}</EventTitle>

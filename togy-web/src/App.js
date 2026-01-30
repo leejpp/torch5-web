@@ -42,6 +42,7 @@ const TalantStudents = React.lazy(() => import('./pages/talant/Students'));
 const MainMembers = React.lazy(() => import('./pages/admin/main/Members'));
 const MainSchedule = React.lazy(() => import('./pages/admin/main/Schedule')); // [NEW] Admin Schedule
 const MainDashboard = React.lazy(() => import('./pages/admin/main/Dashboard')); // [NEW] Admin Dashboard
+const NoticeAdmin = React.lazy(() => import('./pages/admin/Notice')); // [NEW] Notice Admin
 
 const GlobalStyle = createGlobalStyle`
   * {
@@ -117,9 +118,10 @@ const App = () => {
             {/* User Routes (Moved to /togy) */}
             <Route path="/birthdays" element={<AllBirthdays />} />
             <Route path="/schedule" element={<ChurchSchedule />} /> {/* [NEW] Global Schedule Route */}
+            <Route path="/notice" element={<Notice />} /> {/* [MOVED] Global Notice Route */}
             <Route path="/togy" element={<UserLayout />}>
               <Route index element={<Home />} />
-              <Route path="notice" element={<Notice />} />
+              {/* Notice moved to root */}
               <Route path="prayer" element={<PrayerRequests />} />
               <Route path="voices" element={<Voices />} />
               <Route path="calendar" element={<Calendar />} />
@@ -143,6 +145,7 @@ const App = () => {
                 <Route index element={<MainDashboard />} /> {/* Dashboard as index */}
                 <Route path="members" element={<MainMembers />} />
                 <Route path="schedule" element={<MainSchedule />} /> {/* New Schedule Route */}
+                <Route path="notice" element={<NoticeAdmin />} /> {/* New Notice Admin Route */}
               </Route>
 
               {/* Talant Routes (Nested under /admin/talant) */}

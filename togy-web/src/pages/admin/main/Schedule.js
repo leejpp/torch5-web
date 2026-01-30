@@ -168,6 +168,7 @@ const Schedule = () => {
         description: formData.description,
         location: formData.location,
         type: formData.type,
+        isLunar: formData.isLunar,
         repeat: formData.repeat
       };
 
@@ -206,9 +207,10 @@ const Schedule = () => {
     setIsSubmitting(true);
     try {
       if (selectedEvent?.isRecurring && deleteOption === 'all') {
+        const repeatGroupId = selectedEvent.repeat?.repeatGroupId || selectedEvent.repeatGroupId;
         const q = query(
           collection(db, 'events'),
-          where('repeatGroupId', '==', selectedEvent.repeatGroupId)
+          where('repeat.repeatGroupId', '==', repeatGroupId)
         );
         const snapshot = await getDocs(q);
         const batch = writeBatch(db);
@@ -253,12 +255,14 @@ const Schedule = () => {
 
   const handlePrevMonth = () => {
     const newDate = new Date(date);
+    newDate.setDate(1); // 날짜를 1일로 초기화하여 월 건너뜀 방지
     newDate.setMonth(date.getMonth() - 1);
     setDate(newDate);
   };
 
   const handleNextMonth = () => {
     const newDate = new Date(date);
+    newDate.setDate(1); // 날짜를 1일로 초기화하여 월 건너뜀 방지
     newDate.setMonth(date.getMonth() + 1);
     setDate(newDate);
   };

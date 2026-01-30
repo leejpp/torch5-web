@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import styled, { keyframes } from 'styled-components';
-import { colors, typography, spacing, shadows, borderRadius, media } from '../../styles/designSystem';
+import { colors, typography, spacing, borderRadius, shadows, media } from '../../styles/designSystem';
 
 const CellReorganization = () => {
   const [formData, setFormData] = useState({
@@ -276,148 +276,130 @@ const CellReorganization = () => {
     <Container>
       <MainContent>
         <HeaderSection>
-          <StatBadge>
-            <span>📊</span>
-            <span>최적화 알고리즘</span>
-          </StatBadge>
+          <Title>셀 편성 도우미</Title>
+          <Stats>
+            <StatText>최적화 알고리즘 기반</StatText>
+          </Stats>
         </HeaderSection>
 
         <GuideSection>
-          <GuideCard>
-            <GuideTitle>📋 사용 안내</GuideTitle>
-            <GuideList>
-              <GuideItem>총원과 새 셀 갯수를 입력하세요.</GuideItem>
-              <GuideItem>각 셀의 리더를 지정하면 각 리더는 무조건 다른 셀에 배치됩니다.</GuideItem>
-              <GuideItem>새신자-전도자 페어를 지정하면 두 사람이 같은 셀에 배치됩니다.</GuideItem>
-              <GuideItem>기존 셀 목록을 입력하세요. 각 줄은 하나의 셀을 의미하며, 셀원은 공백으로 구분합니다.</GuideItem>
-              <GuideItem>새로 들어온 멤버가 있다면 공백으로 구분하여 입력하세요.</GuideItem>
-            </GuideList>
-          </GuideCard>
+          <GuideTitle>📋 사용 안내</GuideTitle>
+          <GuideText>
+            총원과 셀 수를 입력하고, 기존 셀 정보를 넣으면 최대한 겹치지 않게 새로운 셀을 편성합니다.<br />
+            리더와 새신자/전도자 페어는 고정적으로 배치됩니다.
+          </GuideText>
         </GuideSection>
 
         <FormSection>
-          <FormCard>
-            <FormGroup>
-              <Label>총원</Label>
-              <Input
-                type="number"
-                placeholder="총 인원수 입력"
-                min="1"
-                value={formData.totalMembers}
-                onChange={(e) => handleInputChange('totalMembers', e.target.value)}
-              />
-              <InputHint>전체 인원 수를 입력하세요.</InputHint>
-            </FormGroup>
-
-            <FormGroup>
-              <Label>새로 만들 셀 수</Label>
-              <Input
-                type="number"
-                placeholder="셀 갯수 입력"
-                min="1"
-                value={formData.cellCount}
-                onChange={(e) => handleInputChange('cellCount', e.target.value)}
-              />
-              <InputHint>새로 구성할 셀의 개수를 입력하세요.</InputHint>
-            </FormGroup>
+          <Form>
+            <FormRow>
+              <InputGroup>
+                <Label>총 인원</Label>
+                <Input
+                  type="number"
+                  placeholder="예: 30"
+                  min="1"
+                  value={formData.totalMembers}
+                  onChange={(e) => handleInputChange('totalMembers', e.target.value)}
+                />
+              </InputGroup>
+              <InputGroup>
+                <Label>생성할 셀 수</Label>
+                <Input
+                  type="number"
+                  placeholder="예: 5"
+                  min="1"
+                  value={formData.cellCount}
+                  onChange={(e) => handleInputChange('cellCount', e.target.value)}
+                />
+              </InputGroup>
+            </FormRow>
 
             {cellLeaders.length > 0 && (
-              <FormGroup>
-                <Label>셀 리더 지정</Label>
-                <InputHint>각 셀의 리더를 입력하세요. 리더들은 각각 다른 셀에 배치됩니다.</InputHint>
-                <LeadersGrid>
+              <InputGroup>
+                <Label>셀 리더 지정 (각 리더는 서로 다른 셀로 배정됩니다)</Label>
+                <Grid>
                   {cellLeaders.map((leader, index) => (
                     <Input
                       key={index}
                       type="text"
-                      placeholder={`셀${index + 1} 리더`}
+                      placeholder={`셀 ${index + 1} 리더`}
                       value={leader}
                       onChange={(e) => handleLeaderChange(index, e.target.value)}
                     />
                   ))}
-                </LeadersGrid>
-              </FormGroup>
+                </Grid>
+              </InputGroup>
             )}
 
-            <FormGroup>
-              <Label>새신자-전도자 페어링</Label>
-              <InputHint>새신자와 전도자를 같은 셀에 배치하고 싶다면 입력하세요.</InputHint>
-              <PairingContainer>
+            <InputGroup>
+              <Label>새신자-전도자 매칭 (같은 셀 배정)</Label>
+              <PairList>
                 {evangelistPairs.map((pair, index) => (
                   <PairRow key={index}>
-                    <PairInputGroup>
-                      <PairInput
-                        type="text"
-                        placeholder="새신자 이름"
-                        value={pair.newcomer}
-                        onChange={(e) => updateEvangelistPair(index, 'newcomer', e.target.value)}
-                      />
-                      <PairSeparator>↔</PairSeparator>
-                      <PairInput
-                        type="text"
-                        placeholder="전도자 이름"
-                        value={pair.evangelist}
-                        onChange={(e) => updateEvangelistPair(index, 'evangelist', e.target.value)}
-                      />
-                    </PairInputGroup>
-                    <PairActionButtons>
-                      <AddPairButton onClick={addEvangelistPair} type="button">
-                        ➕
-                      </AddPairButton>
-                      {evangelistPairs.length > 1 && (
-                        <RemovePairButton onClick={() => removeEvangelistPair(index)} type="button">
-                          ❌
-                        </RemovePairButton>
-                      )}
-                    </PairActionButtons>
+                    <Input
+                      type="text"
+                      placeholder="새신자"
+                      value={pair.newcomer}
+                      onChange={(e) => updateEvangelistPair(index, 'newcomer', e.target.value)}
+                      style={{ flex: 1 }}
+                    />
+                    <PairSeparator>↔</PairSeparator>
+                    <Input
+                      type="text"
+                      placeholder="전도자"
+                      value={pair.evangelist}
+                      onChange={(e) => updateEvangelistPair(index, 'evangelist', e.target.value)}
+                      style={{ flex: 1 }}
+                    />
+                    {evangelistPairs.length > 1 && (
+                      <RemoveButton type="button" onClick={() => removeEvangelistPair(index)}>×</RemoveButton>
+                    )}
                   </PairRow>
                 ))}
-              </PairingContainer>
-            </FormGroup>
+                <AddButton type="button" onClick={addEvangelistPair}>+ 매칭 추가</AddButton>
+              </PairList>
+            </InputGroup>
 
-            <FormGroup>
-              <Label>기존 셀 목록</Label>
+            <InputGroup>
+              <Label>기존 셀 정보 (각 줄이 하나의 셀, 공백으로 이름 구분)</Label>
               <TextArea
                 rows="6"
-                placeholder="A B C D E&#13;&#10;F G H I J&#13;&#10;K L M N O&#13;&#10;각 줄이 1개 셀"
+                placeholder="예: 홍길동 김철수 이영희&#13;&#10;박지성 손흥민"
                 value={formData.oldCellsText}
                 onChange={(e) => handleInputChange('oldCellsText', e.target.value)}
               />
-              <InputHint>각 줄은 하나의 셀입니다. 각 줄에서 셀원은 공백으로 구분하세요.</InputHint>
-            </FormGroup>
+            </InputGroup>
 
-            <FormGroup>
-              <Label>새로 들어온 멤버</Label>
+            <InputGroup>
+              <Label>신규 멤버 (공백으로 구분)</Label>
               <Input
                 type="text"
-                placeholder="새 멤버들 (공백 구분)"
+                placeholder="이름 입력"
                 value={formData.newMembers}
                 onChange={(e) => handleInputChange('newMembers', e.target.value)}
               />
-              <InputHint>새로 합류하는 멤버들을 공백으로 구분하여 입력하세요.</InputHint>
-            </FormGroup>
+            </InputGroup>
 
             <SubmitButton onClick={createNewCells} disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <LoadingSpinner />
-                  계산 중...
-                </>
-              ) : (
-                '새 셀 배정하기'
-              )}
+              {isLoading ? '계산 중...' : '새 셀 편성하기'}
             </SubmitButton>
-          </FormCard>
+          </Form>
         </FormSection>
 
         {result && (
           <ResultSection>
-            <ResultCard>
-              <ResultTitle>🎉 셀 재편성 결과</ResultTitle>
+            <ResultHeader>
+              <ResultTitle>편성 결과</ResultTitle>
+              <ResultStats>
+                평균 {result.averageSize}명 / 교집합 {result.minOverlap}
+              </ResultStats>
+            </ResultHeader>
 
+            <ResultGrid>
               {result.cells.map((cell, idx) => (
-                <CellResult key={idx}>
-                  <CellName>새 셀{idx + 1}</CellName>
+                <CellCard key={idx}>
+                  <CellNumber>셀 {idx + 1}</CellNumber>
                   <CellMembers>
                     {cell.map((member, memberIdx) => {
                       const isLeader = result.leaders.includes(member);
@@ -430,56 +412,22 @@ const CellReorganization = () => {
                       const isNewcomer = pairInfo && pairInfo.newcomer.trim() === member;
 
                       return (
-                        <MemberSpan
+                        <MemberBadge
                           key={memberIdx}
                           $isLeader={isLeader}
-                          $isPaired={isPaired}
                           $isNewcomer={isNewcomer}
+                          $isPaired={isPaired}
                         >
                           {member}
-                          {isPaired && (isNewcomer ? ' 🆕' : ' 👥')}
-                        </MemberSpan>
+                          {isLeader && ' 👑'}
+                          {isPaired && (isNewcomer ? ' 🆕' : ' 🤝')}
+                        </MemberBadge>
                       );
                     })}
                   </CellMembers>
-                </CellResult>
+                </CellCard>
               ))}
-
-              <StatBox>
-                <StatItem>
-                  <strong>총 인원 수</strong>: {result.totalMembers}명
-                </StatItem>
-                <StatItem>
-                  <strong>최소 교집합 합계</strong>: {result.minOverlap}
-                </StatItem>
-                <StatItem>
-                  <strong>셀당 평균 인원</strong>: {result.averageSize}명
-                </StatItem>
-                {result.evangelistPairs.length > 0 && (
-                  <StatItem>
-                    <strong>새신자-전도자 페어</strong>: {result.evangelistPairs.length}쌍
-                  </StatItem>
-                )}
-              </StatBox>
-
-              {result.evangelistPairs.length > 0 && (
-                <PairInfoBox>
-                  <PairInfoTitle>📝 페어링 정보</PairInfoTitle>
-                  <PairInfoContent>
-                    🆕 새신자 / 👥 전도자로 표시됩니다.
-                    <br />
-                    다음 페어들이 같은 셀에 배치되었습니다:
-                    {result.evangelistPairs.map((pair, idx) => (
-                      <PairInfoItem key={idx}>
-                        <span style={{ color: '#10b981', fontWeight: 'bold' }}>{pair.newcomer}</span>
-                        {' ↔ '}
-                        <span style={{ color: '#f59e0b', fontWeight: 'bold' }}>{pair.evangelist}</span>
-                      </PairInfoItem>
-                    ))}
-                  </PairInfoContent>
-                </PairInfoBox>
-              )}
-            </ResultCard>
+            </ResultGrid>
           </ResultSection>
         )}
       </MainContent>
@@ -487,407 +435,257 @@ const CellReorganization = () => {
   );
 };
 
-// 애니메이션
-const fadeInUp = keyframes`
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-`;
-
-const spin = keyframes`
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-`;
-
-// 스타일 컴포넌트
+// Minimal Styles
 const Container = styled.div`
   min-height: 100vh;
-  background-color: ${colors.background};
+  background-color: #ffffff;
+  padding: ${spacing.xl};
 `;
 
 const MainContent = styled.main`
-  max-width: 1200px;
+  max-width: 800px;
   margin: 0 auto;
-  padding: ${spacing['3xl']} ${spacing.lg};
-  
-  ${media['max-md']} {
-    padding: ${spacing['2xl']} ${spacing.md};
-  }
 `;
 
-const HeaderSection = styled.header`
+const HeaderSection = styled.div`
+  margin-bottom: ${spacing.xl};
+  border-bottom: 2px solid ${colors.neutral[100]};
+  padding-bottom: ${spacing.md};
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
-  margin-bottom: ${spacing['3xl']};
-  padding-bottom: ${spacing.xl};
-  border-bottom: 1px solid ${colors.neutral[200]};
-  animation: ${fadeInUp} 0.6s ease-out;
-
-  ${media['max-md']} {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: ${spacing.lg};
-  }
+  align-items: baseline;
 `;
 
 const Title = styled.h1`
-  font-size: ${typography.fontSize['3xl']};
+  font-size: ${typography.fontSize['2xl']};
   font-weight: ${typography.fontWeight.bold};
   color: ${colors.neutral[900]};
-  margin-bottom: ${spacing.xs};
-  font-family: ${typography.fontFamily.heading};
 `;
 
-const Subtitle = styled.p`
-  font-size: ${typography.fontSize.lg};
+const Stats = styled.div`
   color: ${colors.neutral[500]};
-`;
-
-const StatBadge = styled.div`
-  display: flex;
-  align-items: center;
-  gap: ${spacing.xs};
-  padding: ${spacing.sm} ${spacing.md};
-  background-color: white;
-  border: 1px solid ${colors.neutral[200]};
-  border-radius: ${borderRadius.full};
   font-size: ${typography.fontSize.sm};
-  color: ${colors.neutral[600]};
-  font-weight: ${typography.fontWeight.medium};
 `;
 
-const GuideSection = styled.section`
-  margin-bottom: ${spacing['3xl']};
+const StatText = styled.span``;
+
+const GuideSection = styled.div`
+  background: ${colors.neutral[50]};
+  padding: ${spacing.lg};
+  border-radius: ${borderRadius.lg};
+  margin-bottom: ${spacing.xl};
+  border: 1px solid ${colors.neutral[100]};
 `;
 
-const GuideCard = styled.div`
-  background: ${colors.primary[50]};
-  border: 1px solid ${colors.primary[200]};
-  border-radius: ${borderRadius.xl};
-  padding: ${spacing.xl};
-  animation: ${fadeInUp} 0.8s ease-out;
-`;
-
-const GuideTitle = styled.h2`
-  color: ${colors.primary[700]};
-  font-size: ${typography.fontSize.lg};
+const GuideTitle = styled.h3`
   font-weight: ${typography.fontWeight.bold};
-  margin-bottom: ${spacing.md};
+  margin-bottom: ${spacing.sm};
+  font-size: ${typography.fontSize.base};
 `;
 
-const GuideList = styled.ol`
-  padding-left: ${spacing.lg};
+const GuideText = styled.p`
+  color: ${colors.neutral[600]};
+  font-size: ${typography.fontSize.sm};
   line-height: 1.6;
 `;
 
-const GuideItem = styled.li`
-  margin-bottom: ${spacing.xs};
-  color: ${colors.neutral[700]};
-  font-size: ${typography.fontSize.sm};
+const FormSection = styled.div`
+  margin-bottom: ${spacing['2xl']};
+`;
+
+const Form = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${spacing.xl};
+`;
+
+const FormRow = styled.div`
+  display: flex;
+  gap: ${spacing.md};
   
-  &:last-child {
-    margin-bottom: 0;
+  @media (max-width: 600px) {
+    flex-direction: column;
   }
 `;
 
-const FormSection = styled.section`
-  margin-bottom: ${spacing['3xl']};
-`;
-
-const FormCard = styled.div`
-  background: white;
-  border-radius: ${borderRadius.xl};
-  box-shadow: ${shadows.md};
-  padding: ${spacing['2xl']};
-  border: 1px solid ${colors.neutral[200]};
-  animation: ${fadeInUp} 0.8s ease-out 0.2s both;
-`;
-
-const FormGroup = styled.div`
-  margin-bottom: ${spacing.xl};
-  
-  &:last-child {
-    margin-bottom: 0;
-  }
+const InputGroup = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: ${spacing.xs};
 `;
 
 const Label = styled.label`
-  display: block;
-  margin-bottom: ${spacing.xs};
-  font-weight: ${typography.fontWeight.semibold};
-  font-size: ${typography.fontSize.base};
+  font-size: ${typography.fontSize.sm};
+  font-weight: ${typography.fontWeight.bold};
   color: ${colors.neutral[700]};
 `;
 
 const Input = styled.input`
   width: 100%;
   padding: ${spacing.md};
-  font-size: ${typography.fontSize.base};
   border: 1px solid ${colors.neutral[300]};
-  border-radius: ${borderRadius.lg};
-  transition: all 0.2s ease;
+  border-radius: ${borderRadius.md};
+  font-size: ${typography.fontSize.base};
+  background: white;
+  transition: border-color 0.2s;
   
   &:focus {
     outline: none;
-    border-color: ${colors.primary[500]};
-    box-shadow: 0 0 0 2px ${colors.primary[100]};
+    border-color: ${colors.neutral[900]};
   }
 `;
 
 const TextArea = styled.textarea`
   width: 100%;
   padding: ${spacing.md};
-  font-size: ${typography.fontSize.base};
   border: 1px solid ${colors.neutral[300]};
-  border-radius: ${borderRadius.lg};
-  transition: all 0.2s ease;
+  border-radius: ${borderRadius.md};
+  font-size: ${typography.fontSize.base};
+  background: white;
   resize: vertical;
-  min-height: 120px;
-  line-height: 1.5;
+  min-height: 100px;
+  line-height: 1.6;
   
   &:focus {
     outline: none;
-    border-color: ${colors.primary[500]};
-    box-shadow: 0 0 0 2px ${colors.primary[100]};
+    border-color: ${colors.neutral[900]};
   }
 `;
 
-const InputHint = styled.p`
-  font-size: ${typography.fontSize.xs};
-  color: ${colors.neutral[500]};
-  margin-top: ${spacing.xs};
-`;
-
-const LeadersGrid = styled.div`
+const Grid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: ${spacing.md};
-  margin-top: ${spacing.md};
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: ${spacing.sm};
 `;
 
-const PairingContainer = styled.div`
+const PairList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: ${spacing.md};
-  margin-top: ${spacing.md};
+  gap: ${spacing.sm};
 `;
 
 const PairRow = styled.div`
   display: flex;
   align-items: center;
-  gap: ${spacing.md};
-  
-  ${media['max-md']} {
-    flex-direction: column;
-    align-items: stretch;
-  }
-`;
-
-const PairInputGroup = styled.div`
-  display: flex;
-  align-items: center;
   gap: ${spacing.sm};
-  flex: 1;
-`;
-
-const PairInput = styled(Input)`
-  flex: 1;
 `;
 
 const PairSeparator = styled.span`
   color: ${colors.neutral[400]};
-  font-weight: bold;
 `;
 
-const PairActionButtons = styled.div`
-  display: flex;
-  gap: ${spacing.sm};
-`;
-
-const AddPairButton = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: ${borderRadius.lg};
-  background: ${colors.primary[50]};
-  color: ${colors.primary[600]};
-  border: 1px solid ${colors.primary[200]};
+const RemoveButton = styled.button`
+  color: ${colors.neutral[400]};
+  background: none;
+  border: none;
+  font-size: ${typography.fontSize.lg};
   cursor: pointer;
-  transition: all 0.2s;
   
   &:hover {
-    background: ${colors.primary[100]};
+    color: ${colors.red[500]};
   }
 `;
 
-const RemovePairButton = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: ${borderRadius.lg};
-  background: ${colors.red[50]};
-  color: ${colors.red[600]};
-  border: 1px solid ${colors.red[200]};
+const AddButton = styled.button`
+  align-self: flex-start;
+  color: ${colors.neutral[600]};
+  background: none;
+  border: none;
+  font-size: ${typography.fontSize.sm};
   cursor: pointer;
-  transition: all 0.2s;
+  padding: ${spacing.sm} 0;
   
   &:hover {
-    background: ${colors.red[100]};
+    color: ${colors.neutral[900]};
+    text-decoration: underline;
   }
 `;
 
 const SubmitButton = styled.button`
-  width: 100%;
-  padding: ${spacing.lg};
-  background: ${colors.primary[600]};
+  background: ${colors.neutral[900]};
   color: white;
   border: none;
-  border-radius: ${borderRadius.xl};
-  font-size: ${typography.fontSize.lg};
+  padding: ${spacing.lg};
+  border-radius: ${borderRadius.md};
   font-weight: ${typography.fontWeight.bold};
+  font-size: ${typography.fontSize.base};
   cursor: pointer;
-  transition: background 0.2s;
-  margin-top: ${spacing.xl};
-  
-  &:hover:not(:disabled) {
-    background: ${colors.primary[700]};
-  }
+  margin-top: ${spacing.md};
   
   &:disabled {
-    opacity: 0.7;
+    opacity: 0.5;
     cursor: wait;
   }
 `;
 
-const LoadingSpinner = styled.div`
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border: 3px solid rgba(255, 255, 255, 0.3);
-  border-top: 3px solid white;
-  border-radius: 50%;
-  animation: ${spin} 1s linear infinite;
-  margin-right: ${spacing.sm};
+const ResultSection = styled.div`
+  border-top: 2px solid ${colors.neutral[100]};
+  padding-top: ${spacing.xl};
 `;
 
-const ResultSection = styled.section`
-  margin-top: ${spacing['4xl']};
-  animation: ${fadeInUp} 0.8s ease-out;
+const ResultHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: ${spacing.lg};
 `;
 
-const ResultCard = styled.div`
-  background: white;
-  border-radius: ${borderRadius['2xl']};
-  box-shadow: ${shadows.lg};
-  padding: ${spacing['2xl']};
-  border: 1px solid ${colors.neutral[200]};
-`;
-
-const ResultTitle = styled.h3`
-  font-size: ${typography.fontSize['2xl']};
+const ResultTitle = styled.h2`
+  font-size: ${typography.fontSize.xl};
   font-weight: ${typography.fontWeight.bold};
-  color: ${colors.neutral[800]};
-  margin-bottom: ${spacing.xl};
-  text-align: center;
+  color: ${colors.neutral[900]};
 `;
 
-const CellResult = styled.div`
-  border: 1px solid ${colors.neutral[200]};
+const ResultStats = styled.span`
+  color: ${colors.neutral[500]};
+  font-size: ${typography.fontSize.sm};
+`;
+
+const ResultGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: ${spacing.lg};
+`;
+
+const CellCard = styled.div`
+  background: ${colors.neutral[50]};
   border-radius: ${borderRadius.lg};
   padding: ${spacing.lg};
-  margin-bottom: ${spacing.lg};
-  background: ${colors.neutral[50]};
+  border: 1px solid ${colors.neutral[200]};
 `;
 
-const CellName = styled.h4`
-  font-size: ${typography.fontSize.lg};
+const CellNumber = styled.h3`
   font-weight: ${typography.fontWeight.bold};
-  color: ${colors.primary[700]};
   margin-bottom: ${spacing.md};
+  font-size: ${typography.fontSize.lg};
+  color: ${colors.neutral[900]};
 `;
 
 const CellMembers = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: ${spacing.sm};
-  line-height: 1.6;
+  gap: ${spacing.xs};
 `;
 
-const MemberSpan = styled.span`
-  padding: 4px 10px;
-  border-radius: ${borderRadius.full};
-  background: ${props => {
-    if (props.$isLeader) return colors.yellow[100];
-    if (props.$isNewcomer) return colors.green[100];
-    if (props.$isPaired) return colors.orange[100];
-    return 'white';
-  }};
-  border: 1px solid ${props => {
-    if (props.$isLeader) return colors.yellow[300];
-    if (props.$isNewcomer) return colors.green[300];
-    if (props.$isPaired) return colors.orange[300];
-    return colors.neutral[300];
-  }};
-  color: ${colors.neutral[800]};
-  font-weight: ${props => props.$isLeader ? 'bold' : 'normal'};
+const MemberBadge = styled.span`
+  background: ${props =>
+    props.$isLeader ? colors.neutral[900] :
+      props.$isNewcomer ? colors.neutral[200] :
+        props.$isPaired ? colors.neutral[300] : 'white'
+  };
+  color: ${props => props.$isLeader ? 'white' : colors.neutral[900]};
+  border: 1px solid ${props => props.$isLeader ? colors.neutral[900] : colors.neutral[300]};
+  padding: 4px 8px;
+  border-radius: ${borderRadius.md};
   font-size: ${typography.fontSize.sm};
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 `;
 
-const StatBox = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: ${spacing.lg};
-  margin-top: ${spacing.xl};
-  padding-top: ${spacing.xl};
-  border-top: 1px solid ${colors.neutral[200]};
-  justify-content: center;
-`;
-
-const StatItem = styled.div`
-  font-size: ${typography.fontSize.sm};
-  color: ${colors.neutral[600]};
-  
-  strong {
-    color: ${colors.neutral[900]};
-    font-weight: ${typography.fontWeight.semibold};
-  }
-`;
-
-const PairInfoBox = styled.div`
-  margin-top: ${spacing.lg};
-  padding: ${spacing.lg};
-  background: ${colors.orange[50]};
-  border: 1px solid ${colors.orange[200]};
-  border-radius: ${borderRadius.lg};
-`;
-
-const PairInfoTitle = styled.h4`
-  font-size: ${typography.fontSize.base};
-  font-weight: ${typography.fontWeight.bold};
-  color: ${colors.orange[800]};
-  margin-bottom: ${spacing.sm};
-`;
-
-const PairInfoContent = styled.div`
-  font-size: ${typography.fontSize.sm};
-  color: ${colors.orange[900]};
-  line-height: 1.6;
-`;
-
-const PairInfoItem = styled.div`
-  margin-top: ${spacing.xs};
-  padding-left: ${spacing.md};
-  border-left: 2px solid ${colors.orange[300]};
+const spin = keyframes`
+  to { transform: rotate(360deg); }
 `;
 
 export default CellReorganization;

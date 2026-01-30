@@ -20,15 +20,12 @@ const UserLayout = () => {
         <NavBar>
           <NavContainer>
             <NavLink to="/togy" $isActive={location.pathname === '/togy'}>
-              <NavIcon>🏠</NavIcon>
-              <NavText>청년부메인</NavText>
+              <NavText>메인</NavText>
             </NavLink>
             <NavLink to="/togy/prayer" $isActive={location.pathname === '/togy/prayer'}>
-              <NavIcon>🙏</NavIcon>
               <NavText>중보기도</NavText>
             </NavLink>
             <NavLink to="/togy/voices" $isActive={location.pathname === '/togy/voices'}>
-              <NavIcon>💬</NavIcon>
               <NavText>마음의소리</NavText>
             </NavLink>
           </NavContainer>
@@ -122,74 +119,58 @@ const Logo = styled.h1`
 
 const NavBar = styled.div`
   border-top: 1px solid ${colors.neutral[200]};
-  background: white;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch; // Smooth scrolling for iOS
-  
-  /* Hide scrollbar but keep functionality */
-  scrollbar-width: none;
-  &::-webkit-scrollbar {
-    display: none;
-  }
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  position: sticky;
+  top: 65px; // Below header
+  z-index: 99;
 `;
 
 const NavContainer = styled.div`
-  max-width: 1200px;
+  max-width: 600px; // Match content width
   margin: 0 auto;
   display: flex;
-  justify-content: space-around; // Even spacing
+  justify-content: center;
+  gap: ${spacing['2xl']};
   padding: 0 ${spacing.md};
-  min-width: min-content; // Ensure content doesn't squash too much
 
   ${media['max-md']} {
-     justify-content: space-between;
-     padding: 0 ${spacing.sm};
+     justify-content: space-around;
+     padding: 0;
+     gap: 0;
   }
 `;
 
 const NavLink = styled(Link)`
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   text-decoration: none;
-  padding: ${spacing.md} ${spacing.lg};
-  color: ${props => props.$isActive ? colors.primary[700] : colors.neutral[500]};
+  padding: ${spacing.md} 0;
+  color: ${props => props.$isActive ? colors.primary[700] : colors.neutral[400]};
+  font-weight: ${props => props.$isActive ? typography.fontWeight.bold : typography.fontWeight.medium};
+  font-size: ${typography.fontSize.sm};
   position: relative;
   transition: all 0.2s;
-  min-width: 70px; // Minimum touch target size
   
   &:after {
     content: '';
     position: absolute;
     bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 3px;
+    left: 50%;
+    transform: translateX(-50%) scaleX(${props => props.$isActive ? 1 : 0});
+    width: 20px; // Small indicator
+    height: 2px;
     background-color: ${colors.primary[600]};
-    transform: scaleX(${props => props.$isActive ? 1 : 0});
     transition: transform 0.2s ease;
   }
 
   &:hover {
     color: ${colors.primary[800]};
-    background-color: ${colors.neutral[50]};
   }
-  
-  ${media['max-md']} {
-    padding: ${spacing.sm} ${spacing.xs}; // Reduce padding on mobile
-  }
-`;
-
-const NavIcon = styled.span`
-  font-size: 1.2rem;
-  margin-bottom: 4px;
-  display: block; // Always show icon
 `;
 
 const NavText = styled.span`
-  font-size: ${typography.fontSize.xs};
-  font-weight: ${typography.fontWeight.bold};
   white-space: nowrap;
 `;
 

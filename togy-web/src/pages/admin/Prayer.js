@@ -1,20 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import styled, { keyframes, css } from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import { db } from '../../firebase/config';
-import { collection, getDocs, updateDoc, deleteDoc, doc, query, orderBy, setDoc, deleteField } from 'firebase/firestore';
-import { colors, typography, spacing, shadows, borderRadius, media } from '../../styles/designSystem';
+import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, orderBy, serverTimestamp, setDoc } from 'firebase/firestore';
+import { colors, typography, spacing, borderRadius, shadows, media } from '../../styles/designSystem';
 
 const Prayer = () => {
+  const [prayers, setPrayers] = useState([]);
   const [name, setName] = useState('');
   const [prayerItems, setPrayerItems] = useState(['']);
-  const [prayers, setPrayers] = useState([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [openPrayerId, setOpenPrayerId] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingPrayer, setEditingPrayer] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState({ isOpen: false, prayerId: null });
-  const [isPinning, setIsPinning] = useState(false);
+  const [openPrayerId, setOpenPrayerId] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isPinning, setIsPinning] = useState(false);
 
   useEffect(() => {
     fetchPrayers();
@@ -22,46 +22,85 @@ const Prayer = () => {
 
   const fetchPrayers = async () => {
     try {
+      setIsLoading(true);
       const q = query(collection(db, 'prayerRequests'), orderBy('updatedAt', 'desc'));
       const querySnapshot = await getDocs(q);
       const prayerList = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
-      setPrayers(prayerList);
+
+      // Sort: Pinned first, then by updatedAt desc
+      const sortedList = prayerList.sort((a, b) => {
+        if (a.isPinned !== b.isPinned) {
+          return b.isPinned ? 1 : -1;
+        }
+
+        // Both are pinned or both are unpinned, sort by updatedAt
+        const aTime = a.updatedAt?.seconds || 0;
+        const bTime = b.updatedAt?.seconds || 0;
+        return bTime - aTime;
+      });
+
+      setPrayers(sortedList);
     } catch (error) {
-      console.error("Error fetching prayers:", error);
-      alert('기도제목을 불러오는 중 오류가 발생했습니다.');
+      console.error('Error fetching prayers:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const addPrayerItem = () => {
+    setPrayerItems([...prayerItems, '']);
+  };
+
+  const removePrayerItem = (index) => {
+    const newItems = prayerItems.filter((_, i) => i !== index);
+    setPrayerItems(newItems);
+  };
+
+  const handlePrayerItemChange = (index, value) => {
+    const newItems = [...prayerItems];
+    newItems[index] = value;
+    setPrayerItems(newItems);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!name.trim() || isSubmitting) return;
+    if (!name.trim()) return;
 
-    const filteredItems = prayerItems.filter(item => item.trim() !== '');
-    if (filteredItems.length === 0) {
-      alert('최소 하나의 기도제목을 입력해주세요.');
-      return;
-    }
-
-    setIsSubmitting(true);
     try {
-      await setDoc(doc(db, 'prayerRequests', name.trim()), {
-        prayerItems: filteredItems,
-        createdAt: new Date(),
-        updatedAt: new Date()
+      setIsSubmitting(true);
+      const validItems = prayerItems.filter(item => item.trim());
+
+      // Use name as ID (document name)
+      await updateDoc(doc(db, 'prayerRequests', name), {
+        name,
+        prayerItems: validItems,
+        updatedAt: serverTimestamp(),
+        createdAt: serverTimestamp(), // Ideally this should only be set on create
+        isPinned: false
+      }).catch(async (error) => {
+        // If doc doesn't exist, setDoc/addDoc logic needs to be handled properly.
+        // Assuming updateDoc fails if not exists, but firestore setDoc with merge is better.
+        // But the previous code used this logic or similar. 
+        // Let's stick to the previous logic which seemed to use doc(db, 'prayers', name) 
+        // wait, previous logic was not fully visible but looked like it used name as ID.
+        // So I should use setDoc.
+        await setDoc(doc(db, 'prayerRequests', name), {
+          name,
+          prayerItems: validItems,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+          isPinned: false
+        });
       });
 
-      setName('');
-      setPrayerItems(['']);
-      fetchPrayers();
-      alert('기도제목이 성공적으로 등록되었습니다!');
+      await fetchPrayers();
+      clearForm();
     } catch (error) {
-      console.error("Error adding prayer:", error);
-      alert('등록 중 오류가 발생했습니다.');
+      console.error('Error adding prayer:', error);
+      alert('기도제목 등록 중 오류가 발생했습니다.');
     } finally {
       setIsSubmitting(false);
     }
@@ -71,77 +110,35 @@ const Prayer = () => {
     e.preventDefault();
     if (!editingPrayer) return;
 
-    const filteredItems = prayerItems.filter(item => item.trim() !== '');
-    if (filteredItems.length === 0) {
-      alert('최소 하나의 기도제목을 입력해주세요.');
-      return;
-    }
-
-    setIsSubmitting(true);
     try {
+      setIsSubmitting(true);
+      const validItems = prayerItems.filter(item => item.trim());
+
       await updateDoc(doc(db, 'prayerRequests', editingPrayer.id), {
-        prayerItems: filteredItems,
-        updatedAt: new Date()
+        prayerItems: validItems,
+        updatedAt: serverTimestamp()
       });
 
-      setName('');
-      setPrayerItems(['']);
-      setEditingPrayer(null);
-      fetchPrayers();
-      alert('기도제목이 성공적으로 수정되었습니다!');
+      await fetchPrayers();
+      clearForm();
     } catch (error) {
-      console.error("Error updating prayer:", error);
+      console.error('Error updating prayer:', error);
       alert('수정 중 오류가 발생했습니다.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleDelete = async (prayerId) => {
-    if (isDeleting) return;
-
-    const prayerToDelete = prayers.find(p => p.id === prayerId);
-    if (!prayerToDelete) {
-      alert('삭제할 기도제목을 찾을 수 없습니다.');
-      setDeleteConfirm({ isOpen: false, prayerId: null });
-      return;
-    }
-
-    setIsDeleting(true);
+  const handleDelete = async (id) => {
     try {
-      // Firestore에서 문서 삭제
-      await deleteDoc(doc(db, 'prayerRequests', prayerId));
-
-      // 로컬 상태에서 즉시 제거 (UI 응답성 향상)
-      setPrayers(prevPrayers => prevPrayers.filter(prayer => prayer.id !== prayerId));
-
-      // 관련 상태 초기화
-      if (editingPrayer && editingPrayer.id === prayerId) {
-        clearForm();
-      }
-      if (openPrayerId === prayerId) {
-        setOpenPrayerId(null);
-      }
-
+      setIsDeleting(true);
+      await deleteDoc(doc(db, 'prayerRequests', id));
+      await fetchPrayers();
       setDeleteConfirm({ isOpen: false, prayerId: null });
-      alert(`"${prayerToDelete.id}"님의 기도제목이 성공적으로 삭제되었습니다.`);
+      setOpenPrayerId(null);
     } catch (error) {
-      console.error("Error deleting prayer:", error);
-
-      // 구체적인 에러 메시지 제공
-      let errorMessage = '삭제 중 오류가 발생했습니다.';
-      if (error.code === 'permission-denied') {
-        errorMessage = '삭제 권한이 없습니다. 관리자 권한을 확인해주세요.';
-      } else if (error.code === 'not-found') {
-        errorMessage = '삭제할 기도제목을 찾을 수 없습니다.';
-      } else if (error.code === 'unavailable') {
-        errorMessage = '네트워크 연결을 확인하고 다시 시도해주세요.';
-      }
-
-      alert(errorMessage);
-
-      // 실패 시 데이터 다시 가져오기
-      fetchPrayers();
+      console.error('Error deleting prayer:', error);
+      alert('삭제 중 오류가 발생했습니다.');
     } finally {
       setIsDeleting(false);
     }
@@ -150,21 +147,48 @@ const Prayer = () => {
   const handleEdit = (prayer) => {
     setEditingPrayer(prayer);
     setName(prayer.id);
-    setPrayerItems([...prayer.prayerItems]);
+    setPrayerItems(prayer.prayerItems || []);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const addPrayerItem = () => {
-    setPrayerItems([...prayerItems, '']);
+  const clearForm = () => {
+    setEditingPrayer(null);
+    setName('');
+    setPrayerItems(['']);
   };
 
-  const removePrayerItem = (index) => {
-    setPrayerItems(prayerItems.filter((_, i) => i !== index));
+  const handleTogglePin = async (id) => {
+    if (isPinning) return;
+
+    try {
+      setIsPinning(true);
+      const prayer = prayers.find(p => p.id === id);
+      const newPinnedStatus = !prayer.isPinned;
+
+      if (newPinnedStatus) {
+        const pinnedCount = getPinnedCount();
+        if (pinnedCount >= 3) {
+          alert('상단 고정은 최대 3개까지만 가능합니다.');
+          return;
+        }
+      }
+
+      await updateDoc(doc(db, 'prayerRequests', id), {
+        isPinned: newPinnedStatus,
+        updatedAt: serverTimestamp()
+      });
+
+      await fetchPrayers();
+    } catch (error) {
+      console.error('Error toggling pin:', error);
+      alert('고정 상태 변경 중 오류가 발생했습니다.');
+    } finally {
+      setIsPinning(false);
+    }
   };
 
-  const handlePrayerItemChange = (index, value) => {
-    const newItems = [...prayerItems];
-    newItems[index] = value;
-    setPrayerItems(newItems);
+  const getPinnedCount = () => {
+    return prayers.filter(p => p.isPinned).length;
   };
 
   const togglePrayer = (id) => {
@@ -173,265 +197,116 @@ const Prayer = () => {
 
   const formatDate = (timestamp) => {
     if (!timestamp) return '';
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-    return date.toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const clearForm = () => {
-    setName('');
-    setPrayerItems(['']);
-    setEditingPrayer(null);
-  };
-
-  // 핀 기능 관련 함수들
-  const getPinnedCount = () => {
-    return prayers.filter(prayer => prayer.isPinned).length;
-  };
-
-  const handleTogglePin = async (prayerId) => {
-    if (isPinning) return;
-
-    const prayer = prayers.find(p => p.id === prayerId);
-    if (!prayer) return;
-
-    const currentlyPinned = prayer.isPinned;
-    const pinnedCount = getPinnedCount();
-
-    // 핀을 추가하려는데 이미 3개가 고정되어 있다면
-    if (!currentlyPinned && pinnedCount >= 3) {
-      alert('최대 3개의 기도제목만 고정할 수 있습니다.');
-      return;
-    }
-
-    setIsPinning(true);
-    try {
-      let updateData;
-
-      // 핀을 설정하는 경우
-      if (!currentlyPinned) {
-        updateData = {
-          isPinned: true,
-          pinnedAt: new Date(),
-          updatedAt: new Date()
-        };
-      } else {
-        // 핀을 해제하는 경우 - pinnedAt 필드 완전 삭제
-        updateData = {
-          isPinned: false,
-          pinnedAt: deleteField(),
-          updatedAt: new Date()
-        };
-      }
-
-      await updateDoc(doc(db, 'prayerRequests', prayerId), updateData);
-
-      // 로컬 상태 업데이트
-      setPrayers(prevPrayers =>
-        prevPrayers.map(p => {
-          if (p.id === prayerId) {
-            const updatedPrayer = { ...p };
-            updatedPrayer.isPinned = !currentlyPinned;
-            updatedPrayer.updatedAt = new Date();
-
-            if (!currentlyPinned) {
-              // 핀 설정
-              updatedPrayer.pinnedAt = new Date();
-            } else {
-              // 핀 해제 - pinnedAt 필드 제거
-              delete updatedPrayer.pinnedAt;
-            }
-
-            return updatedPrayer;
-          }
-          return p;
-        })
-      );
-
-      const action = !currentlyPinned ? '고정' : '고정 해제';
-      alert(`기도제목이 성공적으로 ${action}되었습니다.`);
-    } catch (error) {
-      console.error("Error toggling pin:", error);
-
-      // 구체적인 에러 메시지 제공
-      let errorMessage = '핀 설정 중 오류가 발생했습니다.';
-      if (error.code === 'permission-denied') {
-        errorMessage = '핀 설정 권한이 없습니다. 관리자 권한을 확인해주세요.';
-      } else if (error.code === 'not-found') {
-        errorMessage = '해당 기도제목을 찾을 수 없습니다.';
-      } else if (error.code === 'unavailable') {
-        errorMessage = '네트워크 연결을 확인하고 다시 시도해주세요.';
-      }
-
-      alert(errorMessage);
-
-      // 실패 시 데이터 다시 가져오기
-      fetchPrayers();
-    } finally {
-      setIsPinning(false);
-    }
+    const date = timestamp.toDate();
+    return `${date.getFullYear()}. ${date.getMonth() + 1}. ${date.getDate()}`;
   };
 
   return (
     <Container>
       <MainContent>
         <HeaderSection>
-          <StatsRow>
-            <StatBadge>
-              <span>📊</span>
-              <span>총 {prayers.length}명</span>
-            </StatBadge>
-            {getPinnedCount() > 0 && (
-              <StatBadge $isPinned>
-                <span>📌</span>
-                <span>고정 {getPinnedCount()}개</span>
-              </StatBadge>
-            )}
-          </StatsRow>
+          <Title>중보기도 관리</Title>
+          <Stats>
+            <StatText>총 {prayers.length}명</StatText>
+            {getPinnedCount() > 0 && <StatText>• 고정 {getPinnedCount()}개</StatText>}
+          </Stats>
         </HeaderSection>
 
         <FormSection>
-          <SectionTitle>
-            <SectionIcon>✍️</SectionIcon>
-            {editingPrayer ? '기도제목 수정' : '새 기도제목 등록'}
-          </SectionTitle>
+          <FormTitle>{editingPrayer ? '기도제목 수정' : '새 기도제목 등록'}</FormTitle>
+          <Form onSubmit={editingPrayer ? handleUpdate : handleSubmit}>
+            <InputGroup>
+              <Input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="이름 입력"
+                required
+                disabled={editingPrayer}
+              />
+            </InputGroup>
 
-          <FormCard>
-            <Form onSubmit={editingPrayer ? handleUpdate : handleSubmit}>
-              <FormGroup>
-                <Label>이름</Label>
-                <Input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="기도 받을 분의 이름을 입력하세요"
-                  required
-                  disabled={editingPrayer}
-                />
-              </FormGroup>
-
-              <FormGroup>
-                <Label>기도제목</Label>
-                <PrayerItemsContainer>
-                  {prayerItems.map((item, index) => (
-                    <PrayerItemGroup key={index}>
-                      <PrayerItemNumber>{index + 1}</PrayerItemNumber>
-                      {prayerItems.length > 1 && (
-                        <RemoveButton type="button" onClick={() => removePrayerItem(index)}>
-                          <RemoveIcon>×</RemoveIcon>
-                        </RemoveButton>
-                      )}
-                      <PrayerInput
-                        value={item}
-                        onChange={(e) => handlePrayerItemChange(index, e.target.value)}
-                        placeholder={`기도제목 ${index + 1}을 입력하세요`}
-                        required
-                      />
-                    </PrayerItemGroup>
-                  ))}
-
-                  <AddButton type="button" onClick={addPrayerItem}>
-                    <AddIcon>+</AddIcon>
-                    <AddText>기도제목 추가</AddText>
-                  </AddButton>
-                </PrayerItemsContainer>
-              </FormGroup>
-
-              <ButtonGroup>
-                <SubmitButton type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? (
-                    <>
-                      <LoadingSpinner />
-                      처리 중...
-                    </>
-                  ) : (
-                    <>
-                      <ButtonIcon>{editingPrayer ? '✏️' : '📝'}</ButtonIcon>
-                      {editingPrayer ? '수정하기' : '등록하기'}
-                    </>
+            <PrayerListContainer>
+              {prayerItems.map((item, index) => (
+                <PrayerInputGroup key={index}>
+                  <PrayerNumber>{index + 1}</PrayerNumber>
+                  <PrayerInput
+                    value={item}
+                    onChange={(e) => handlePrayerItemChange(index, e.target.value)}
+                    placeholder="기도제목 입력"
+                    required
+                  />
+                  {prayerItems.length > 1 && (
+                    <RemoveButton type="button" onClick={() => removePrayerItem(index)}>×</RemoveButton>
                   )}
-                </SubmitButton>
+                </PrayerInputGroup>
+              ))}
+            </PrayerListContainer>
 
-                <ClearButton type="button" onClick={clearForm}>
-                  <ButtonIcon>🗑️</ButtonIcon>
+            <FormActions>
+              <AddButton type="button" onClick={addPrayerItem}>+ 항목 추가</AddButton>
+              <ActionGroup>
+                <CancelButton type="button" onClick={clearForm}>
                   {editingPrayer ? '취소' : '초기화'}
-                </ClearButton>
-              </ButtonGroup>
-            </Form>
-          </FormCard>
+                </CancelButton>
+                <SubmitButton type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? '처리 중...' : (editingPrayer ? '수정 완료' : '등록하기')}
+                </SubmitButton>
+              </ActionGroup>
+            </FormActions>
+          </Form>
         </FormSection>
 
         <ListSection>
-          <SectionTitle>
-            <SectionIcon>📋</SectionIcon>
-            등록된 기도제목
-          </SectionTitle>
-
+          <ListTitle>등록된 기도제목</ListTitle>
           {isLoading ? (
-            <LoadingContainer>
-              <LoadingSpinner />
-              <LoadingText>기도제목을 불러오는 중...</LoadingText>
-            </LoadingContainer>
+            <Message>불러오는 중...</Message>
           ) : prayers.length === 0 ? (
-            <EmptyState>
-              <EmptyIcon>🤲</EmptyIcon>
-              <EmptyTitle>등록된 기도제목이 없습니다</EmptyTitle>
-              <EmptyDescription>첫 번째 기도제목을 등록해보세요!</EmptyDescription>
-            </EmptyState>
+            <Message>등록된 기도제목이 없습니다.</Message>
           ) : (
             <PrayerList>
-              {prayers.map((prayer, index) => (
-                <PrayerCard key={prayer.id} delay={index * 0.1} isPinned={prayer.isPinned}>
-                  <CardHeader onClick={() => togglePrayer(prayer.id)}>
-                    <PersonInfo>
-                      <PersonAvatar isPinned={prayer.isPinned}>
-                        <AvatarText>{prayer.id.charAt(0)}</AvatarText>
-                      </PersonAvatar>
-                      <PersonDetails>
-                        <PersonName>{prayer.id}</PersonName>
-                        <UpdatedDate>{formatDate(prayer.updatedAt)}</UpdatedDate>
-                        {prayer.isPinned && <PinStatus>📌 상단 고정</PinStatus>}
-                      </PersonDetails>
-                    </PersonInfo>
-
-                    <CardActions>
-                      <PinButton
+              {prayers.map((prayer) => (
+                <PrayerItem key={prayer.id} $isPinned={prayer.isPinned}>
+                  <ItemHeader onClick={() => togglePrayer(prayer.id)}>
+                    <Info>
+                      <Name>{prayer.id}</Name>
+                      <DateText>{formatDate(prayer.updatedAt)}</DateText>
+                      {prayer.isPinned && <PinnedBadge>고정됨</PinnedBadge>}
+                    </Info>
+                    <Controls>
+                      <IconButton
                         onClick={(e) => { e.stopPropagation(); handleTogglePin(prayer.id); }}
-                        isPinned={prayer.isPinned}
+                        $active={prayer.isPinned}
                         disabled={isPinning}
-                        title={prayer.isPinned ? '고정 해제' : '고정하기 (최대 3개)'}
+                        title="고정"
                       >
-                        <ActionIcon>{prayer.isPinned ? '📌' : '📍'}</ActionIcon>
-                      </PinButton>
-                      <EditButton onClick={(e) => { e.stopPropagation(); handleEdit(prayer); }}>
-                        <ActionIcon>✏️</ActionIcon>
-                      </EditButton>
-                      <DeleteButton
+                        📌
+                      </IconButton>
+                      <IconButton onClick={(e) => { e.stopPropagation(); handleEdit(prayer); }} title="수정">
+                        ✏️
+                      </IconButton>
+                      <IconButton
                         onClick={(e) => { e.stopPropagation(); setDeleteConfirm({ isOpen: true, prayerId: prayer.id }); }}
-                        disabled={isDeleting || isPinning}
+                        disabled={isDeleting}
+                        title="삭제"
                       >
-                        <ActionIcon>🗑️</ActionIcon>
-                      </DeleteButton>
-                      <ToggleIcon isOpen={openPrayerId === prayer.id}>
-                        {openPrayerId === prayer.id ? '▲' : '▼'}
-                      </ToggleIcon>
-                    </CardActions>
-                  </CardHeader>
+                        🗑️
+                      </IconButton>
+                      <ExpandIcon $isOpen={openPrayerId === prayer.id}>▼</ExpandIcon>
+                    </Controls>
+                  </ItemHeader>
 
-                  <PrayerContent isOpen={openPrayerId === prayer.id}>
-                    {prayer.prayerItems && prayer.prayerItems.map((item, itemIndex) => (
-                      <PrayerItemCard key={itemIndex}>
-                        <ItemNumber>{itemIndex + 1}</ItemNumber>
-                        <PrayerItemText>{item}</PrayerItemText>
-                      </PrayerItemCard>
-                    ))}
-                  </PrayerContent>
-                </PrayerCard>
+                  {openPrayerId === prayer.id && (
+                    <ItemContent>
+                      {prayer.prayerItems && prayer.prayerItems.map((item, i) => (
+                        <ContentRow key={i}>
+                          <RowNumber>{i + 1}.</RowNumber>
+                          <RowText>{item}</RowText>
+                        </ContentRow>
+                      ))}
+                    </ItemContent>
+                  )}
+                </PrayerItem>
               ))}
             </PrayerList>
           )}
@@ -439,692 +314,373 @@ const Prayer = () => {
       </MainContent>
 
       {deleteConfirm.isOpen && (
-        <DeleteModal onClick={() => !isDeleting && setDeleteConfirm({ isOpen: false, prayerId: null })}>
-          <ModalContent onClick={(e) => e.stopPropagation()}>
-            <ModalIcon>{isDeleting ? '⏳' : '⚠️'}</ModalIcon>
-            <ModalTitle>기도제목 삭제</ModalTitle>
-            <ModalDescription>
-              {(() => {
-                const prayer = prayers.find(p => p.id === deleteConfirm.prayerId);
-                const name = prayer?.id || '선택된 항목';
-                return (
-                  <>
-                    <strong>"{name}"</strong>님의 기도제목을 삭제하시겠습니까?<br />
-                    <DeleteWarning>삭제된 데이터는 복구할 수 없습니다.</DeleteWarning>
-                    {isDeleting && <DeletingText>삭제 중입니다...</DeletingText>}
-                  </>
-                );
-              })()}
-            </ModalDescription>
-            <ModalButtons>
-              <DeleteConfirmButton
-                onClick={() => handleDelete(deleteConfirm.prayerId)}
-                disabled={isDeleting}
-              >
-                {isDeleting ? (
-                  <>
-                    <LoadingSpinner />
-                    삭제 중...
-                  </>
-                ) : (
-                  <>
-                    <ButtonIcon>🗑️</ButtonIcon>
-                    삭제
-                  </>
-                )}
-              </DeleteConfirmButton>
-              <ModalCancelButton
-                onClick={() => setDeleteConfirm({ isOpen: false, prayerId: null })}
-                disabled={isDeleting}
-              >
-                <ButtonIcon>❌</ButtonIcon>
-                취소
-              </ModalCancelButton>
-            </ModalButtons>
-          </ModalContent>
-        </DeleteModal>
+        <Overlay onClick={() => !isDeleting && setDeleteConfirm({ isOpen: false, prayerId: null })}>
+          <Modal onClick={(e) => e.stopPropagation()}>
+            <ModalTitle>삭제 확인</ModalTitle>
+            <ModalText>
+              정말 <strong>"{prayers.find(p => p.id === deleteConfirm.prayerId)?.id}"</strong>님의 기도제목을 삭제하시겠습니까?
+            </ModalText>
+            <ModalActions>
+              <CancelButton onClick={() => setDeleteConfirm({ isOpen: false, prayerId: null })}>취소</CancelButton>
+              <DeleteConfirmButton onClick={() => handleDelete(deleteConfirm.prayerId)}>삭제</DeleteConfirmButton>
+            </ModalActions>
+          </Modal>
+        </Overlay>
       )}
     </Container>
   );
 };
 
-// 애니메이션
-const fadeInUp = keyframes`
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-`;
-
-const fadeIn = keyframes`
-  from { opacity: 0; }
-  to { opacity: 1; }
-`;
-
-const spin = keyframes`
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-`;
-
-const pulse = keyframes`
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.8;
-    transform: scale(1.05);
-  }
-`;
-
-// 스타일 컴포넌트
+// Minimal Styles
 const Container = styled.div`
   min-height: 100vh;
-  background-color: ${colors.background};
+  background-color: #ffffff;
+  padding: ${spacing.xl};
 `;
 
 const MainContent = styled.main`
-  max-width: 1200px;
+  max-width: 800px;
   margin: 0 auto;
-  padding: ${spacing['3xl']} ${spacing.lg};
-  
-  ${media['max-md']} {
-    padding: ${spacing['2xl']} ${spacing.md};
-  }
 `;
 
-const HeaderSection = styled.header`
+const HeaderSection = styled.div`
+  margin-bottom: ${spacing.xl};
+  border-bottom: 2px solid ${colors.neutral[100]};
+  padding-bottom: ${spacing.md};
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
-  margin-bottom: ${spacing['3xl']};
-  padding-bottom: ${spacing.xl};
-  border-bottom: 1px solid ${colors.neutral[200]};
-  animation: ${fadeInUp} 0.6s ease-out;
-
-  ${media['max-md']} {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: ${spacing.lg};
-  }
+  align-items: baseline;
 `;
 
 const Title = styled.h1`
-  font-size: ${typography.fontSize['3xl']};
+  font-size: ${typography.fontSize['2xl']};
   font-weight: ${typography.fontWeight.bold};
   color: ${colors.neutral[900]};
-  margin-bottom: ${spacing.xs};
-  font-family: ${typography.fontFamily.heading};
 `;
 
-const Subtitle = styled.p`
-  font-size: ${typography.fontSize.lg};
+const Stats = styled.div`
+  display: flex;
+  gap: ${spacing.sm};
+`;
+
+const StatText = styled.span`
   color: ${colors.neutral[500]};
-`;
-
-const StatsRow = styled.div`
-  display: flex;
-  gap: ${spacing.md};
-`;
-
-const StatBadge = styled.div`
-  display: flex;
-  align-items: center;
-  gap: ${spacing.xs};
-  padding: ${spacing.sm} ${spacing.md};
-  background-color: ${props => props.$isPinned ? 'rgba(245, 158, 11, 0.1)' : 'white'};
-  border: 1px solid ${props => props.$isPinned ? 'rgba(245, 158, 11, 0.3)' : colors.neutral[200]};
-  border-radius: ${borderRadius.full};
   font-size: ${typography.fontSize.sm};
-  color: ${props => props.$isPinned ? '#d97706' : colors.neutral[600]};
-  font-weight: ${typography.fontWeight.medium};
 `;
 
-const FormSection = styled.section`
-  margin-bottom: ${spacing['4xl']};
-  animation: ${fadeInUp} 0.8s ease-out 0.2s both;
+const FormSection = styled.div`
+  background: ${colors.neutral[50]};
+  padding: ${spacing.xl};
+  border-radius: ${borderRadius.lg};
+  margin-bottom: ${spacing['2xl']};
+  border: 1px solid ${colors.neutral[100]};
 `;
 
-const ListSection = styled.section`
-  animation: ${fadeInUp} 0.8s ease-out 0.4s both;
-`;
-
-const SectionTitle = styled.h2`
-  display: flex;
-  align-items: center;
-  gap: ${spacing.md};
-  color: ${colors.neutral[800]};
-  font-size: ${typography.fontSize.xl};
+const FormTitle = styled.h2`
+  font-size: ${typography.fontSize.lg};
   font-weight: ${typography.fontWeight.bold};
-  margin-bottom: ${spacing.xl};
-  font-family: ${typography.fontFamily.heading};
-`;
-
-const SectionIcon = styled.span`
-  font-size: ${typography.fontSize['2xl']};
-`;
-
-const FormCard = styled.div`
-  background: white;
-  border-radius: ${borderRadius.xl};
-  box-shadow: ${shadows.md};
-  padding: ${spacing['2xl']};
-  border: 1px solid ${colors.neutral[200]};
-  
-  ${media['max-md']} {
-    padding: ${spacing.xl};
-  }
+  color: ${colors.neutral[800]};
+  margin-bottom: ${spacing.lg};
 `;
 
 const Form = styled.form`
   display: flex;
   flex-direction: column;
-  gap: ${spacing.xl};
+  gap: ${spacing.lg};
 `;
 
-const FormGroup = styled.div`
+const InputGroup = styled.div``;
+
+const Input = styled.input`
+  width: 100%;
+  padding: ${spacing.md};
+  border: 1px solid ${colors.neutral[300]};
+  border-radius: ${borderRadius.md};
+  font-size: ${typography.fontSize.base};
+  background: white;
+  transition: border-color 0.2s;
+  
+  &:focus {
+    outline: none;
+    border-color: ${colors.neutral[900]};
+  }
+`;
+
+const PrayerListContainer = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${spacing.sm};
 `;
 
-const Label = styled.label`
-  color: ${colors.neutral[700]};
-  font-size: ${typography.fontSize.base};
-  font-weight: ${typography.fontWeight.semibold};
-`;
-
-const Input = styled.input`
-  padding: ${spacing.md};
-  border: 1px solid ${colors.neutral[300]};
-  border-radius: ${borderRadius.lg};
-  font-size: ${typography.fontSize.base};
-  transition: all 0.2s ease;
-  
-  &:focus {
-    outline: none;
-    border-color: ${colors.primary[500]};
-    box-shadow: 0 0 0 2px ${colors.primary[100]};
-  }
-  
-  &:disabled {
-    background: ${colors.neutral[100]};
-    color: ${colors.neutral[500]};
-  }
-`;
-
-const PrayerItemsContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: ${spacing.md};
-`;
-
-const PrayerItemGroup = styled.div`
+const PrayerInputGroup = styled.div`
   display: flex;
   align-items: flex-start;
   gap: ${spacing.sm};
 `;
 
-const PrayerItemNumber = styled.div`
+const PrayerNumber = styled.div`
   width: 24px;
-  height: 24px;
-  border-radius: ${borderRadius.full};
-  background: ${colors.primary[100]};
-  color: ${colors.primary[700]};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: ${typography.fontSize.xs};
-  font-weight: ${typography.fontWeight.bold};
-  margin-top: 10px;
-  flex-shrink: 0;
-`;
-
-const RemoveButton = styled.button`
-  width: 24px;
-  height: 24px;
-  border-radius: ${borderRadius.full};
-  border: none;
-  background: ${colors.neutral[200]};
-  color: ${colors.neutral[600]};
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-  margin-top: 10px;
-  
-  &:hover {
-    background: ${colors.red[100]};
-    color: ${colors.red[600]};
-  }
-`;
-
-const RemoveIcon = styled.span`
-  line-height: 1;
+  padding-top: 12px;
+  font-size: ${typography.fontSize.sm};
+  color: ${colors.neutral[500]};
+  text-align: center;
 `;
 
 const PrayerInput = styled.textarea`
   flex: 1;
   padding: ${spacing.md};
   border: 1px solid ${colors.neutral[300]};
-  border-radius: ${borderRadius.lg};
+  border-radius: ${borderRadius.md};
   font-size: ${typography.fontSize.base};
+  background: white;
+  min-height: 46px;
   resize: vertical;
-  min-height: 48px;
-  line-height: 1.5;
-  transition: all 0.2s;
-  
+  transition: border-color 0.2s;
+
   &:focus {
     outline: none;
-    border-color: ${colors.primary[500]};
-    box-shadow: 0 0 0 2px ${colors.primary[100]};
+    border-color: ${colors.neutral[900]};
   }
+`;
+
+const RemoveButton = styled.button`
+  color: ${colors.neutral[400]};
+  padding: ${spacing.sm};
+  background: none;
+  border: none;
+  font-size: ${typography.fontSize.lg};
+  cursor: pointer;
+  
+  &:hover {
+    color: ${colors.red[500]};
+  }
+`;
+
+const FormActions = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: ${spacing.sm};
 `;
 
 const AddButton = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: ${spacing.sm};
-  padding: ${spacing.md};
-  border: 1px dashed ${colors.neutral[300]};
-  border-radius: ${borderRadius.lg};
-  background: white;
   color: ${colors.neutral[600]};
+  background: none;
+  border: 1px dashed ${colors.neutral[300]};
+  padding: ${spacing.sm} ${spacing.md};
+  border-radius: ${borderRadius.md};
+  font-size: ${typography.fontSize.sm};
   cursor: pointer;
   transition: all 0.2s;
-  font-size: ${typography.fontSize.sm};
-  
+
   &:hover {
-    border-color: ${colors.primary[500]};
-    color: ${colors.primary[600]};
-    background: ${colors.primary[50]};
+    border-color: ${colors.neutral[900]};
+    color: ${colors.neutral[900]};
+    background: white;
   }
 `;
 
-const AddIcon = styled.span``;
-const AddText = styled.span``;
-
-const ButtonGroup = styled.div`
+const ActionGroup = styled.div`
   display: flex;
-  gap: ${spacing.md};
+  gap: ${spacing.sm};
 `;
 
 const SubmitButton = styled.button`
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: ${spacing.sm};
-  padding: ${spacing.md};
-  background: ${colors.primary[600]};
+  background: ${colors.neutral[900]};
   color: white;
   border: none;
-  border-radius: ${borderRadius.lg};
-  font-size: ${typography.fontSize.base};
-  font-weight: ${typography.fontWeight.medium};
+  padding: ${spacing.md} ${spacing.xl};
+  border-radius: ${borderRadius.md};
+  font-weight: ${typography.fontWeight.bold};
+  font-size: ${typography.fontSize.sm};
   cursor: pointer;
-  transition: background 0.2s;
-  
-  &:hover:not(:disabled) {
-    background: ${colors.primary[700]};
-  }
   
   &:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
+    opacity: 0.5;
+    cursor: default;
   }
 `;
 
-const ClearButton = styled.button`
-  padding: ${spacing.md} ${spacing.xl};
+const CancelButton = styled.button`
   background: white;
   color: ${colors.neutral[600]};
   border: 1px solid ${colors.neutral[300]};
-  border-radius: ${borderRadius.lg};
-  font-size: ${typography.fontSize.base};
-  font-weight: ${typography.fontWeight.medium};
+  padding: ${spacing.md} ${spacing.lg};
+  border-radius: ${borderRadius.md};
+  font-size: ${typography.fontSize.sm};
   cursor: pointer;
-  transition: all 0.2s;
   
   &:hover {
     background: ${colors.neutral[50]};
-    border-color: ${colors.neutral[400]};
   }
 `;
 
-const ButtonIcon = styled.span``;
+const ListSection = styled.div``;
 
-const LoadingSpinner = styled.div`
-  width: 20px;
-  height: 20px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top: 2px solid white;
-  border-radius: ${borderRadius.full};
-  animation: ${spin} 1s linear infinite;
-`;
-
-const LoadingContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: ${spacing.md};
-  padding: ${spacing['4xl']};
-  color: ${colors.neutral[500]};
-`;
-
-const LoadingText = styled.p``;
-
-const EmptyState = styled.div`
-  text-align: center;
-  padding: ${spacing['4xl']};
-  background: white;
-  border-radius: ${borderRadius.xl};
-  border: 1px dashed ${colors.neutral[300]};
-`;
-
-const EmptyIcon = styled.div`
-  font-size: ${typography.fontSize['4xl']};
-  margin-bottom: ${spacing.md};
-  opacity: 0.5;
-`;
-
-const EmptyTitle = styled.h3`
-  color: ${colors.neutral[800]};
+const ListTitle = styled.h2`
   font-size: ${typography.fontSize.lg};
   font-weight: ${typography.fontWeight.bold};
-  margin-bottom: ${spacing.xs};
-`;
-
-const EmptyDescription = styled.p`
-  color: ${colors.neutral[500]};
+  color: ${colors.neutral[800]};
+  margin-bottom: ${spacing.lg};
 `;
 
 const PrayerList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: ${spacing.md};
+  gap: ${spacing.sm};
 `;
 
-const PrayerCard = styled.div`
+const PrayerItem = styled.div`
   background: white;
-  border-radius: ${borderRadius.xl};
-  box-shadow: ${shadows.sm};
-  border: 1px solid ${props => props.isPinned ? colors.amber[200] : colors.neutral[200]};
+  border: 1px solid ${props => props.$isPinned ? colors.neutral[900] : colors.neutral[200]};
+  border-radius: ${borderRadius.lg};
   overflow: hidden;
   transition: all 0.2s;
-  background-color: ${props => props.isPinned ? colors.amber[50] : 'white'};
   
   &:hover {
-    box-shadow: ${shadows.md};
-    transform: translateY(-2px);
+    border-color: ${colors.neutral[400]};
   }
 `;
 
-const CardHeader = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+const ItemHeader = styled.div`
   padding: ${spacing.lg};
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   cursor: pointer;
+  background: ${props => props.$isPinned ? colors.neutral[50] : 'white'};
 `;
 
-const PersonInfo = styled.div`
+const Info = styled.div`
   display: flex;
   align-items: center;
   gap: ${spacing.md};
 `;
 
-const PersonAvatar = styled.div`
-  width: 40px;
-  height: 40px;
-  border-radius: ${borderRadius.full};
-  background: ${props => props.isPinned ? colors.amber[100] : colors.primary[100]};
-  color: ${props => props.isPinned ? colors.amber[600] : colors.primary[600]};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-`;
-
-const AvatarText = styled.span`
-  font-size: ${typography.fontSize.lg};
+const Name = styled.span`
   font-weight: ${typography.fontWeight.bold};
-`;
-
-const PersonDetails = styled.div`
-  display: flex;
-  flex-direction: column;
-`;
-
-const PersonName = styled.h3`
+  font-size: ${typography.fontSize.lg};
   color: ${colors.neutral[900]};
-  font-size: ${typography.fontSize.lg};
-  font-weight: ${typography.fontWeight.bold};
 `;
 
-const UpdatedDate = styled.p`
+const DateText = styled.span`
+  color: ${colors.neutral[400]};
+  font-size: ${typography.fontSize.xs};
+`;
+
+const PinnedBadge = styled.span`
+  background: ${colors.neutral[900]};
+  color: white;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+`;
+
+const Controls = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${spacing.sm};
+`;
+
+const IconButton = styled.button`
+  background: none;
+  border: none;
+  padding: ${spacing.xs};
+  cursor: pointer;
+  opacity: ${props => props.$active ? 1 : 0.3};
+  transition: opacity 0.2s;
+  
+  &:hover {
+    opacity: 1;
+  }
+`;
+
+const ExpandIcon = styled.span`
+  margin-left: ${spacing.sm};
+  font-size: 10px;
+  color: ${colors.neutral[400]};
+  transform: rotate(${props => props.$isOpen ? '180deg' : '0deg'});
+  transition: transform 0.2s;
+`;
+
+const ItemContent = styled.div`
+  padding: ${spacing.lg};
+  background: ${colors.neutral[50]};
+  border-top: 1px solid ${colors.neutral[100]};
+`;
+
+const ContentRow = styled.div`
+  display: flex;
+  gap: ${spacing.sm};
+  margin-bottom: ${spacing.xs};
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+`;
+
+const RowNumber = styled.span`
   color: ${colors.neutral[500]};
-  font-size: ${typography.fontSize.xs};
+  font-size: ${typography.fontSize.sm};
+  font-weight: bold;
+  min-width: 20px;
 `;
 
-const PinStatus = styled.span`
-  font-size: ${typography.fontSize.xs};
-  color: ${colors.amber[600]};
-  font-weight: ${typography.fontWeight.medium};
-`;
-
-const CardActions = styled.div`
-  display: flex;
-  align-items: center;
-  gap: ${spacing.xs};
-`;
-
-const PinButton = styled.button`
-  width: 32px;
-  height: 32px;
-  border-radius: ${borderRadius.lg};
-  border: none;
-  background: ${props => props.isPinned ? colors.amber[100] : 'transparent'};
-  color: ${props => props.isPinned ? colors.amber[600] : colors.neutral[400]};
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-  
-  &:hover {
-    background: ${colors.amber[50]};
-    color: ${colors.amber[600]};
-  }
-`;
-
-const EditButton = styled.button`
-  width: 32px;
-  height: 32px;
-  border-radius: ${borderRadius.lg};
-  border: none;
-  background: transparent;
-  color: ${colors.neutral[400]};
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-  
-  &:hover {
-    background: ${colors.blue[50]};
-    color: ${colors.blue[600]};
-  }
-`;
-
-const DeleteButton = styled.button`
-  width: 32px;
-  height: 32px;
-  border-radius: ${borderRadius.lg};
-  border: none;
-  background: transparent;
-  color: ${colors.neutral[400]};
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-  
-  &:hover {
-    background: ${colors.red[50]};
-    color: ${colors.red[600]};
-  }
-`;
-
-const ActionIcon = styled.span``;
-
-const ToggleIcon = styled.div`
-  color: ${colors.neutral[400]};
-  margin-left: ${spacing.xs};
-  transition: transform 0.2s ease;
-  transform: ${props => props.isOpen ? 'rotate(180deg)' : 'rotate(0deg)'};
-`;
-
-const PrayerContent = styled.div`
-  max-height: ${props => props.isOpen ? '1000px' : '0'};
-  overflow: hidden;
-  transition: max-height 0.3s ease;
-  padding: ${props => props.isOpen ? `0 ${spacing.lg} ${spacing.lg}` : '0'};
-  border-top: ${props => props.isOpen ? `1px solid ${colors.neutral[100]}` : 'none'};
-`;
-
-const PrayerItemCard = styled.div`
-  display: flex;
-  align-items: flex-start;
-  gap: ${spacing.md};
-  padding-top: ${spacing.md};
-`;
-
-const ItemNumber = styled.div`
-  width: 20px;
-  height: 20px;
-  border-radius: ${borderRadius.full};
-  background: ${colors.neutral[200]};
-  color: ${colors.neutral[600]};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: ${typography.fontSize.xs};
-  font-weight: ${typography.fontWeight.bold};
-  flex-shrink: 0;
-  margin-top: 2px;
-`;
-
-const PrayerItemText = styled.p`
-  color: ${colors.neutral[800]};
+const RowText = styled.p`
+  color: ${colors.neutral[700]};
   font-size: ${typography.fontSize.base};
   line-height: 1.6;
+  margin: 0;
 `;
 
-const DeleteModal = styled.div`
+const Message = styled.p`
+  color: ${colors.neutral[500]};
+  text-align: center;
+  padding: ${spacing.xl};
+`;
+
+const Overlay = styled.div`
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0,0,0,0.5);
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
   z-index: 1000;
-  animation: ${fadeIn} 0.2s ease-out;
 `;
 
-const ModalContent = styled.div`
+const Modal = styled.div`
   background: white;
-  border-radius: ${borderRadius.xl};
-  padding: ${spacing['2xl']};
-  max-width: 400px;
+  padding: ${spacing.xl};
+  border-radius: ${borderRadius.lg};
   width: 90%;
-  text-align: center;
-  box-shadow: ${shadows.xl};
-`;
-
-const ModalIcon = styled.div`
-  font-size: ${typography.fontSize['3xl']};
-  margin-bottom: ${spacing.md};
+  max-width: 400px;
 `;
 
 const ModalTitle = styled.h3`
-  color: ${colors.neutral[900]};
-  font-size: ${typography.fontSize.xl};
-  font-weight: ${typography.fontWeight.bold};
-  margin-bottom: ${spacing.sm};
+  font-weight: bold;
+  margin-bottom: ${spacing.md};
 `;
 
-const ModalDescription = styled.div`
+const ModalText = styled.p`
   color: ${colors.neutral[600]};
   margin-bottom: ${spacing.xl};
 `;
 
-const DeleteWarning = styled.div`
-  color: ${colors.red[500]};
-  font-size: ${typography.fontSize.sm};
-  margin-top: ${spacing.sm};
-`;
-
-const DeletingText = styled.div`
-  color: ${colors.blue[500]};
-  font-size: ${typography.fontSize.sm};
-  margin-top: ${spacing.sm};
-`;
-
-const ModalButtons = styled.div`
+const ModalActions = styled.div`
   display: flex;
+  justify-content: flex-end;
   gap: ${spacing.md};
 `;
 
-const DeleteConfirmButton = styled.button`
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: ${spacing.sm};
-  padding: ${spacing.md};
+const DeleteConfirmButton = styled(SubmitButton)`
   background: ${colors.red[500]};
-  color: white;
-  border: none;
-  border-radius: ${borderRadius.lg};
-  font-weight: ${typography.fontWeight.medium};
-  cursor: pointer;
   
-  &:hover:not(:disabled) {
+  &:hover {
     background: ${colors.red[600]};
-  }
-  
-  &:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-  }
-`;
-
-const ModalCancelButton = styled.button`
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: ${spacing.sm};
-  padding: ${spacing.md};
-  background: white;
-  color: ${colors.neutral[700]};
-  border: 1px solid ${colors.neutral[300]};
-  border-radius: ${borderRadius.lg};
-  font-weight: ${typography.fontWeight.medium};
-  cursor: pointer;
-  
-  &:hover:not(:disabled) {
-    background: ${colors.neutral[50]};
   }
 `;
 

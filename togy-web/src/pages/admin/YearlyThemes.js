@@ -13,9 +13,8 @@ const YearlyThemes = () => {
   const [formData, setFormData] = useState({
     year: '',
     theme: '',
-    direction: ['']
+    directions: ['']
   });
-  const [deleteConfirm, setDeleteConfirm] = useState({ isOpen: false, themeId: null });
 
   useEffect(() => {
     fetchThemes();
@@ -25,10 +24,15 @@ const YearlyThemes = () => {
     try {
       const q = query(collection(db, 'yearlyThemes'), orderBy('year', 'desc'));
       const querySnapshot = await getDocs(q);
-      const themesList = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      const themesList = querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        // Handle both 'direction' and 'directions' fields for compatibility
+        return {
+          id: doc.id,
+          ...data,
+          directions: data.direction || data.directions || []
+        };
+      });
       setThemes(themesList);
     } catch (error) {
       console.error('Error fetching themes:', error);
@@ -45,8 +49,8 @@ const YearlyThemes = () => {
 
     if (!yearStr || !themeStr || isSubmitting) return;
 
-    const filteredDirection = formData.direction.filter(item => item.trim() !== '');
-    if (filteredDirection.length === 0) {
+    const filteredDirections = formData.directions.filter(item => item.trim() !== '');
+    if (filteredDirections.length === 0) {
       alert('최소 하나의 비전을 입력해주세요.');
       return;
     }
@@ -56,18 +60,27 @@ const YearlyThemes = () => {
       const themeData = {
         year: yearStr,
         theme: themeStr,
-        direction: filteredDirection,
+        direction: filteredDirections, // Use 'direction' to match existing DB schema if needed
+        directions: filteredDirections, // Save both or prefer one? Let's save 'direction' as per previous code, or migrate. 
+        // valid: previous code used 'direction'. Let's stick to 'direction' for DB consistency but 'directions' for UI state.
         createdAt: new Date()
       };
 
       if (editingTheme) {
         await updateDoc(doc(db, 'yearlyThemes', editingTheme.id), {
-          ...themeData,
+          year: yearStr,
+          theme: themeStr,
+          direction: filteredDirections,
           updatedAt: new Date()
         });
         alert('테마가 성공적으로 수정되었습니다!');
       } else {
-        await addDoc(collection(db, 'yearlyThemes'), themeData);
+        await addDoc(collection(db, 'yearlyThemes'), {
+          year: yearStr,
+          theme: themeStr,
+          direction: filteredDirections,
+          createdAt: new Date()
+        });
         alert('새 테마가 성공적으로 등록되었습니다!');
       }
 
@@ -86,17 +99,19 @@ const YearlyThemes = () => {
     setFormData({
       year: String(theme.year || ''),
       theme: theme.theme || '',
-      direction: [...(theme.direction || [''])]
+      directions: [...(theme.directions || theme.direction || [''])]
     });
     setShowForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDelete = async (themeId) => {
+    if (!window.confirm('정말 이 테마를 삭제하시겠습니까?')) return;
+
     setIsSubmitting(true);
     try {
       await deleteDoc(doc(db, 'yearlyThemes', themeId));
       setThemes(prevThemes => prevThemes.filter(theme => theme.id !== themeId));
-      setDeleteConfirm({ isOpen: false, themeId: null });
       alert('테마가 성공적으로 삭제되었습니다.');
     } catch (error) {
       console.error('Error deleting theme:', error);
@@ -106,27 +121,27 @@ const YearlyThemes = () => {
     }
   };
 
-  const addDirectionItem = () => {
+  const addDirection = () => {
     setFormData({
       ...formData,
-      direction: [...formData.direction, '']
+      directions: [...formData.directions, '']
     });
   };
 
-  const removeDirectionItem = (index) => {
-    const newDirection = formData.direction.filter((_, i) => i !== index);
+  const removeDirection = (index) => {
+    const newDirections = formData.directions.filter((_, i) => i !== index);
     setFormData({
       ...formData,
-      direction: newDirection
+      directions: newDirections
     });
   };
 
   const handleDirectionChange = (index, value) => {
-    const newDirection = [...formData.direction];
-    newDirection[index] = value;
+    const newDirections = [...formData.directions];
+    newDirections[index] = value;
     setFormData({
       ...formData,
-      direction: newDirection
+      directions: newDirections
     });
   };
 
@@ -134,858 +149,413 @@ const YearlyThemes = () => {
     setFormData({
       year: '',
       theme: '',
-      direction: ['']
+      directions: ['']
     });
     setEditingTheme(null);
     setShowForm(false);
-  };
-
-  const formatDate = (timestamp) => {
-    if (!timestamp) return '';
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-    return date.toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
   };
 
   return (
     <Container>
       <MainContent>
         <HeaderSection>
-          <StatBadge>
-            <span>📊</span>
-            <span>총 {themes.length}개</span>
-          </StatBadge>
+          <Title>연간 표어 관리</Title>
+          <Stats>
+            <StatText>총 {themes.length}개</StatText>
+          </Stats>
         </HeaderSection>
 
         <FormSection>
-          <SectionTitle>
-            <SectionIcon>{editingTheme ? '✏️' : '➕'}</SectionIcon>
-            {editingTheme ? '테마 수정' : '새 테마 등록'}
-            {!showForm && !editingTheme && (
-              <AddButton onClick={() => setShowForm(true)}>
-                <ButtonIcon>➕</ButtonIcon>
-                새 테마 추가
-              </AddButton>
-            )}
-          </SectionTitle>
-
-          {(showForm || editingTheme) && (
-            <FormCard>
-              <Form onSubmit={handleSubmit}>
-                <FormGroup>
-                  <Label>연도</Label>
+          <FormTitle>{editingTheme ? '표어 수정' : '새 표어 등록'}</FormTitle>
+          {!showForm && !editingTheme ? (
+            <AddButton onClick={() => setShowForm(true)}>
+              + 새 표어 등록하기
+            </AddButton>
+          ) : (
+            <Form onSubmit={handleSubmit}>
+              <FormRow>
+                <InputGroup style={{ flex: '0 0 100px' }}>
                   <Input
                     type="text"
+                    name="year"
                     value={formData.year}
                     onChange={(e) => setFormData({ ...formData, year: e.target.value })}
-                    placeholder="예: 2025"
+                    placeholder="연도"
                     required
                   />
-                </FormGroup>
-
-                <FormGroup>
-                  <Label>연간 주제</Label>
-                  <ThemeTextarea
+                </InputGroup>
+                <InputGroup style={{ flex: 1 }}>
+                  <Input
+                    type="text"
+                    name="theme"
                     value={formData.theme}
                     onChange={(e) => setFormData({ ...formData, theme: e.target.value })}
-                    placeholder="연간 주제를 입력하세요. 줄바꿈은 \n으로 표시됩니다."
+                    placeholder="표어 (예: 믿음으로 승리하는 공동체)"
                     required
                   />
-                  <HelpText>줄바꿈이 필요한 경우 Enter 키를 눌러주세요</HelpText>
-                </FormGroup>
+                </InputGroup>
+              </FormRow>
 
-                <FormGroup>
-                  <Label>비전 (Direction)</Label>
-                  <DirectionContainer>
-                    {formData.direction.map((item, index) => (
-                      <DirectionGroup key={index}>
-                        <DirectionNumber>{index + 1}</DirectionNumber>
-                        {formData.direction.length > 1 && (
-                          <RemoveButton type="button" onClick={() => removeDirectionItem(index)}>
-                            <RemoveIcon>×</RemoveIcon>
-                          </RemoveButton>
-                        )}
-                        <DirectionInput
-                          value={item}
-                          onChange={(e) => handleDirectionChange(index, e.target.value)}
-                          placeholder={`비전 ${index + 1}을 입력하세요`}
-                          required
-                        />
-                      </DirectionGroup>
-                    ))}
+              <InputGroup>
+                <Label>비전/실천사항</Label>
+                <DirectionList>
+                  {formData.directions.map((direction, index) => (
+                    <DirectionItem key={index}>
+                      <DirectionNumber>{index + 1}</DirectionNumber>
+                      <DirectionInput
+                        value={direction}
+                        onChange={(e) => handleDirectionChange(index, e.target.value)}
+                        placeholder="비전/실천사항 입력"
+                      />
+                      {formData.directions.length > 1 && (
+                        <RemoveButton type="button" onClick={() => removeDirection(index)}>×</RemoveButton>
+                      )}
+                    </DirectionItem>
+                  ))}
+                  <AddDirectionButton type="button" onClick={addDirection}>
+                    + 항목 추가
+                  </AddDirectionButton>
+                </DirectionList>
+              </InputGroup>
 
-                    <AddDirectionButton type="button" onClick={addDirectionItem}>
-                      <AddIcon>+</AddIcon>
-                      <AddText>비전 추가</AddText>
-                    </AddDirectionButton>
-                  </DirectionContainer>
-                </FormGroup>
-
-                <ButtonGroup>
-                  <SubmitButton type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? (
-                      <>
-                        <LoadingSpinner />
-                        처리 중...
-                      </>
-                    ) : (
-                      <>
-                        <ButtonIcon>{editingTheme ? '✏️' : '📝'}</ButtonIcon>
-                        {editingTheme ? '수정하기' : '등록하기'}
-                      </>
-                    )}
-                  </SubmitButton>
-
-                  <CancelButton type="button" onClick={clearForm}>
-                    <ButtonIcon>❌</ButtonIcon>
-                    취소
-                  </CancelButton>
-                </ButtonGroup>
-              </Form>
-            </FormCard>
+              <FormActions>
+                <CancelButton type="button" onClick={clearForm}>
+                  취소
+                </CancelButton>
+                <SubmitButton type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? '처리 중...' : (editingTheme ? '수정 완료' : '등록하기')}
+                </SubmitButton>
+              </FormActions>
+            </Form>
           )}
         </FormSection>
 
         <ListSection>
-          <SectionTitle>
-            <SectionIcon>📋</SectionIcon>
-            등록된 테마 목록
-          </SectionTitle>
-
+          <ListTitle>등록된 표어</ListTitle>
           {isLoading ? (
-            <LoadingContainer>
-              <LoadingSpinner />
-              <LoadingText>테마를 불러오는 중...</LoadingText>
-            </LoadingContainer>
+            <Message>불러오는 중...</Message>
           ) : themes.length === 0 ? (
-            <EmptyState>
-              <EmptyIcon>📅</EmptyIcon>
-              <EmptyTitle>등록된 테마가 없습니다</EmptyTitle>
-              <EmptyDescription>첫 번째 연간 테마를 등록해보세요!</EmptyDescription>
-            </EmptyState>
+            <Message>등록된 표어가 없습니다.</Message>
           ) : (
             <ThemeList>
-              {themes.map((theme, index) => (
-                <ThemeCard key={theme.id} delay={index * 0.1}>
-                  <CardHeader>
-                    <ThemeInfo>
-                      <YearBadge>{theme.year}년</YearBadge>
-                      <ThemeDate>{formatDate(theme.createdAt)}</ThemeDate>
-                    </ThemeInfo>
-                    <CardActions>
-                      <EditButton onClick={() => handleEdit(theme)}>
-                        <ActionIcon>✏️</ActionIcon>
-                      </EditButton>
-                      <DeleteButton
-                        onClick={() => setDeleteConfirm({ isOpen: true, themeId: theme.id })}
-                        disabled={isSubmitting}
-                      >
-                        <ActionIcon>🗑️</ActionIcon>
-                      </DeleteButton>
-                    </CardActions>
-                  </CardHeader>
-
+              {themes.map((theme) => (
+                <ThemeItem key={theme.id}>
+                  <ThemeHeader>
+                    <ThemeYear>{theme.year}</ThemeYear>
+                    <ThemeTitle>{theme.theme}</ThemeTitle>
+                    <Controls>
+                      <IconButton onClick={() => handleEdit(theme)} title="수정">✏️</IconButton>
+                      <IconButton onClick={() => handleDelete(theme.id)} title="삭제">🗑️</IconButton>
+                    </Controls>
+                  </ThemeHeader>
                   <ThemeContent>
-                    <ThemeText>{theme.theme}</ThemeText>
-                  </ThemeContent>
-
-                  <DirectionList>
-                    <DirectionTitle>비전 ({theme.direction?.length || 0}개)</DirectionTitle>
-                    {theme.direction && theme.direction.map((item, itemIndex) => (
-                      <DirectionItem key={itemIndex}>
-                        <ItemNumber>{itemIndex + 1}</ItemNumber>
-                        <DirectionText>{item}</DirectionText>
-                      </DirectionItem>
+                    {theme.directions && theme.directions.map((dir, i) => (
+                      <DirectionRow key={i}>
+                        <DirectionDot />
+                        <DirectionText>{dir}</DirectionText>
+                      </DirectionRow>
                     ))}
-                  </DirectionList>
-                </ThemeCard>
+                  </ThemeContent>
+                </ThemeItem>
               ))}
             </ThemeList>
           )}
         </ListSection>
       </MainContent>
-
-      {deleteConfirm.isOpen && (
-        <DeleteModal onClick={() => !isSubmitting && setDeleteConfirm({ isOpen: false, themeId: null })}>
-          <ModalContent onClick={(e) => e.stopPropagation()}>
-            <ModalIcon>⚠️</ModalIcon>
-            <ModalTitle>테마 삭제</ModalTitle>
-            <ModalDescription>
-              정말 이 테마를 삭제하시겠습니까?<br />
-              <DeleteWarning>삭제된 데이터는 복구할 수 없습니다.</DeleteWarning>
-            </ModalDescription>
-            <ModalButtons>
-              <DeleteConfirmButton
-                onClick={() => handleDelete(deleteConfirm.themeId)}
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? (
-                  <>
-                    <LoadingSpinner />
-                    삭제 중...
-                  </>
-                ) : (
-                  <>
-                    <ButtonIcon>🗑️</ButtonIcon>
-                    삭제
-                  </>
-                )}
-              </DeleteConfirmButton>
-              <ModalCancelButton
-                onClick={() => setDeleteConfirm({ isOpen: false, themeId: null })}
-                disabled={isSubmitting}
-              >
-                <ButtonIcon>❌</ButtonIcon>
-                취소
-              </ModalCancelButton>
-            </ModalButtons>
-          </ModalContent>
-        </DeleteModal>
-      )}
     </Container>
   );
 };
 
-// 애니메이션
-const fadeInUp = keyframes`
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-`;
-
-const fadeIn = keyframes`
-  from { opacity: 0; }
-  to { opacity: 1; }
-`;
-
-const spin = keyframes`
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-`;
-
-// 스타일 컴포넌트
+// Minimal Styles
 const Container = styled.div`
   min-height: 100vh;
-  background-color: ${colors.background};
+  background-color: #ffffff;
+  padding: ${spacing.xl};
 `;
 
 const MainContent = styled.main`
-  max-width: 1200px;
+  max-width: 800px;
   margin: 0 auto;
-  padding: ${spacing['3xl']} ${spacing.lg};
-  
-  ${media['max-md']} {
-    padding: ${spacing['2xl']} ${spacing.md};
-  }
 `;
 
-const HeaderSection = styled.header`
+const HeaderSection = styled.div`
+  margin-bottom: ${spacing.xl};
+  border-bottom: 2px solid ${colors.neutral[100]};
+  padding-bottom: ${spacing.md};
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
-  margin-bottom: ${spacing['3xl']};
-  padding-bottom: ${spacing.xl};
-  border-bottom: 1px solid ${colors.neutral[200]};
-  animation: ${fadeInUp} 0.6s ease-out;
-
-  ${media['max-md']} {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: ${spacing.lg};
-  }
+  align-items: baseline;
 `;
 
 const Title = styled.h1`
-  font-size: ${typography.fontSize['3xl']};
+  font-size: ${typography.fontSize['2xl']};
   font-weight: ${typography.fontWeight.bold};
   color: ${colors.neutral[900]};
-  margin-bottom: ${spacing.xs};
-  font-family: ${typography.fontFamily.heading};
 `;
 
-const Subtitle = styled.p`
-  font-size: ${typography.fontSize.lg};
+const Stats = styled.div`
   color: ${colors.neutral[500]};
-`;
-
-const StatBadge = styled.div`
-  display: flex;
-  align-items: center;
-  gap: ${spacing.xs};
-  padding: ${spacing.sm} ${spacing.md};
-  background-color: white;
-  border: 1px solid ${colors.neutral[200]};
-  border-radius: ${borderRadius.full};
   font-size: ${typography.fontSize.sm};
-  color: ${colors.neutral[600]};
-  font-weight: ${typography.fontWeight.medium};
 `;
 
-const FormSection = styled.section`
-  margin-bottom: ${spacing['4xl']};
-  animation: ${fadeInUp} 0.8s ease-out 0.2s both;
+const StatText = styled.span``;
+
+const FormSection = styled.div`
+  background: ${colors.neutral[50]};
+  padding: ${spacing.xl};
+  border-radius: ${borderRadius.lg};
+  margin-bottom: ${spacing['2xl']};
+  border: 1px solid ${colors.neutral[100]};
 `;
 
-const ListSection = styled.section`
-  animation: ${fadeInUp} 0.8s ease-out 0.4s both;
-`;
-
-const SectionTitle = styled.h2`
-  display: flex;
-  align-items: center;
-  gap: ${spacing.md};
-  color: ${colors.neutral[800]};
-  font-size: ${typography.fontSize.xl};
+const FormTitle = styled.h2`
+  font-size: ${typography.fontSize.lg};
   font-weight: ${typography.fontWeight.bold};
-  margin-bottom: ${spacing.xl};
-  font-family: ${typography.fontFamily.heading};
-  justify-content: space-between;
-`;
-
-const SectionIcon = styled.span`
-  font-size: ${typography.fontSize['2xl']};
-  margin-right: ${spacing.sm};
+  color: ${colors.neutral[800]};
+  margin-bottom: ${spacing.lg};
 `;
 
 const AddButton = styled.button`
-  display: flex;
-  align-items: center;
-  gap: ${spacing.sm};
-  padding: ${spacing.sm} ${spacing.md};
-  background: ${colors.primary[50]};
-  color: ${colors.primary[600]};
-  border: 1px solid ${colors.primary[200]};
-  border-radius: ${borderRadius.lg};
-  font-size: ${typography.fontSize.sm};
-  font-weight: ${typography.fontWeight.medium};
-  cursor: pointer;
-  transition: all 0.2s ease;
-  
-  &:hover {
-    background: ${colors.primary[100]};
-    transform: translateY(-1px);
-  }
-`;
-
-const FormCard = styled.div`
+  width: 100%;
+  padding: ${spacing.lg};
   background: white;
-  border-radius: ${borderRadius.xl};
-  box-shadow: ${shadows.md};
-  padding: ${spacing['2xl']};
-  border: 1px solid ${colors.neutral[200]};
-  
-  ${media['max-md']} {
-    padding: ${spacing.xl};
+  border: 1px dashed ${colors.neutral[300]};
+  border-radius: ${borderRadius.lg};
+  color: ${colors.neutral[500]};
+  font-size: ${typography.fontSize.base};
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: ${colors.neutral[900]};
+    color: ${colors.neutral[900]};
+    background: white;
   }
 `;
 
 const Form = styled.form`
   display: flex;
   flex-direction: column;
-  gap: ${spacing.xl};
+  gap: ${spacing.lg};
 `;
 
-const FormGroup = styled.div`
+const FormRow = styled.div`
   display: flex;
-  flex-direction: column;
-  gap: ${spacing.sm};
-`;
-
-const Label = styled.label`
-  color: ${colors.neutral[700]};
-  font-size: ${typography.fontSize.base};
-  font-weight: ${typography.fontWeight.semibold};
-`;
-
-const Input = styled.input`
-  padding: ${spacing.md};
-  border: 1px solid ${colors.neutral[300]};
-  border-radius: ${borderRadius.lg};
-  font-size: ${typography.fontSize.base};
-  transition: all 0.2s ease;
-  
-  &:focus {
-    outline: none;
-    border-color: ${colors.primary[500]};
-    box-shadow: 0 0 0 2px ${colors.primary[100]};
-  }
-`;
-
-const ThemeTextarea = styled.textarea`
-  padding: ${spacing.md};
-  border: 1px solid ${colors.neutral[300]};
-  border-radius: ${borderRadius.lg};
-  font-size: ${typography.fontSize.base};
-  transition: all 0.2s ease;
-  resize: vertical;
-  min-height: 80px;
-  line-height: 1.5;
-  
-  &:focus {
-    outline: none;
-    border-color: ${colors.primary[500]};
-    box-shadow: 0 0 0 2px ${colors.primary[100]};
-  }
-`;
-
-const HelpText = styled.p`
-  color: ${colors.neutral[500]};
-  font-size: ${typography.fontSize.xs};
-  margin-left: ${spacing.xs};
-`;
-
-const DirectionContainer = styled.div`
-  display: flex;
-  flex-direction: column;
   gap: ${spacing.md};
 `;
 
-const DirectionGroup = styled.div`
+const InputGroup = styled.div`
   display: flex;
-  align-items: flex-start;
-  gap: ${spacing.sm};
+  flex-direction: column;
+  gap: ${spacing.xs};
 `;
 
-const DirectionNumber = styled.div`
-  width: 24px;
-  height: 24px;
-  border-radius: ${borderRadius.full};
-  background: ${colors.primary[100]};
-  color: ${colors.primary[700]};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: ${typography.fontSize.xs};
+const Label = styled.label`
+  font-size: ${typography.fontSize.sm};
   font-weight: ${typography.fontWeight.bold};
-  margin-top: 10px;
-  flex-shrink: 0;
+  color: ${colors.neutral[700]};
 `;
 
-const RemoveButton = styled.button`
-  width: 24px;
-  height: 24px;
-  border-radius: ${borderRadius.full};
-  border: none;
-  background: ${colors.neutral[200]};
-  color: ${colors.neutral[600]};
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-  margin-top: 10px;
-  
-  &:hover {
-    background: ${colors.red[100]};
-    color: ${colors.red[600]};
-  }
-`;
-
-const RemoveIcon = styled.span`
-  line-height: 1;
-`;
-
-const DirectionInput = styled.textarea`
-  flex: 1;
+const Input = styled.input`
+  width: 100%;
   padding: ${spacing.md};
   border: 1px solid ${colors.neutral[300]};
-  border-radius: ${borderRadius.lg};
+  border-radius: ${borderRadius.md};
   font-size: ${typography.fontSize.base};
-  resize: vertical;
-  min-height: 48px;
-  line-height: 1.5;
-  transition: all 0.2s;
+  background: white;
+  transition: border-color 0.2s;
   
   &:focus {
     outline: none;
-    border-color: ${colors.primary[500]};
-    box-shadow: 0 0 0 2px ${colors.primary[100]};
+    border-color: ${colors.neutral[900]};
+  }
+`;
+
+const DirectionList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${spacing.sm};
+`;
+
+const DirectionItem = styled.div`
+  display: flex;
+  gap: ${spacing.sm};
+  align-items: center;
+`;
+
+const DirectionNumber = styled.span`
+  font-size: ${typography.fontSize.sm};
+  color: ${colors.neutral[500]};
+  width: 20px;
+  text-align: center;
+`;
+
+const DirectionInput = styled(Input)`
+  flex: 1;
+`;
+
+const RemoveButton = styled.button`
+  color: ${colors.neutral[400]};
+  background: none;
+  border: none;
+  font-size: ${typography.fontSize.lg};
+  padding: 0 ${spacing.sm};
+  cursor: pointer;
+  
+  &:hover {
+    color: ${colors.red[500]};
   }
 `;
 
 const AddDirectionButton = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: ${spacing.sm};
-  padding: ${spacing.md};
-  border: 1px dashed ${colors.neutral[300]};
-  border-radius: ${borderRadius.lg};
-  background: white;
+  align-self: flex-start;
   color: ${colors.neutral[600]};
-  cursor: pointer;
-  transition: all 0.2s;
+  background: none;
+  border: none;
   font-size: ${typography.fontSize.sm};
+  padding: ${spacing.sm} 0;
+  cursor: pointer;
   
   &:hover {
-    border-color: ${colors.primary[500]};
-    color: ${colors.primary[600]};
-    background: ${colors.primary[50]};
+    color: ${colors.neutral[900]};
+    text-decoration: underline;
   }
 `;
 
-const AddIcon = styled.span``;
-const AddText = styled.span``;
-
-const ButtonGroup = styled.div`
+const FormActions = styled.div`
   display: flex;
-  gap: ${spacing.md};
+  justify-content: flex-end;
+  gap: ${spacing.sm};
+  margin-top: ${spacing.md};
 `;
 
 const SubmitButton = styled.button`
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: ${spacing.sm};
-  padding: ${spacing.md};
-  background: ${colors.primary[600]};
+  background: ${colors.neutral[900]};
   color: white;
   border: none;
-  border-radius: ${borderRadius.lg};
-  font-size: ${typography.fontSize.base};
-  font-weight: ${typography.fontWeight.medium};
+  padding: ${spacing.md} ${spacing.xl};
+  border-radius: ${borderRadius.md};
+  font-weight: ${typography.fontWeight.bold};
+  font-size: ${typography.fontSize.sm};
   cursor: pointer;
-  transition: background 0.2s;
-  
-  &:hover:not(:disabled) {
-    background: ${colors.primary[700]};
-  }
   
   &:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
+    opacity: 0.5;
+    cursor: default;
   }
 `;
 
 const CancelButton = styled.button`
-  padding: ${spacing.md} ${spacing.xl};
   background: white;
   color: ${colors.neutral[600]};
   border: 1px solid ${colors.neutral[300]};
-  border-radius: ${borderRadius.lg};
-  font-size: ${typography.fontSize.base};
-  font-weight: ${typography.fontWeight.medium};
+  padding: ${spacing.md} ${spacing.lg};
+  border-radius: ${borderRadius.md};
+  font-size: ${typography.fontSize.sm};
   cursor: pointer;
-  transition: all 0.2s;
   
   &:hover {
     background: ${colors.neutral[50]};
-    border-color: ${colors.neutral[400]};
   }
 `;
 
-const ButtonIcon = styled.span``;
+const ListSection = styled.div``;
 
-const LoadingSpinner = styled.div`
-  width: 20px;
-  height: 20px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top: 2px solid white;
-  border-radius: ${borderRadius.full};
-  animation: ${spin} 1s linear infinite;
-`;
-
-const LoadingContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: ${spacing.md};
-  padding: ${spacing['4xl']};
-  color: ${colors.neutral[500]};
-`;
-
-const LoadingText = styled.p``;
-
-const EmptyState = styled.div`
-  text-align: center;
-  padding: ${spacing['4xl']};
-  background: white;
-  border-radius: ${borderRadius.xl};
-  border: 1px dashed ${colors.neutral[300]};
-`;
-
-const EmptyIcon = styled.div`
-  font-size: ${typography.fontSize['4xl']};
-  margin-bottom: ${spacing.md};
-  opacity: 0.5;
-`;
-
-const EmptyTitle = styled.h3`
-  color: ${colors.neutral[800]};
+const ListTitle = styled.h2`
   font-size: ${typography.fontSize.lg};
   font-weight: ${typography.fontWeight.bold};
-  margin-bottom: ${spacing.xs};
-`;
-
-const EmptyDescription = styled.p`
-  color: ${colors.neutral[500]};
+  color: ${colors.neutral[800]};
+  margin-bottom: ${spacing.lg};
 `;
 
 const ThemeList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: ${spacing.lg};
-`;
-
-const ThemeCard = styled.div`
-  background: white;
-  border-radius: ${borderRadius.xl};
-  box-shadow: ${shadows.sm};
-  border: 1px solid ${colors.neutral[200]};
-  overflow: hidden;
-  transition: all 0.2s;
-  ${props => css`
-    animation: ${fadeInUp} 0.5s ease-out ${props.delay}s both;
-  `}
-  
-  &:hover {
-    box-shadow: ${shadows.md};
-    transform: translateY(-2px);
-  }
-`;
-
-const CardHeader = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: ${spacing.lg};
-  border-bottom: 1px solid ${colors.neutral[100]};
-  background: ${colors.neutral[50]};
-`;
-
-const ThemeInfo = styled.div`
-  display: flex;
-  align-items: center;
   gap: ${spacing.md};
 `;
 
-const YearBadge = styled.div`
-  background: ${colors.primary[600]};
+const ThemeItem = styled.div`
+  background: white;
+  border: 1px solid ${colors.neutral[200]};
+  border-radius: ${borderRadius.lg};
+  padding: ${spacing.lg};
+  transition: all 0.2s;
+  
+  &:hover {
+    border-color: ${colors.neutral[400]};
+  }
+`;
+
+const ThemeHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${spacing.md};
+  margin-bottom: ${spacing.md};
+  padding-bottom: ${spacing.sm};
+  border-bottom: 1px solid ${colors.neutral[100]};
+`;
+
+const ThemeYear = styled.span`
+  background: ${colors.neutral[900]};
   color: white;
-  padding: 4px 12px;
-  border-radius: ${borderRadius.full};
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: ${typography.fontSize.sm};
+  font-weight: bold;
+`;
+
+const ThemeTitle = styled.h3`
+  flex: 1;
+  font-size: ${typography.fontSize.lg};
   font-weight: ${typography.fontWeight.bold};
-  font-size: ${typography.fontSize.sm};
+  color: ${colors.neutral[900]};
 `;
 
-const ThemeDate = styled.span`
-  color: ${colors.neutral[500]};
-  font-size: ${typography.fontSize.xs};
-`;
-
-const CardActions = styled.div`
+const Controls = styled.div`
   display: flex;
-  align-items: center;
-  gap: ${spacing.xs};
+  gap: ${spacing.sm};
 `;
 
-const EditButton = styled.button`
-  width: 32px;
-  height: 32px;
-  border-radius: ${borderRadius.lg};
+const IconButton = styled.button`
+  background: none;
   border: none;
-  background: white;
-  color: ${colors.neutral[400]};
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-  border: 1px solid ${colors.neutral[200]};
+  opacity: 0.3;
+  transition: opacity 0.2s;
   
   &:hover {
-    background: ${colors.blue[50]};
-    color: ${colors.blue[600]};
-    border-color: ${colors.blue[200]};
+    opacity: 1;
   }
-`;
-
-const DeleteButton = styled.button`
-  width: 32px;
-  height: 32px;
-  border-radius: ${borderRadius.lg};
-  border: none;
-  background: white;
-  color: ${colors.neutral[400]};
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-  border: 1px solid ${colors.neutral[200]};
-  
-  &:hover {
-    background: ${colors.red[50]};
-    color: ${colors.red[600]};
-    border-color: ${colors.red[200]};
-  }
-`;
-
-const ActionIcon = styled.span`
-  font-size: ${typography.fontSize.sm};
 `;
 
 const ThemeContent = styled.div`
-  padding: ${spacing.lg};
-  border-bottom: 1px solid ${colors.neutral[100]};
-`;
-
-const ThemeText = styled.h3`
-  font-size: ${typography.fontSize.xl};
-  font-weight: ${typography.fontWeight.bold};
-  color: ${colors.neutral[800]};
-  margin: 0;
-  white-space: pre-wrap;
-  line-height: 1.4;
-`;
-
-const DirectionList = styled.div`
-  padding: ${spacing.lg};
-  background: ${colors.neutral[50]};
-`;
-
-const DirectionTitle = styled.h4`
-  font-size: ${typography.fontSize.sm};
-  color: ${colors.neutral[500]};
-  margin-bottom: ${spacing.md};
-  font-weight: ${typography.fontWeight.bold};
-`;
-
-const DirectionItem = styled.div`
   display: flex;
-  align-items: flex-start;
-  gap: ${spacing.md};
-  margin-bottom: ${spacing.md};
-  
-  &:last-child {
-    margin-bottom: 0;
-  }
+  flex-direction: column;
+  gap: ${spacing.xs};
 `;
 
-const ItemNumber = styled.div`
-  width: 20px;
-  height: 20px;
-  border-radius: ${borderRadius.full};
-  background: ${colors.primary[100]};
-  color: ${colors.primary[700]};
+const DirectionRow = styled.div`
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: ${typography.fontSize.xs};
-  font-weight: ${typography.fontWeight.bold};
-  flex-shrink: 0;
-  margin-top: 2px;
+  gap: ${spacing.sm};
 `;
 
-const DirectionText = styled.p`
+const DirectionDot = styled.div`
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: ${colors.neutral[400]};
+`;
+
+const DirectionText = styled.span`
   color: ${colors.neutral[700]};
   font-size: ${typography.fontSize.base};
-  line-height: 1.5;
-  margin: 0;
 `;
 
-const DeleteModal = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  animation: ${fadeIn} 0.2s ease-out;
-`;
-
-const ModalContent = styled.div`
-  background: white;
-  border-radius: ${borderRadius.xl};
-  padding: ${spacing['2xl']};
-  max-width: 400px;
-  width: 90%;
+const Message = styled.p`
+  color: ${colors.neutral[500]};
   text-align: center;
-  box-shadow: ${shadows.xl};
-`;
-
-const ModalIcon = styled.div`
-  font-size: ${typography.fontSize['3xl']};
-  margin-bottom: ${spacing.md};
-`;
-
-const ModalTitle = styled.h3`
-  color: ${colors.neutral[900]};
-  font-size: ${typography.fontSize.xl};
-  font-weight: ${typography.fontWeight.bold};
-  margin-bottom: ${spacing.sm};
-`;
-
-const ModalDescription = styled.div`
-  color: ${colors.neutral[600]};
-  margin-bottom: ${spacing.xl};
-`;
-
-const DeleteWarning = styled.div`
-  color: ${colors.red[500]};
-  font-size: ${typography.fontSize.sm};
-  margin-top: ${spacing.sm};
-`;
-
-const ModalButtons = styled.div`
-  display: flex;
-  gap: ${spacing.md};
-`;
-
-const DeleteConfirmButton = styled.button`
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: ${spacing.sm};
-  padding: ${spacing.md};
-  background: ${colors.red[500]};
-  color: white;
-  border: none;
-  border-radius: ${borderRadius.lg};
-  font-weight: ${typography.fontWeight.medium};
-  cursor: pointer;
-  
-  &:hover:not(:disabled) {
-    background: ${colors.red[600]};
-  }
-  
-  &:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-  }
-`;
-
-const ModalCancelButton = styled.button`
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: ${spacing.sm};
-  padding: ${spacing.md};
-  background: white;
-  color: ${colors.neutral[700]};
-  border: 1px solid ${colors.neutral[300]};
-  border-radius: ${borderRadius.lg};
-  font-weight: ${typography.fontWeight.medium};
-  cursor: pointer;
-  
-  &:hover:not(:disabled) {
-    background: ${colors.neutral[50]};
-  }
+  padding: ${spacing.xl};
 `;
 
 export default YearlyThemes;

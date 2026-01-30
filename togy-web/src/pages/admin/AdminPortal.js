@@ -38,7 +38,6 @@ const AdminPortal = () => {
                             <ButtonIcon>👥</ButtonIcon>
                             <ButtonText>
                                 <ButtonTitle>성도 관리</ButtonTitle>
-                                <ButtonDesc>Member Management</ButtonDesc>
                             </ButtonText>
                             <ArrowIcon>→</ArrowIcon>
                         </SubButton>
@@ -46,7 +45,13 @@ const AdminPortal = () => {
                             <ButtonIcon>📅</ButtonIcon>
                             <ButtonText>
                                 <ButtonTitle>일정 관리</ButtonTitle>
-                                <ButtonDesc>Schedule Management</ButtonDesc>
+                            </ButtonText>
+                            <ArrowIcon>→</ArrowIcon>
+                        </SubButton>
+                        <SubButton to="/admin/main/notice">
+                            <ButtonIcon>📢</ButtonIcon>
+                            <ButtonText>
+                                <ButtonTitle>공지사항 관리</ButtonTitle>
                             </ButtonText>
                             <ArrowIcon>→</ArrowIcon>
                         </SubButton>
@@ -73,7 +78,6 @@ const AdminPortal = () => {
                             <ButtonIcon>🙏</ButtonIcon>
                             <ButtonText>
                                 <ButtonTitle>중보기도 관리</ButtonTitle>
-                                <ButtonDesc>Prayer Requests</ButtonDesc>
                             </ButtonText>
                             <ArrowIcon>→</ArrowIcon>
                         </SubButton>
@@ -81,7 +85,6 @@ const AdminPortal = () => {
                             <ButtonIcon>💬</ButtonIcon>
                             <ButtonText>
                                 <ButtonTitle>마음의 소리</ButtonTitle>
-                                <ButtonDesc>Voices of Heart</ButtonDesc>
                             </ButtonText>
                             <ArrowIcon>→</ArrowIcon>
                         </SubButton>
@@ -90,7 +93,6 @@ const AdminPortal = () => {
                             <ButtonIcon>📖</ButtonIcon>
                             <ButtonText>
                                 <ButtonTitle>연간 테마</ButtonTitle>
-                                <ButtonDesc>Yearly Themes</ButtonDesc>
                             </ButtonText>
                             <ArrowIcon>→</ArrowIcon>
                         </SubButton>
@@ -98,7 +100,6 @@ const AdminPortal = () => {
                             <ButtonIcon>👥</ButtonIcon>
                             <ButtonText>
                                 <ButtonTitle>셀 재편성</ButtonTitle>
-                                <ButtonDesc>Cell Reorganization</ButtonDesc>
                             </ButtonText>
                             <ArrowIcon>→</ArrowIcon>
                         </SubButton>
@@ -125,7 +126,6 @@ const AdminPortal = () => {
                             <ButtonIcon>✍️</ButtonIcon>
                             <ButtonText>
                                 <ButtonTitle>달란트 입력</ButtonTitle>
-                                <ButtonDesc>Talant Input</ButtonDesc>
                             </ButtonText>
                             <ArrowIcon>→</ArrowIcon>
                         </SubButton>
@@ -133,7 +133,6 @@ const AdminPortal = () => {
                             <ButtonIcon>📜</ButtonIcon>
                             <ButtonText>
                                 <ButtonTitle>달란트 내역</ButtonTitle>
-                                <ButtonDesc>Talant History</ButtonDesc>
                             </ButtonText>
                             <ArrowIcon>→</ArrowIcon>
                         </SubButton>
@@ -141,7 +140,6 @@ const AdminPortal = () => {
                             <ButtonIcon>📊</ButtonIcon>
                             <ButtonText>
                                 <ButtonTitle>달란트 현황판</ButtonTitle>
-                                <ButtonDesc>Talant Status Board</ButtonDesc>
                             </ButtonText>
                             <ArrowIcon>→</ArrowIcon>
                         </SubButton>
@@ -149,7 +147,6 @@ const AdminPortal = () => {
                             <ButtonIcon>🎓</ButtonIcon>
                             <ButtonText>
                                 <ButtonTitle>학생 관리</ButtonTitle>
-                                <ButtonDesc>Student Management</ButtonDesc>
                             </ButtonText>
                             <ArrowIcon>→</ArrowIcon>
                         </SubButton>

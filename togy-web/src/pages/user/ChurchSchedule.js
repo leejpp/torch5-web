@@ -127,12 +127,14 @@ const ChurchSchedule = () => {
 
   const handlePrevMonth = () => {
     const newDate = new Date(date);
+    newDate.setDate(1); // 날짜를 1일로 초기화하여 월 건너뜀 방지
     newDate.setMonth(date.getMonth() - 1);
     setDate(newDate);
   };
 
   const handleNextMonth = () => {
     const newDate = new Date(date);
+    newDate.setDate(1); // 날짜를 1일로 초기화하여 월 건너뜀 방지
     newDate.setMonth(date.getMonth() + 1);
     setDate(newDate);
   };
@@ -145,39 +147,34 @@ const ChurchSchedule = () => {
     <Container>
       <BackgroundOverlay />
 
-      <Header>
-        <HeaderContent>
-          <HeaderTopRow>
-            <BackButton onClick={() => navigate('/')}>
-              <BackIcon>←</BackIcon>
-              <BackText>메인으로</BackText>
-            </BackButton>
-            <PageTitle>교회 일정</PageTitle>
-            <div style={{ width: '80px' }}></div> {/* Spacer for centering */}
-          </HeaderTopRow>
+      <TopControls>
+        <BackButton onClick={() => navigate('/')}>
+          <BackIcon>←</BackIcon>
+        </BackButton>
 
-          <ControlBar>
-            <DateControls>
-              <NavButton onClick={handlePrevMonth}>&lt;</NavButton>
-              <SelectGroup>
-                <Select value={date.getFullYear()} onChange={handleYearChange}>
-                  {years.map(year => (
-                    <option key={year} value={year}>{year}년</option>
-                  ))}
-                </Select>
-                <Select value={date.getMonth() + 1} onChange={handleMonthChange}>
-                  {months.map(month => (
-                    <option key={month} value={month}>{month}월</option>
-                  ))}
-                </Select>
-              </SelectGroup>
-              <NavButton onClick={handleNextMonth}>&gt;</NavButton>
-            </DateControls>
+        <ControlBar>
+          <DateControls>
+            <NavButton onClick={handlePrevMonth}>&lt;</NavButton>
+            <SelectGroup>
+              <Select value={date.getFullYear()} onChange={handleYearChange}>
+                {years.map(year => (
+                  <option key={year} value={year}>{year}년</option>
+                ))}
+              </Select>
+              <Select value={date.getMonth() + 1} onChange={handleMonthChange}>
+                {months.map(month => (
+                  <option key={month} value={month}>{month}월</option>
+                ))}
+              </Select>
+            </SelectGroup>
+            <NavButton onClick={handleNextMonth}>&gt;</NavButton>
+          </DateControls>
 
-            <TodayButton onClick={handleToday}>오늘</TodayButton>
-          </ControlBar>
-        </HeaderContent>
-      </Header>
+          <TodayButton onClick={handleToday}>오늘</TodayButton>
+        </ControlBar>
+
+        <div style={{ width: '40px' }}></div> {/* Spacer for visual balance if needed, or keeping it strictly between */}
+      </TopControls>
 
       <MainContent>
         <CalendarSection>
@@ -355,63 +352,39 @@ const BackgroundOverlay = styled.div`
   display: none;
 `;
 
-const Header = styled.header`
+
+
+const TopControls = styled.div`
+  padding: ${spacing.md};
   background: white;
-  position: relative;
-  z-index: 10;
-  box-shadow: ${shadows.sm};
   border-bottom: 1px solid ${colors.neutral[200]};
-`;
-
-const HeaderContent = styled.div`
-  padding: ${spacing.md} ${spacing.lg};
-  max-width: 100%; // Full width
-  margin: 0 auto;
-  
-  ${media['max-md']} {
-    padding: ${spacing.md};
-  }
-`;
-
-const HeaderTopRow = styled.div`
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: ${spacing.md};
+  justify-content: space-between;
 `;
 
 const BackButton = styled.button`
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
-  gap: ${spacing.xs};
-  background: transparent;
-  border: none;
-  padding: ${spacing.xs} ${spacing.sm};
+  justify-content: center;
+  background: white;
+  border: 1px solid ${colors.neutral[200]};
+  border-radius: ${borderRadius.full};
   color: ${colors.neutral[600]};
   cursor: pointer;
   transition: all 0.2s ease;
   
   &:hover {
+    background: ${colors.neutral[50]};
     color: ${colors.neutral[900]};
-    background: ${colors.neutral[100]};
-    border-radius: ${borderRadius.md};
+    transform: translateX(-2px);
   }
 `;
 
 const BackIcon = styled.span`
   font-size: ${typography.fontSize.lg};
-`;
-
-const BackText = styled.span`
-  font-size: ${typography.fontSize.sm};
-  font-weight: ${typography.fontWeight.medium};
-`;
-
-const PageTitle = styled.h1`
-  font-size: ${typography.fontSize.lg};
-  font-weight: ${typography.fontWeight.bold};
-  color: ${colors.neutral[800]};
-  margin: 0;
 `;
 
 const ControlBar = styled.div`

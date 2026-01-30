@@ -3,8 +3,8 @@ import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import { db } from '../../firebase/config';
 import { collection, addDoc, getDocs, Timestamp, query, orderBy, doc, deleteDoc, updateDoc } from 'firebase/firestore';
-import CryptoJS from 'crypto-js';
-ㅜ
+import { colors, typography, spacing, borderRadius, shadows, media } from '../../styles/designSystem';
+
 const NoticeAdmin = () => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -49,13 +49,13 @@ const NoticeAdmin = () => {
         content: content.trim(),
         date: Timestamp.now()
       });
-      setSuccessMessage('공지사항이 성공적으로 등록되었습니다.');
+      setSuccessMessage('공지사항이 등록되었습니다.');
       setTitle('');
       setContent('');
       fetchNotices();
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (error) {
-      setError('공지사항 등록 중 오류가 발생했습니다.');
+      setError('오류가 발생했습니다.');
       console.error(error);
     } finally {
       setIsSubmitting(false);
@@ -79,7 +79,8 @@ const NoticeAdmin = () => {
     setOpenNoticeId(openNoticeId === id ? null : id);
   };
 
-  const handleEdit = (notice) => {
+  const handleEdit = (notice, e) => {
+    e.stopPropagation();
     setEditingNotice(notice);
     setTitle(notice.title);
     setContent(notice.content);
@@ -102,15 +103,15 @@ const NoticeAdmin = () => {
         content: content.trim(),
         date: Timestamp.now()
       });
-      
-      setSuccessMessage('공지사항이 성공적으로 수정되었습니다.');
+
+      setSuccessMessage('수정되었습니다.');
       setTitle('');
       setContent('');
       setEditingNotice(null);
       fetchNotices();
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (error) {
-      setError('공지사항 수정 중 오류가 발생했습니다.');
+      setError('수정 중 오류가 발생했습니다.');
       console.error(error);
     } finally {
       setIsSubmitting(false);
@@ -120,12 +121,12 @@ const NoticeAdmin = () => {
   const handleDelete = async (noticeId) => {
     try {
       await deleteDoc(doc(db, 'notices', noticeId));
-      setSuccessMessage('공지사항이 삭제되었습니다.');
+      setSuccessMessage('삭제되었습니다.');
       fetchNotices();
       setDeleteConfirm({ isOpen: false, noticeId: null });
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (error) {
-      setError('공지사항 삭제 중 오류가 발생했습니다.');
+      setError('삭제 중 오류가 발생했습니다.');
       console.error(error);
     }
   };
@@ -134,415 +135,457 @@ const NoticeAdmin = () => {
     <Container>
       <Header>
         <TitleSection>
-          <HomeButton to="/admin">← 홈으로</HomeButton>
-          <Title>{editingNotice ? '공지사항 수정' : '공지사항 작성'}</Title>
+          <SubHeader>Notice Management</SubHeader>
+          <PageTitle>공지사항 관리</PageTitle>
         </TitleSection>
+        <HomeButton to="/admin/main">← 돌아가기</HomeButton>
       </Header>
 
-      <Form onSubmit={editingNotice ? handleUpdate : handleSubmit}>
-        <Input
-          type="text"
-          placeholder="제목"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-        />
-        <TextArea
-          placeholder="내용을 입력하세요..."
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          required
-        />
-        {error && <ErrorMessage>{error}</ErrorMessage>}
-        {successMessage && <SuccessMessage>{successMessage}</SuccessMessage>}
-        <ButtonGroup>
-          <SubmitButton type="submit" disabled={isSubmitting}>
-            {isSubmitting ? '처리 중...' : (editingNotice ? '수정하기' : '등록하기')}
-          </SubmitButton>
-          <ClearButton
-            type="button"
-            onClick={() => {
-              setTitle('');
-              setContent('');
-              setError('');
-              setEditingNotice(null);
-            }}
-          >
-            {editingNotice ? '취소' : '초기화'}
-          </ClearButton>
-        </ButtonGroup>
-      </Form>
+      <ContentGrid>
+        {/* Left: Form */}
+        <FormSection>
+          <SectionHeader>
+            <SectionTitle>{editingNotice ? '공지사항 수정' : '새 공지사항 작성'}</SectionTitle>
+          </SectionHeader>
 
-      <NoticeList>
-        <ListTitle>공지사항 목록</ListTitle>
-        {notices.map(notice => (
-          <NoticeItem key={notice.id}>
-            <NoticeHeader onClick={() => toggleNotice(notice.id)}>
-              <HeaderContent>
-                <NoticeTitle>{notice.title}</NoticeTitle>
-                <NoticeDate>{formatDate(notice.date)}</NoticeDate>
-              </HeaderContent>
-              <ActionButtons onClick={e => e.stopPropagation()}>
-                <EditButton onClick={() => handleEdit(notice)}>수정</EditButton>
-                <DeleteButton onClick={() => setDeleteConfirm({ isOpen: true, noticeId: notice.id })}>
-                  삭제
-                </DeleteButton>
-              </ActionButtons>
-              <ToggleIcon isOpen={openNoticeId === notice.id}>▼</ToggleIcon>
-            </NoticeHeader>
-            <NoticeContent isOpen={openNoticeId === notice.id}>
-              {notice.content}
-            </NoticeContent>
-          </NoticeItem>
-        ))}
-      </NoticeList>
+          <Form onSubmit={editingNotice ? handleUpdate : handleSubmit}>
+            <FormGroup>
+              <Label>제목</Label>
+              <Input
+                type="text"
+                placeholder="제목을 입력하세요"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+              />
+            </FormGroup>
+
+            <FormGroup>
+              <Label>내용</Label>
+              <TextArea
+                placeholder="내용을 입력하세요"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                required
+              />
+            </FormGroup>
+
+            {error && <ErrorMessage>{error}</ErrorMessage>}
+            {successMessage && <SuccessMessage>{successMessage}</SuccessMessage>}
+
+            <ButtonGroup>
+              <SubmitButton type="submit" disabled={isSubmitting}>
+                {isSubmitting ? '처리 중...' : (editingNotice ? '수정 완료' : '등록하기')}
+              </SubmitButton>
+              {(editingNotice || title || content) && (
+                <CancelButton
+                  type="button"
+                  onClick={() => {
+                    setTitle('');
+                    setContent('');
+                    setError('');
+                    setEditingNotice(null);
+                  }}
+                >
+                  {editingNotice ? '수정 취소' : '초기화'}
+                </CancelButton>
+              )}
+            </ButtonGroup>
+          </Form>
+        </FormSection>
+
+        {/* Right: List */}
+        <ListSection>
+          <SectionHeader>
+            <SectionTitle>목록 ({notices.length})</SectionTitle>
+          </SectionHeader>
+
+          <NoticeList>
+            {notices.map(notice => (
+              <NoticeItem key={notice.id} isOpen={openNoticeId === notice.id}>
+                <NoticeItemHeader onClick={() => toggleNotice(notice.id)}>
+                  <NoticeItemInfo>
+                    <NoticeItemTitle>{notice.title}</NoticeItemTitle>
+                    <NoticeItemDate>{formatDate(notice.date)}</NoticeItemDate>
+                  </NoticeItemInfo>
+                  <ActionButtons>
+                    <EditButton onClick={(e) => handleEdit(notice, e)}>수정</EditButton>
+                    <DeleteButton onClick={(e) => {
+                      e.stopPropagation();
+                      setDeleteConfirm({ isOpen: true, noticeId: notice.id });
+                    }}>삭제</DeleteButton>
+                  </ActionButtons>
+                </NoticeItemHeader>
+
+                <NoticeContent isOpen={openNoticeId === notice.id}>
+                  {notice.content}
+                </NoticeContent>
+              </NoticeItem>
+            ))}
+          </NoticeList>
+        </ListSection>
+      </ContentGrid>
 
       {deleteConfirm.isOpen && (
-        <DeleteConfirmModal>
+        <ModalOverlay>
           <ModalContent>
-            <h3>공지사항 삭제</h3>
-            <p>정말 이 공지사항을 삭제하시겠습니까?</p>
+            <ModalTitle>공지사항 삭제</ModalTitle>
+            <ModalText>정말 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.</ModalText>
             <ModalButtons>
               <DeleteConfirmButton onClick={() => handleDelete(deleteConfirm.noticeId)}>
-                삭제
+                삭제하기
               </DeleteConfirmButton>
-              <CancelButton onClick={() => setDeleteConfirm({ isOpen: false, noticeId: null })}>
+              <ModalCancelButton onClick={() => setDeleteConfirm({ isOpen: false, noticeId: null })}>
                 취소
-              </CancelButton>
+              </ModalCancelButton>
             </ModalButtons>
           </ModalContent>
-        </DeleteConfirmModal>
+        </ModalOverlay>
       )}
     </Container>
   );
 };
 
+// Styles
 const Container = styled.div`
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: ${spacing.xl};
+  min-height: 100vh;
+  background-color: ${colors.neutral[50]};
   
-  @media (max-width: 768px) {
-    padding: 1rem;
+  ${media['max-md']} {
+    padding: ${spacing.md};
   }
 `;
 
 const Header = styled.header`
-  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: ${spacing.xl};
+  padding-bottom: ${spacing.lg};
+  border-bottom: 1px solid ${colors.neutral[200]};
+  
+  ${media['max-md']} {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: ${spacing.md};
+  }
 `;
 
 const TitleSection = styled.div`
   display: flex;
-  align-items: center;
-  gap: 1rem;
+  flex-direction: column;
+`;
+
+const SubHeader = styled.span`
+  font-size: ${typography.fontSize.sm};
+  color: ${colors.neutral[500]};
+  font-weight: ${typography.fontWeight.medium};
+  text-transform: uppercase;
+  letter-spacing: 1px;
+`;
+
+const PageTitle = styled.h1`
+  font-size: ${typography.fontSize['2xl']};
+  color: ${colors.neutral[900]};
+  font-weight: ${typography.fontWeight.bold};
+  font-family: ${typography.fontFamily.heading};
 `;
 
 const HomeButton = styled(Link)`
-  color: #666;
+  color: ${colors.neutral[500]};
   text-decoration: none;
-  padding: 0.5rem 1rem;
-  border-radius: 5px;
-  font-size: 1rem;
+  font-size: ${typography.fontSize.sm};
+  padding: ${spacing.xs} ${spacing.md};
+  border-radius: ${borderRadius.full};
+  border: 1px solid ${colors.neutral[200]};
+  transition: all 0.2s;
   
   &:hover {
-    background-color: #f0f0f0;
-    color: #333;
+    background: ${colors.neutral[100]};
+    color: ${colors.neutral[800]};
   }
 `;
 
-const Title = styled.h1`
-  font-size: 2rem;
-  color: #333;
+const ContentGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: ${spacing.xl};
+  
+  ${media['max-md']} {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const FormSection = styled.section`
+  background: white;
+  padding: ${spacing.xl};
+  border-radius: ${borderRadius.xl};
+  border: 1px solid ${colors.neutral[200]};
+  height: fit-content;
+  
+  ${media['max-md']} {
+    padding: ${spacing.lg};
+  }
+`;
+
+const ListSection = styled.section`
+  display: flex;
+  flex-direction: column;
+  gap: ${spacing.lg};
+`;
+
+const SectionHeader = styled.div`
+  margin-bottom: ${spacing.lg};
+`;
+
+const SectionTitle = styled.h2`
+  font-size: ${typography.fontSize.lg};
+  color: ${colors.neutral[800]};
+  font-weight: ${typography.fontWeight.bold};
 `;
 
 const Form = styled.form`
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  
-  @media (max-width: 768px) {
-    padding: 1.5rem;
-  }
+  gap: ${spacing.lg};
 `;
 
-const AuthForm = styled(Form)`
-  max-width: 400px;
-  margin: 0 auto;
-  background-color: white;
-  padding: 2rem;
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+const FormGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${spacing.xs};
+`;
+
+const Label = styled.label`
+  font-size: ${typography.fontSize.sm};
+  color: ${colors.neutral[600]};
+  font-weight: ${typography.fontWeight.medium};
 `;
 
 const Input = styled.input`
-  padding: 0.8rem;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  font-size: 1rem;
+  padding: ${spacing.md};
+  border: 1px solid ${colors.neutral[200]};
+  border-radius: ${borderRadius.md};
+  font-size: ${typography.fontSize.base};
+  transition: all 0.2s;
   
   &:focus {
     outline: none;
-    border-color: #FFB6C1;
+    border-color: ${colors.primary[500]};
+    box-shadow: 0 0 0 2px ${colors.primary[100]};
   }
 `;
 
 const TextArea = styled.textarea`
-  padding: 0.8rem;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  font-size: 1rem;
-  min-height: 300px;
+  padding: ${spacing.md};
+  border: 1px solid ${colors.neutral[200]};
+  border-radius: ${borderRadius.md};
+  font-size: ${typography.fontSize.base};
+  min-height: 200px;
   resize: vertical;
+  line-height: 1.6;
   
   &:focus {
     outline: none;
-    border-color: #FFB6C1;
+    border-color: ${colors.primary[500]};
+    box-shadow: 0 0 0 2px ${colors.primary[100]};
   }
 `;
 
 const ButtonGroup = styled.div`
   display: flex;
-  gap: 1rem;
-  margin-top: 1.5rem;
-  
-  @media (max-width: 768px) {
-    flex-direction: column;
-    
-    button {
-      width: 100%;
-    }
-  }
+  gap: ${spacing.md};
+  margin-top: ${spacing.sm};
 `;
 
 const Button = styled.button`
-  padding: 0.8rem 1.5rem;
-  border: none;
-  border-radius: 5px;
-  font-size: 1rem;
-  cursor: pointer;
   flex: 1;
+  padding: ${spacing.md};
+  border: none;
+  border-radius: ${borderRadius.md};
+  font-size: ${typography.fontSize.base};
+  font-weight: ${typography.fontWeight.medium};
+  cursor: pointer;
+  transition: all 0.2s;
 `;
 
 const SubmitButton = styled(Button)`
-  background-color: #FFB6C1;
+  background-color: ${colors.primary[600]};
   color: white;
   
   &:hover {
-    background-color: #FF69B4;
+    background-color: ${colors.primary[700]};
   }
   
   &:disabled {
-    background-color: #ddd;
+    background-color: ${colors.neutral[300]};
     cursor: not-allowed;
   }
 `;
 
-const ClearButton = styled(Button)`
-  background-color: #f0f0f0;
-  color: #666;
-  
-  &:hover {
-    background-color: #e0e0e0;
-  }
-`;
-
 const CancelButton = styled(Button)`
-  background-color: #f0f0f0;
-  color: #666;
+  background-color: ${colors.neutral[100]};
+  color: ${colors.neutral[600]};
   
   &:hover {
-    background-color: #e0e0e0;
+    background-color: ${colors.neutral[200]};
   }
-`;
-
-const ErrorMessage = styled.p`
-  color: #ff4444;
-  margin: 0.5rem 0;
-  text-align: center;
-`;
-
-const SuccessMessage = styled.p`
-  color: #4CAF50;
-  margin: 0.5rem 0;
-  text-align: center;
 `;
 
 const NoticeList = styled.div`
-  margin-top: 2rem;
-  
-  @media (max-width: 768px) {
-    margin-top: 1.5rem;
-  }
-`;
-
-const ListTitle = styled.h2`
-  font-size: 1.5rem;
-  color: #333;
-  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: ${spacing.md};
 `;
 
 const NoticeItem = styled.div`
-  background-color: white;
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-bottom: 1rem;
+  background: white;
+  border: 1px solid ${props => props.isOpen ? colors.primary[200] : colors.neutral[200]};
+  border-radius: ${borderRadius.lg};
   overflow: hidden;
-  
-  @media (max-width: 768px) {
-    padding: 1rem;
-    margin-bottom: 1rem;
-  }
+  transition: all 0.2s;
+  box-shadow: ${props => props.isOpen ? shadows.md : 'none'};
 `;
 
-const NoticeHeader = styled.div`
+const NoticeItemHeader = styled.div`
+  padding: ${spacing.md};
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem;
   cursor: pointer;
+  background: ${props => props.onClick ? 'white' : 'transparent'}; // Clean background
   
   &:hover {
-    background-color: #f8f8f8;
-  }
-  
-  @media (max-width: 768px) {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
+    background-color: ${colors.neutral[50]};
   }
 `;
 
-const HeaderContent = styled.div`
-  flex: 1;
+const NoticeItemInfo = styled.div`
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  
-  @media (max-width: 768px) {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
+  flex-direction: column;
+  gap: 4px;
 `;
 
-const NoticeTitle = styled.h3`
-  font-size: 1.2rem;
-  color: #333;
+const NoticeItemTitle = styled.h3`
+  font-size: ${typography.fontSize.base};
+  font-weight: ${typography.fontWeight.bold};
+  color: ${colors.neutral[900]};
   margin: 0;
 `;
 
-const NoticeDate = styled.span`
-  color: #666;
-  font-size: 0.9rem;
-`;
-
-const ToggleIcon = styled.span`
-  margin-left: 1rem;
-  transition: transform 0.3s ease;
-  transform: ${props => props.isOpen ? 'rotate(180deg)' : 'rotate(0)'};
-`;
-
-const NoticeContent = styled.p`
-  color: #666;
-  white-space: pre-wrap;
-  line-height: 1.6;
-  margin: 0;
-  padding: ${props => props.isOpen ? '1.5rem' : '0'};
-  max-height: ${props => props.isOpen ? '1000px' : '0'};
-  opacity: ${props => props.isOpen ? '1' : '0'};
-  transition: all 0.3s ease;
-  overflow: hidden;
-  background-color: #f9f9f9;
-  
-  @media (max-width: 768px) {
-    padding: ${props => props.isOpen ? '1rem' : '0'};
-  }
+const NoticeItemDate = styled.span`
+  font-size: ${typography.fontSize.sm};
+  color: ${colors.neutral[500]};
 `;
 
 const ActionButtons = styled.div`
   display: flex;
-  gap: 0.5rem;
-  
-  @media (max-width: 768px) {
-    width: 100%;
-    
-    button {
-      flex: 1;
-      padding: 0.8rem;
-    }
-  }
+  gap: ${spacing.xs};
 `;
 
 const ActionButton = styled.button`
-  padding: 0.3rem 0.8rem;
-  border: none;
-  border-radius: 3px;
-  font-size: 0.9rem;
+  padding: ${spacing.xs} ${spacing.sm};
+  border: 1px solid ${colors.neutral[200]};
+  border-radius: ${borderRadius.md};
+  background: white;
+  font-size: ${typography.fontSize.xs};
   cursor: pointer;
+  transition: all 0.2s;
   
-  @media (max-width: 768px) {
-    padding: 0.2rem 0.6rem;
-    font-size: 0.8rem;
+  &:hover {
+    background: ${colors.neutral[50]};
   }
 `;
 
 const EditButton = styled(ActionButton)`
-  background-color: #4CAF50;
-  color: white;
-  
-  &:hover {
-    background-color: #45a049;
-  }
+  color: ${colors.primary[600]};
+  &:hover { border-color: ${colors.primary[200]}; }
 `;
 
 const DeleteButton = styled(ActionButton)`
-  background-color: #ff4444;
-  color: white;
-  
-  &:hover {
-    background-color: #cc0000;
-  }
+  color: ${colors.error[600]};
+  &:hover { border-color: ${colors.error[200]}; background: ${colors.error[50]}; }
 `;
 
-const DeleteConfirmModal = styled.div`
+const NoticeContent = styled.div`
+  padding: ${props => props.isOpen ? spacing.lg : 0};
+  max-height: ${props => props.isOpen ? '1000px' : 0};
+  opacity: ${props => props.isOpen ? 1 : 0};
+  border-top: ${props => props.isOpen ? `1px solid ${colors.neutral[100]}` : 'none'};
+  transition: all 0.3s;
+  overflow: hidden;
+  white-space: pre-wrap;
+  color: ${colors.neutral[700]};
+  line-height: 1.6;
+`;
+
+const ErrorMessage = styled.p`
+  color: ${colors.error[600]};
+  font-size: ${typography.fontSize.sm};
+  text-align: center;
+`;
+
+const SuccessMessage = styled.p`
+  color: ${colors.success[600]};
+  font-size: ${typography.fontSize.sm};
+  text-align: center;
+`;
+
+const ModalOverlay = styled.div`
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  padding: ${spacing.md};
 `;
 
 const ModalContent = styled.div`
-  background-color: white;
-  padding: 2rem;
-  border-radius: 10px;
+  background: white;
+  padding: ${spacing.xl};
+  border-radius: ${borderRadius.xl};
+  max-width: 400px;
+  width: 100%;
   text-align: center;
-  
-  h3 {
-    margin-top: 0;
-  }
+`;
+
+const ModalTitle = styled.h3`
+  font-size: ${typography.fontSize.xl};
+  font-weight: ${typography.fontWeight.bold};
+  color: ${colors.neutral[900]};
+  margin-bottom: ${spacing.sm};
+`;
+
+const ModalText = styled.p`
+  color: ${colors.neutral[600]};
+  margin-bottom: ${spacing.xl};
 `;
 
 const ModalButtons = styled.div`
   display: flex;
-  justify-content: center;
-  gap: 1rem;
-  margin-top: 1.5rem;
+  gap: ${spacing.md};
 `;
 
 const DeleteConfirmButton = styled(Button)`
-  background-color: #ff4444;
+  background-color: ${colors.error[600]};
   color: white;
   
-  &:hover {
-    background-color: #cc0000;
-  }
+  &:hover { background-color: ${colors.error[700]}; }
+`;
+
+const ModalCancelButton = styled(Button)`
+  background-color: ${colors.neutral[100]};
+  color: ${colors.neutral[700]};
+  
+  &:hover { background-color: ${colors.neutral[200]}; }
 `;
 
 export default NoticeAdmin;

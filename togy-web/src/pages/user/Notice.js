@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../../firebase/config';
-import styled from 'styled-components';
+import styled, { keyframes, css } from 'styled-components';
 import { collection, query, orderBy, getDocs } from 'firebase/firestore';
+import { colors, typography, spacing, borderRadius, media } from '../../styles/designSystem';
+import { useNavigate } from 'react-router-dom';
 
 const Notice = () => {
+  const navigate = useNavigate();
   const [notices, setNotices] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [openNoticeId, setOpenNoticeId] = useState(null);
+  const [expandedId, setExpandedId] = useState(null);
 
   useEffect(() => {
     fetchNotices();
@@ -33,341 +36,242 @@ const Notice = () => {
 
   const formatDate = (date) => {
     if (!date) return '';
-    return new Date(date.seconds * 1000).toLocaleDateString('ko-KR', {
+    const d = new Date(date.seconds * 1000);
+    return d.toLocaleDateString('ko-KR', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit'
     });
   };
 
-  const toggleNotice = (id) => {
-    setOpenNoticeId(openNoticeId === id ? null : id);
+  const toggleExpand = (id) => {
+    setExpandedId(expandedId === id ? null : id);
   };
 
   return (
     <Container>
-      <Header>
-        <HeaderIcon>📢</HeaderIcon>
-        <HeaderContent>
-          <Title>공지사항</Title>
-          <SubTitle>청년부 소식을 확인하세요</SubTitle>
-        </HeaderContent>
-      </Header>
+      <TopControls>
+        <BackButton onClick={() => navigate('/')}>
+          <BackIcon>←</BackIcon>
+        </BackButton>
+      </TopControls>
 
-      {loading ? (
-        <LoadingContainer>
-          <LoadingIcon>📄</LoadingIcon>
-          <LoadingMessage>공지사항을 불러오는 중...</LoadingMessage>
-        </LoadingContainer>
-      ) : notices.length === 0 ? (
-        <EmptyState>
-          <EmptyIcon>📋</EmptyIcon>
-          <EmptyTitle>등록된 공지사항이 없습니다</EmptyTitle>
-          <EmptyMessage>새로운 소식이 올라오면 알려드릴게요!</EmptyMessage>
-        </EmptyState>
-      ) : (
-        <NoticeList>
-          {notices.map((notice) => (
-            <NoticeItem key={notice.id}>
-              <NoticeHeader onClick={() => toggleNotice(notice.id)}>
-                <NoticeInfo>
-                  <NoticeDateWrapper>
-                    <DateIcon>📅</DateIcon>
-                    <NoticeDate>{formatDate(notice.date)}</NoticeDate>
-                  </NoticeDateWrapper>
-                  <NoticeTitle>{notice.title}</NoticeTitle>
-                </NoticeInfo>
-                <ToggleIcon isOpen={openNoticeId === notice.id}>
-                  {openNoticeId === notice.id ? '🔼' : '🔽'}
-                </ToggleIcon>
-              </NoticeHeader>
-              <NoticeContent isOpen={openNoticeId === notice.id}>
-                <ContentWrapper>
-                  {notice.content}
-                </ContentWrapper>
-              </NoticeContent>
-            </NoticeItem>
-          ))}
-        </NoticeList>
-      )}
+      <MainContent>
+        {loading ? (
+          <LoadingSection>
+            <LoadingText>소식을 불러오는 중...</LoadingText>
+          </LoadingSection>
+        ) : notices.length === 0 ? (
+          <EmptySection>
+            <EmptyIcon>📢</EmptyIcon>
+            <EmptyTitle>등록된 공지사항이 없습니다</EmptyTitle>
+            <EmptyMessage>새로운 소식이 올라오면 알려드릴게요</EmptyMessage>
+          </EmptySection>
+        ) : (
+          <NoticeList>
+            <SectionTitle>
+              교회 소식 <Count>{notices.length}</Count>
+            </SectionTitle>
+
+            {notices.map((notice) => (
+              <AccordionItem
+                key={notice.id}
+                isExpanded={expandedId === notice.id}
+                onClick={() => toggleExpand(notice.id)}
+              >
+                <HeaderRow>
+                  <LeftInfo>
+                    <IconWrapper>📢</IconWrapper>
+                    <TitleGroup>
+                      <NoticeTitle>{notice.title}</NoticeTitle>
+                      <NoticeDate>{formatDate(notice.date)}</NoticeDate>
+                    </TitleGroup>
+                  </LeftInfo>
+                </HeaderRow>
+
+                <ContentArea isExpanded={expandedId === notice.id}>
+                  <ContentText>
+                    {notice.content}
+                  </ContentText>
+                </ContentArea>
+              </AccordionItem>
+            ))}
+          </NoticeList>
+        )}
+      </MainContent>
     </Container>
   );
 };
 
+// Styles
 const Container = styled.div`
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 1rem 2rem 3rem;
-  background-color: #f8f9fa;
   min-height: 100vh;
-  
-  @media (max-width: 768px) {
-    padding: 1rem 1rem 2rem;
-  }
+  background-color: white;
 `;
 
-const Header = styled.header`
+const TopControls = styled.div`
+  padding: ${spacing.md};
+  background: white;
+  border-bottom: 1px solid ${colors.neutral[200]};
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 2rem;
-  padding: 1.5rem;
-  background: linear-gradient(135deg, #4285F4 0%, #1a73e8 100%);
-  color: white;
-  border-radius: 20px;
-  box-shadow: 0 4px 20px rgba(66, 133, 244, 0.3);
-  
-  @media (max-width: 768px) {
-    margin-bottom: 1.5rem;
-    padding: 1.2rem;
-    border-radius: 16px;
-  }
 `;
 
-const HeaderIcon = styled.div`
-  font-size: 2.5rem;
-  
-  @media (max-width: 768px) {
-    font-size: 2rem;
-  }
-`;
-
-const HeaderContent = styled.div`
-  flex: 1;
-`;
-
-const Title = styled.h1`
-  font-size: 1.8rem;
-  font-weight: 700;
-  margin: 0 0 0.3rem 0;
-  
-  @media (max-width: 768px) {
-    font-size: 1.5rem;
-  }
-`;
-
-const SubTitle = styled.p`
-  font-size: 1rem;
-  opacity: 0.9;
-  margin: 0;
-  font-weight: 400;
-  
-  @media (max-width: 768px) {
-    font-size: 0.9rem;
-  }
-`;
-
-const LoadingContainer = styled.div`
+const BackButton = styled.button`
+  width: 40px;
+  height: 40px;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 4rem 2rem;
-  text-align: center;
+  background: white;
+  border: 1px solid ${colors.neutral[200]};
+  border-radius: ${borderRadius.full};
+  color: ${colors.neutral[600]};
+  cursor: pointer;
+  transition: all 0.2s ease;
   
-  @media (max-width: 768px) {
-    padding: 3rem 1rem;
+  &:hover {
+    background: ${colors.neutral[50]};
+    color: ${colors.neutral[900]};
+    transform: translateX(-2px);
   }
 `;
 
-const LoadingIcon = styled.div`
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  animation: pulse 1.5s ease-in-out infinite;
+const BackIcon = styled.span`
+  font-size: ${typography.fontSize.lg};
+`;
+
+const MainContent = styled.main`
+  max-width: 600px;
+  margin: 0 auto;
+  padding: ${spacing.xl};
   
-  @keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-  }
-  
-  @media (max-width: 768px) {
-    font-size: 2.5rem;
+  ${media['max-md']} {
+    padding: ${spacing.md};
   }
 `;
 
-const LoadingMessage = styled.div`
-  color: #4285F4;
-  font-size: 1.1rem;
-  font-weight: 500;
-  
-  @media (max-width: 768px) {
-    font-size: 1rem;
-  }
-`;
-
-const EmptyState = styled.div`
+const SectionTitle = styled.h2`
+  font-size: ${typography.fontSize.xl};
+  font-weight: ${typography.fontWeight.bold};
+  color: ${colors.neutral[900]};
+  margin-bottom: ${spacing.lg};
   display: flex;
-  flex-direction: column;
   align-items: center;
-  text-align: center;
-  padding: 4rem 2rem;
-  
-  @media (max-width: 768px) {
-    padding: 3rem 1rem;
-  }
+  gap: ${spacing.sm};
 `;
 
-const EmptyIcon = styled.div`
-  font-size: 4rem;
-  margin-bottom: 1rem;
-  
-  @media (max-width: 768px) {
-    font-size: 3rem;
-  }
-`;
-
-const EmptyTitle = styled.h2`
-  color: #4285F4;
-  font-size: 1.4rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  
-  @media (max-width: 768px) {
-    font-size: 1.2rem;
-  }
-`;
-
-const EmptyMessage = styled.p`
-  color: #666;
-  font-size: 1rem;
-  margin: 0;
+const Count = styled.span`
+  font-size: ${typography.fontSize.lg};
+  color: ${colors.primary[600]};
+  font-weight: ${typography.fontWeight.medium};
 `;
 
 const NoticeList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: ${spacing.sm};
 `;
 
-const NoticeItem = styled.div`
-  background-color: white;
-  border-radius: 16px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  border: 2px solid transparent;
-  overflow: hidden;
-  transition: all 0.2s ease;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
-    border-color: rgba(66, 133, 244, 0.2);
-  }
-  
-  @media (max-width: 768px) {
-    border-radius: 12px;
-  }
-`;
-
-const NoticeHeader = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1.5rem;
+const AccordionItem = styled.div`
+  background: white;
+  border-bottom: 1px solid ${colors.neutral[100]};
+  transition: background-color 0.2s;
   cursor: pointer;
-  background-color: white;
-  transition: all 0.2s ease;
-  
+  padding: ${spacing.md} 0;
+
   &:hover {
-    background-color: #f8f9fa;
-  }
-  
-  @media (max-width: 768px) {
-    padding: 1.2rem;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
+    background-color: ${colors.neutral[50]};
   }
 `;
 
-const NoticeInfo = styled.div`
+const HeaderRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start; // Align to top because title might wrap
+`;
+
+const LeftInfo = styled.div`
+  display: flex;
+  gap: ${spacing.md};
   flex: 1;
+`;
+
+const IconWrapper = styled.div`
+  font-size: ${typography.fontSize.lg};
+  margin-top: 2px; // Visual alignment
+`;
+
+const TitleGroup = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
-  
-  @media (max-width: 768px) {
-    width: 100%;
-  }
+  gap: 4px;
 `;
 
-const NoticeDateWrapper = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-`;
-
-const DateIcon = styled.span`
-  font-size: 0.9rem;
+const NoticeTitle = styled.h3`
+  font-size: ${typography.fontSize.base};
+  font-weight: ${typography.fontWeight.bold};
+  color: ${colors.neutral[900]};
+  margin: 0;
+  line-height: 1.4;
 `;
 
 const NoticeDate = styled.span`
-  color: #666;
-  font-size: 0.9rem;
-  background-color: #f1f3f4;
-  padding: 0.3rem 0.6rem;
-  border-radius: 12px;
-  font-weight: 500;
-  
-  @media (max-width: 768px) {
-    font-size: 0.8rem;
-    padding: 0.2rem 0.5rem;
-  }
+  font-size: ${typography.fontSize.sm};
+  color: ${colors.neutral[500]};
 `;
 
-const NoticeTitle = styled.h2`
-  margin: 0;
-  font-size: 1.2rem;
-  color: #333;
-  font-weight: 600;
-  line-height: 1.4;
-  
-  @media (max-width: 768px) {
-    font-size: 1.1rem;
-  }
-`;
-
-const ToggleIcon = styled.span`
-  font-size: 1.2rem;
-  transition: all 0.3s ease;
-  padding: 0.5rem;
-  border-radius: 8px;
-  background-color: #f8f9fa;
-  
-  @media (max-width: 768px) {
-    align-self: flex-end;
-    font-size: 1rem;
-    padding: 0.3rem;
-  }
-`;
-
-const NoticeContent = styled.div`
-  padding: ${props => props.isOpen ? '0 1.5rem 1.5rem' : '0'};
-  max-height: ${props => props.isOpen ? '1000px' : '0'};
-  opacity: ${props => props.isOpen ? '1' : '0'};
-  transition: all 0.3s ease;
+const ContentArea = styled.div`
+  max-height: ${props => props.isExpanded ? '2000px' : '0'}; // Large max-height for text
+  opacity: ${props => props.isExpanded ? '1' : '0'};
   overflow: hidden;
+  transition: all 0.3s ease-in-out;
+  margin-top: ${props => props.isExpanded ? spacing.md : '0'};
+`;
+
+const ContentText = styled.div`
+  padding-left: 40px; // Align with title (Icon width + gap)
+  font-size: ${typography.fontSize.base};
+  color: ${colors.neutral[700]};
+  line-height: 1.7;
+  white-space: pre-wrap;
   
-  @media (max-width: 768px) {
-    padding: ${props => props.isOpen ? '0 1.2rem 1.2rem' : '0'};
+  ${media['max-md']} {
+    padding-left: ${spacing.sm}; // Reduce padding on mobile
   }
 `;
 
-const ContentWrapper = styled.div`
-  background-color: #f8f9fa;
-  padding: 1.5rem;
-  border-radius: 12px;
-  white-space: pre-wrap;
-  line-height: 1.7;
-  color: #333;
-  font-size: 1rem;
-  border-left: 4px solid #4285F4;
-  
-  @media (max-width: 768px) {
-    padding: 1.2rem;
-    border-radius: 10px;
-    font-size: 0.95rem;
-    line-height: 1.6;
-  }
+const LoadingSection = styled.div`
+  text-align: center;
+  padding: ${spacing['4xl']} 0;
+`;
+
+const LoadingText = styled.p`
+  color: ${colors.neutral[500]};
+  font-size: ${typography.fontSize.sm};
+`;
+
+const EmptySection = styled.div`
+  text-align: center;
+  padding: ${spacing['4xl']} 0;
+  color: ${colors.neutral[400]};
+`;
+
+const EmptyIcon = styled.div`
+  font-size: ${typography.fontSize['3xl']};
+  margin-bottom: ${spacing.md};
+  filter: grayscale(1);
+  opacity: 0.5;
+`;
+
+const EmptyTitle = styled.h3`
+  font-size: ${typography.fontSize.lg};
+  color: ${colors.neutral[600]};
+  margin-bottom: ${spacing.xs};
+`;
+
+const EmptyMessage = styled.p`
+  font-size: ${typography.fontSize.sm};
 `;
 
 export default Notice;

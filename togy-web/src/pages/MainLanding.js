@@ -40,7 +40,14 @@ const MainLanding = () => {
               <ButtonIcon>📅</ButtonIcon>
               <ButtonText>
                 <ButtonTitle>교회 일정 보기</ButtonTitle>
-                <ButtonDesc>Church Calendar</ButtonDesc>
+              </ButtonText>
+              <ArrowIcon>→</ArrowIcon>
+            </SubButton>
+
+            <SubButton to="/notice" style={{ borderColor: colors.primary[200] }}>
+              <ButtonIcon>📢</ButtonIcon>
+              <ButtonText>
+                <ButtonTitle>교회 소식 보기</ButtonTitle>
               </ButtonText>
               <ArrowIcon>→</ArrowIcon>
             </SubButton>
@@ -49,7 +56,6 @@ const MainLanding = () => {
               <ButtonIcon>🎂</ButtonIcon>
               <ButtonText>
                 <ButtonTitle>전교인 생일 보기</ButtonTitle>
-                <ButtonDesc>Celebrating Together</ButtonDesc>
               </ButtonText>
               <ArrowIcon>→</ArrowIcon>
             </SubButton>
@@ -76,7 +82,6 @@ const MainLanding = () => {
               <ButtonIcon>🏠</ButtonIcon>
               <ButtonText>
                 <ButtonTitle>청년부 메인</ButtonTitle>
-                <ButtonDesc>Main Dashboard</ButtonDesc>
               </ButtonText>
               <ArrowIcon>→</ArrowIcon>
             </SubButton>
@@ -85,7 +90,6 @@ const MainLanding = () => {
               <ButtonIcon>🙏</ButtonIcon>
               <ButtonText>
                 <ButtonTitle>중보기도</ButtonTitle>
-                <ButtonDesc>Prayer Requests</ButtonDesc>
               </ButtonText>
               <ArrowIcon>→</ArrowIcon>
             </SubButton>
@@ -94,7 +98,6 @@ const MainLanding = () => {
               <ButtonIcon>💬</ButtonIcon>
               <ButtonText>
                 <ButtonTitle>마음의 소리</ButtonTitle>
-                <ButtonDesc>Anonymous Voice</ButtonDesc>
               </ButtonText>
               <ArrowIcon>→</ArrowIcon>
             </SubButton>
@@ -121,7 +124,6 @@ const MainLanding = () => {
               <ButtonIcon>🏆</ButtonIcon>
               <ButtonText>
                 <ButtonTitle>달란트 랭킹 보기</ButtonTitle>
-                <ButtonDesc>Talant Hall of Fame</ButtonDesc>
               </ButtonText>
               <ArrowIcon>→</ArrowIcon>
             </SubButton>
@@ -309,7 +311,7 @@ const SecondaryButton = styled(Link)`
 `;
 
 const ButtonIcon = styled.div`
-  font-size: ${typography.fontSize['3xl']};
+  font-size: ${typography.fontSize.xl};
   margin-right: ${spacing.lg};
   transition: transform 0.3s ease;
 `;
@@ -321,7 +323,7 @@ const ButtonText = styled.div`
 
 const ButtonTitle = styled.h3`
   font-family: ${typography.fontFamily.heading};
-  font-size: ${typography.fontSize.xl};
+  font-size: ${typography.fontSize.base};
   font-weight: ${typography.fontWeight.bold};
   color: ${colors.neutral[800]};
   margin-bottom: 4px;

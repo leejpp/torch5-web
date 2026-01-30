@@ -111,373 +111,165 @@ const VoicesAdmin = () => {
     <Container>
       <MainContent>
         <HeaderSection>
-          <StatBadge>
-            <span>📊</span>
-            <span>총 {voices.length}개</span>
-          </StatBadge>
+          <Title>마음의 소리함</Title>
+          <Stats>
+            <StatText>총 {voices.length}개</StatText>
+          </Stats>
         </HeaderSection>
 
-        <FilterSection>
-          <FilterGrid>
+        <FilterContainer>
+          <FilterButton
+            $active={selectedStatus === 'ALL'}
+            onClick={() => setSelectedStatus('ALL')}
+          >
+            전체 ({voices.length})
+          </FilterButton>
+          {Object.values(STATUS).map(status => (
             <FilterButton
-              $active={selectedStatus === 'ALL'}
-              onClick={() => setSelectedStatus('ALL')}
+              key={status.value}
+              $active={selectedStatus === status.value}
+              onClick={() => setSelectedStatus(status.value)}
             >
-              <FilterLabel>전체</FilterLabel>
-              <FilterCount>{voices.length}</FilterCount>
+              {status.label} ({statusStats[status.value] || 0})
             </FilterButton>
+          ))}
+        </FilterContainer>
 
-            {Object.values(STATUS).map(status => (
-              <FilterButton
-                key={status.value}
-                $active={selectedStatus === status.value}
-                onClick={() => setSelectedStatus(status.value)}
-                $statusColor={status.color}
-                $statusBg={status.bg}
-              >
-                <FilterLabel>{status.label}</FilterLabel>
-                <FilterCount>{statusStats[status.value] || 0}</FilterCount>
-              </FilterButton>
-            ))}
-          </FilterGrid>
-        </FilterSection>
-
-        <VoicesSection>
-          <SectionTitle>
-            <SectionIcon>💬</SectionIcon>
-            {selectedStatus === 'ALL' ? '전체 목록' : STATUS[selectedStatus]?.label}
-            {filteredVoices.length > 0 && <VoiceCount>({filteredVoices.length})</VoiceCount>}
-          </SectionTitle>
-
+        <VoicesList>
           {isLoading ? (
-            <LoadingContainer>
-              <LoadingSpinner />
-              <LoadingText>불러오는 중...</LoadingText>
-            </LoadingContainer>
+            <Message>불러오는 중...</Message>
           ) : filteredVoices.length === 0 ? (
-            <EmptyState>
-              <EmptyIcon>💭</EmptyIcon>
-              <EmptyTitle>데이터가 없습니다</EmptyTitle>
-              <EmptyDescription>
-                {selectedStatus === 'ALL'
-                  ? '아직 접수된 의견이 없습니다.'
-                  : '해당 상태의 의견이 없습니다.'}
-              </EmptyDescription>
-            </EmptyState>
+            <Message>등록된 글이 없습니다.</Message>
           ) : (
-            <VoicesList>
-              {filteredVoices.map((voice, index) => (
-                <VoiceCard key={voice.id} delay={index * 0.05}>
-                  <VoiceHeader>
-                    <VoiceDate>
-                      {formatDate(voice.createdAt)}
-                    </VoiceDate>
-                    <StatusBadge
-                      $color={STATUS[voice.status].color}
-                      $bg={STATUS[voice.status].bg}
-                      onClick={() => setStatusUpdateModal({
-                        isOpen: true,
-                        voiceId: voice.id,
-                        currentStatus: voice.status
-                      })}
-                    >
-                      {STATUS[voice.status].label}
-                    </StatusBadge>
-                  </VoiceHeader>
-
-                  <VoiceContent>
-                    <MessageText>{voice.message}</MessageText>
-                  </VoiceContent>
-                </VoiceCard>
-              ))}
-            </VoicesList>
+            filteredVoices.map((voice) => (
+              <VoiceItem key={voice.id}>
+                <VoiceHeader>
+                  <DateText>{formatDate(voice.createdAt)}</DateText>
+                  <StatusPill
+                    $status={voice.status}
+                    onClick={() => setStatusUpdateModal({
+                      isOpen: true,
+                      voiceId: voice.id,
+                      currentStatus: voice.status
+                    })}
+                  >
+                    {STATUS[voice.status].label}
+                  </StatusPill>
+                </VoiceHeader>
+                <VoiceMessage>{voice.message}</VoiceMessage>
+              </VoiceItem>
+            ))
           )}
-        </VoicesSection>
+        </VoicesList>
       </MainContent>
 
-      {message.content && (
-        <MessagePopup $type={message.type}>
-          <PopupIcon>
-            {message.type === 'success' ? '✅' : '❌'}
-          </PopupIcon>
-          {message.content}
-        </MessagePopup>
-      )}
-
       {statusUpdateModal.isOpen && (
-        <StatusModal onClick={() => !isUpdating && setStatusUpdateModal({ isOpen: false, voiceId: null, currentStatus: null })}>
-          <ModalContent onClick={(e) => e.stopPropagation()}>
-            <ModalHeader>
-              <ModalTitle>상태 변경</ModalTitle>
-            </ModalHeader>
-
-            <StatusGrid>
+        <Overlay onClick={() => !isUpdating && setStatusUpdateModal({ isOpen: false, voiceId: null, currentStatus: null })}>
+          <Modal onClick={(e) => e.stopPropagation()}>
+            <ModalTitle>상태 변경</ModalTitle>
+            <ModalGrid>
               {Object.values(STATUS).map(status => (
-                <StatusOptionButton
+                <StatusOption
                   key={status.value}
+                  $selected={statusUpdateModal.currentStatus === status.value}
                   $color={status.color}
-                  $bg={status.bg}
-                  $active={statusUpdateModal.currentStatus === status.value}
                   onClick={() => handleStatusUpdate(status.value)}
                   disabled={isUpdating}
                 >
-                  <StatusOptionLabel>{status.label}</StatusOptionLabel>
-                </StatusOptionButton>
+                  {status.label}
+                </StatusOption>
               ))}
-            </StatusGrid>
+            </ModalGrid>
+            <CloseButton onClick={() => setStatusUpdateModal({ isOpen: false, voiceId: null, currentStatus: null })}>
+              닫기
+            </CloseButton>
+          </Modal>
+        </Overlay>
+      )}
 
-            <ModalActions>
-              <CancelButton
-                onClick={() => setStatusUpdateModal({
-                  isOpen: false,
-                  voiceId: null,
-                  currentStatus: null
-                })}
-                disabled={isUpdating}
-              >
-                닫기
-              </CancelButton>
-            </ModalActions>
-          </ModalContent>
-        </StatusModal>
+      {message.content && (
+        <Toast $type={message.type}>
+          {message.content}
+        </Toast>
       )}
     </Container>
   );
 };
 
-// 애니메이션
-const fadeInUp = keyframes`
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-`;
-
-const spin = keyframes`
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-`;
-
-const slideInUp = keyframes`
-  from {
-    transform: translateY(100px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-`;
-
-// 스타일 컴포넌트
+// Minimal Styles
 const Container = styled.div`
   min-height: 100vh;
-  background-color: ${colors.background};
+  background-color: #ffffff;
+  padding: ${spacing.xl};
 `;
 
 const MainContent = styled.main`
-  max-width: 1200px;
+  max-width: 800px;
   margin: 0 auto;
-  padding: ${spacing['3xl']} ${spacing.lg};
-  
-  ${media['max-md']} {
-    padding: ${spacing['2xl']} ${spacing.md};
-  }
 `;
 
-const HeaderSection = styled.header`
+const HeaderSection = styled.div`
+  margin-bottom: ${spacing.xl};
+  border-bottom: 2px solid ${colors.neutral[100]};
+  padding-bottom: ${spacing.md};
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
-  margin-bottom: ${spacing['3xl']};
-  padding-bottom: ${spacing.xl};
-  border-bottom: 1px solid ${colors.neutral[200]};
-  animation: ${fadeInUp} 0.6s ease-out;
-
-  ${media['max-md']} {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: ${spacing.lg};
-  }
+  align-items: baseline;
 `;
 
 const Title = styled.h1`
-  font-size: ${typography.fontSize['3xl']};
+  font-size: ${typography.fontSize['2xl']};
   font-weight: ${typography.fontWeight.bold};
   color: ${colors.neutral[900]};
-  margin-bottom: ${spacing.xs};
-  font-family: ${typography.fontFamily.heading};
 `;
 
-const Subtitle = styled.p`
-  font-size: ${typography.fontSize.lg};
+const Stats = styled.div`
   color: ${colors.neutral[500]};
-`;
-
-const StatBadge = styled.div`
-  display: flex;
-  align-items: center;
-  gap: ${spacing.xs};
-  padding: ${spacing.sm} ${spacing.md};
-  background-color: white;
-  border: 1px solid ${colors.neutral[200]};
-  border-radius: ${borderRadius.full};
   font-size: ${typography.fontSize.sm};
-  color: ${colors.neutral[600]};
-  font-weight: ${typography.fontWeight.medium};
 `;
 
-const FilterSection = styled.div`
-  margin-bottom: ${spacing['2xl']};
-  animation: ${fadeInUp} 0.8s ease-out 0.2s both;
-`;
+const StatText = styled.span``;
 
-const FilterGrid = styled.div`
+const FilterContainer = styled.div`
   display: flex;
-  gap: ${spacing.md};
+  gap: ${spacing.sm};
+  margin-bottom: ${spacing['2xl']};
   flex-wrap: wrap;
+    padding-bottom: ${spacing.lg};
+    border-bottom: 1px solid ${colors.neutral[100]};
 `;
 
 const FilterButton = styled.button`
-  display: flex;
-  align-items: center;
-  gap: ${spacing.sm};
-  padding: ${spacing.md} ${spacing.lg};
-  background: white;
-  border: 1px solid ${props => props.$active ? (props.$statusColor || colors.primary[500]) : colors.neutral[200]};
-  border-radius: ${borderRadius.lg};
+  background: ${props => props.$active ? colors.neutral[900] : 'white'};
+  color: ${props => props.$active ? 'white' : colors.neutral[600]};
+  border: 1px solid ${props => props.$active ? colors.neutral[900] : colors.neutral[300]};
+  padding: ${spacing.xs} ${spacing.md};
+  border-radius: ${borderRadius.full};
+  font-size: ${typography.fontSize.sm};
   cursor: pointer;
-  transition: all 0.2s ease;
-  position: relative;
-  overflow: hidden;
-  
-  ${props => props.$active && `
-    background: ${props.$statusBg || colors.primary[50]};
-    box-shadow: 0 0 0 1px ${props.$statusColor || colors.primary[500]};
-  `}
+  transition: all 0.2s;
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: ${shadows.sm};
-    border-color: ${props => props.$statusColor || colors.primary[500]};
+    border-color: ${colors.neutral[900]};
+    color: ${props => props.$active ? 'white' : colors.neutral[900]};
   }
-`;
-
-const FilterLabel = styled.span`
-  font-weight: ${typography.fontWeight.medium};
-  color: ${colors.neutral[700]};
-  font-size: ${typography.fontSize.sm};
-`;
-
-const FilterCount = styled.span`
-  background: ${colors.neutral[100]};
-  padding: 2px 8px;
-  border-radius: ${borderRadius.full};
-  font-size: ${typography.fontSize.xs};
-  font-weight: ${typography.fontWeight.bold};
-  color: ${colors.neutral[600]};
-`;
-
-const VoicesSection = styled.section`
-  animation: ${fadeInUp} 0.8s ease-out 0.4s both;
-`;
-
-const SectionTitle = styled.h2`
-  display: flex;
-  align-items: center;
-  gap: ${spacing.sm};
-  color: ${colors.neutral[800]};
-  font-size: ${typography.fontSize.xl};
-  font-weight: ${typography.fontWeight.bold};
-  margin-bottom: ${spacing.xl};
-  font-family: ${typography.fontFamily.heading};
-`;
-
-const SectionIcon = styled.span`
-  font-size: ${typography.fontSize['2xl']};
-`;
-
-const VoiceCount = styled.span`
-  color: ${colors.neutral[400]};
-  font-size: ${typography.fontSize.lg};
-  font-weight: ${typography.fontWeight.medium};
-`;
-
-const LoadingContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: ${spacing['4xl']};
-  color: ${colors.neutral[500]};
-`;
-
-const LoadingSpinner = styled.div`
-  width: 24px;
-  height: 24px;
-  border: 2px solid ${colors.neutral[200]};
-  border-top-color: ${colors.primary[500]};
-  border-radius: 50%;
-  animation: ${spin} 0.8s linear infinite;
-  margin-bottom: ${spacing.md};
-`;
-
-const LoadingText = styled.p`
-  font-size: ${typography.fontSize.sm};
-`;
-
-const EmptyState = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: ${spacing['4xl']};
-  background: ${colors.neutral[50]};
-  border-radius: ${borderRadius.xl};
-  border: 1px dashed ${colors.neutral[300]};
-  text-align: center;
-`;
-
-const EmptyIcon = styled.div`
-  font-size: 3rem;
-  margin-bottom: ${spacing.lg};
-  opacity: 0.5;
-`;
-
-const EmptyTitle = styled.h3`
-  font-size: ${typography.fontSize.lg};
-  font-weight: ${typography.fontWeight.bold};
-  color: ${colors.neutral[700]};
-  margin-bottom: ${spacing.xs};
-`;
-
-const EmptyDescription = styled.p`
-  color: ${colors.neutral[500]};
-  font-size: ${typography.fontSize.sm};
 `;
 
 const VoicesList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: ${spacing.lg};
+  gap: ${spacing.md};
 `;
 
-const VoiceCard = styled.div`
+const VoiceItem = styled.div`
   background: white;
-  border-radius: ${borderRadius.xl};
-  padding: ${spacing.xl};
-  box-shadow: ${shadows.sm};
   border: 1px solid ${colors.neutral[200]};
-  transition: all 0.2s ease;
-  ${props => `animation: ${fadeInUp} 0.5s ease-out ${props.delay}s both;`}
-
+  border-radius: ${borderRadius.lg};
+  padding: ${spacing.lg};
+  transition: border-color 0.2s;
+  
   &:hover {
-    box-shadow: ${shadows.md};
-    transform: translateY(-2px);
+    border-color: ${colors.neutral[400]};
   }
 `;
 
@@ -485,150 +277,148 @@ const VoiceHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: ${spacing.lg};
+  margin-bottom: ${spacing.md};
 `;
 
-const VoiceDate = styled.span`
-  color: ${colors.neutral[500]};
-  font-size: ${typography.fontSize.sm};
-`;
-
-const StatusBadge = styled.button`
-  padding: ${spacing.xs} ${spacing.md};
-  border-radius: ${borderRadius.full};
-  background: ${props => props.$bg};
-  color: ${props => props.$color};
+const DateText = styled.span`
+  color: ${colors.neutral[400]};
   font-size: ${typography.fontSize.xs};
-  font-weight: ${typography.fontWeight.bold};
-  border: 1px solid transparent;
-  cursor: pointer;
-  transition: all 0.2s;
+`;
 
+const StatusPill = styled.button`
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: none;
+  background: ${props => {
+    switch (props.$status) {
+      case 'ACCEPTED': return colors.green[100];
+      case 'REJECTED': return colors.red[100];
+      case 'COMPLETED': return colors.blue[100];
+      case 'HOLD': return colors.orange[100];
+      default: return colors.neutral[100];
+    }
+  }};
+  color: ${props => {
+    switch (props.$status) {
+      case 'ACCEPTED': return colors.green[700];
+      case 'REJECTED': return colors.red[700];
+      case 'COMPLETED': return colors.blue[700];
+      case 'HOLD': return colors.orange[700];
+      default: return colors.neutral[600];
+    }
+  }};
+  font-weight: bold;
+  cursor: pointer;
+  
   &:hover {
-    filter: brightness(0.95);
-    transform: scale(1.05);
+    opacity: 0.8;
   }
 `;
 
-const VoiceContent = styled.div`
+const VoiceMessage = styled.p`
   color: ${colors.neutral[800]};
-  line-height: 1.6;
-`;
-
-const MessageText = styled.p`
-  white-space: pre-wrap;
   font-size: ${typography.fontSize.base};
+  line-height: 1.6;
+  white-space: pre-wrap;
+  margin: 0;
 `;
 
-const MessagePopup = styled.div`
-  position: fixed;
-  bottom: ${spacing['2xl']};
-  right: ${spacing['2xl']};
-  background: white;
-  padding: ${spacing.lg} ${spacing.xl};
-  border-radius: ${borderRadius.xl};
-  box-shadow: ${shadows.xl};
-  display: flex;
-  align-items: center;
-  gap: ${spacing.md};
-  z-index: 1000;
-  animation: ${slideInUp} 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  border: 1px solid ${props => props.$type === 'error' ? colors.red[100] : colors.green[100]};
-  
-  ${props => props.$type === 'error' && `border-left: 4px solid ${colors.red[500]};`}
-  ${props => props.$type === 'success' && `border-left: 4px solid ${colors.green[500]};`}
+const Message = styled.p`
+  text-align: center;
+  color: ${colors.neutral[500]};
+  padding: ${spacing.xl};
 `;
 
-const PopupIcon = styled.span`
-  font-size: ${typography.fontSize.xl};
-`;
-
-const StatusModal = styled.div`
+const Overlay = styled.div`
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0,0,0,0.5);
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
   z-index: 1000;
-  padding: ${spacing.md};
-  animation: ${fadeInUp} 0.2s ease-out;
 `;
 
-const ModalContent = styled.div`
+const Modal = styled.div`
   background: white;
-  border-radius: ${borderRadius['2xl']};
-  padding: ${spacing['2xl']};
-  width: 100%;
-  max-width: 400px;
-  box-shadow: ${shadows['2xl']};
-`;
-
-const ModalHeader = styled.div`
-  text-align: center;
-  margin-bottom: ${spacing.xl};
+  padding: ${spacing.xl};
+  border-radius: ${borderRadius.lg};
+  width: 90%;
+  max-width: 320px;
 `;
 
 const ModalTitle = styled.h3`
-  font-size: ${typography.fontSize.xl};
-  font-weight: ${typography.fontWeight.bold};
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: ${spacing.lg};
   color: ${colors.neutral[900]};
 `;
 
-const StatusGrid = styled.div`
-  display: grid;
-  grid-template-columns: 1fr;
+const ModalGrid = styled.div`
+  display: flex;
+  flex-direction: column;
   gap: ${spacing.sm};
-  margin-bottom: ${spacing.xl};
+  margin-bottom: ${spacing.lg};
 `;
 
-const StatusOptionButton = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: ${spacing.md};
-  border: 1px solid ${props => props.$active ? props.$color : colors.neutral[200]};
-  border-radius: ${borderRadius.lg};
+const StatusOption = styled.button`
   background: white;
+  border: 1px solid ${props => props.$selected ? props.$color : colors.neutral[200]};
+  color: ${props => props.$selected ? props.$color : colors.neutral[700]};
+  padding: ${spacing.md};
+  border-radius: ${borderRadius.md};
+  font-weight: ${props => props.$selected ? 'bold' : 'normal'};
   cursor: pointer;
+  width: 100%;
+  text-align: left;
   transition: all 0.2s;
   
-  ${props => props.$active && `
-    background: ${props.$bg};
-    box-shadow: 0 0 0 1px ${props.$color};
-  `}
-
   &:hover {
     border-color: ${props => props.$color};
-    background: ${props => props.$bg};
+    color: ${props => props.$color};
+    background: ${colors.neutral[50]};
+  }
+  
+  ${props => props.$selected && `
+    background: ${colors.neutral[50]};
+    box-shadow: 0 0 0 1px ${props.$color};
+  `}
+`;
+
+const CloseButton = styled.button`
+  width: 100%;
+  padding: ${spacing.md};
+  background: ${colors.neutral[100]};
+  border: none;
+  border-radius: ${borderRadius.md};
+  color: ${colors.neutral[600]};
+  cursor: pointer;
+  
+  &:hover {
+    background: ${colors.neutral[200]};
   }
 `;
 
-const StatusOptionLabel = styled.span`
-  font-weight: ${typography.fontWeight.medium};
-  color: ${colors.neutral[800]};
-`;
-
-const ModalActions = styled.div`
-  display: flex;
-  justify-content: center;
-`;
-
-const CancelButton = styled.button`
-  padding: ${spacing.md} ${spacing['2xl']};
-  background: ${colors.neutral[100]};
-  color: ${colors.neutral[700]};
-  border: none;
-  border-radius: ${borderRadius.lg};
-  font-weight: ${typography.fontWeight.medium};
-  cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover {
-    background: ${colors.neutral[200]};
+const Toast = styled.div`
+  position: fixed;
+  bottom: ${spacing.xl};
+  left: 50%;
+  transform: translateX(-50%);
+  background: ${colors.neutral[900]};
+  color: white;
+  padding: ${spacing.md} ${spacing.xl};
+  border-radius: ${borderRadius.full};
+  font-size: ${typography.fontSize.sm};
+  box-shadow: ${shadows.lg};
+  animation: fadeUp 0.3s ease-out;
+  
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translate(-50%, 20px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
   }
 `;
 

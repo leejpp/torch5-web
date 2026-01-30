@@ -21,7 +21,7 @@ const AdminPortal = () => {
                 {/* 1. 횃불교회 (Torch Church) */}
                 <SectionGroup>
                     <AccordionHeader
-                        isOpen={openSection === 'church'}
+                        $isOpen={openSection === 'church'}
                         onClick={() => toggleSection('church')}
                         style={{ borderColor: colors.primary[200] }}
                     >
@@ -30,10 +30,10 @@ const AdminPortal = () => {
                             <HeaderTitle>횃불교회 (본당)</HeaderTitle>
                             <HeaderDesc>Torch Church Admin</HeaderDesc>
                         </HeaderText>
-                        <HeaderArrow isOpen={openSection === 'church'}>▼</HeaderArrow>
+                        <HeaderArrow $isOpen={openSection === 'church'}>▼</HeaderArrow>
                     </AccordionHeader>
 
-                    <AccordionContent isOpen={openSection === 'church'}>
+                    <AccordionContent $isOpen={openSection === 'church'}>
                         <SubButton to="/admin/main/members">
                             <ButtonIcon>👥</ButtonIcon>
                             <ButtonText>
@@ -61,7 +61,7 @@ const AdminPortal = () => {
                 {/* 2. TOGY 청년부 (TOGY Youth) */}
                 <SectionGroup>
                     <AccordionHeader
-                        isOpen={openSection === 'youth'}
+                        $isOpen={openSection === 'youth'}
                         onClick={() => toggleSection('youth')}
                         style={{ borderColor: colors.primary[400] }}
                     >
@@ -70,10 +70,10 @@ const AdminPortal = () => {
                             <HeaderTitle>TOGY 청년부</HeaderTitle>
                             <HeaderDesc>Youth Ministry Admin</HeaderDesc>
                         </HeaderText>
-                        <HeaderArrow isOpen={openSection === 'youth'}>▼</HeaderArrow>
+                        <HeaderArrow $isOpen={openSection === 'youth'}>▼</HeaderArrow>
                     </AccordionHeader>
 
-                    <AccordionContent isOpen={openSection === 'youth'}>
+                    <AccordionContent $isOpen={openSection === 'youth'}>
                         <SubButton to="/admin/togy/prayer">
                             <ButtonIcon>🙏</ButtonIcon>
                             <ButtonText>
@@ -109,7 +109,7 @@ const AdminPortal = () => {
                 {/* 3. 교회학교 (Church School) */}
                 <SectionGroup>
                     <AccordionHeader
-                        isOpen={openSection === 'school'}
+                        $isOpen={openSection === 'school'}
                         onClick={() => toggleSection('school')}
                         style={{ borderColor: colors.secondary[400] }}
                     >
@@ -118,10 +118,10 @@ const AdminPortal = () => {
                             <HeaderTitle>교회학교</HeaderTitle>
                             <HeaderDesc>Church School Admin</HeaderDesc>
                         </HeaderText>
-                        <HeaderArrow isOpen={openSection === 'school'}>▼</HeaderArrow>
+                        <HeaderArrow $isOpen={openSection === 'school'}>▼</HeaderArrow>
                     </AccordionHeader>
 
-                    <AccordionContent isOpen={openSection === 'school'}>
+                    <AccordionContent $isOpen={openSection === 'school'}>
                         <SubButton to="/admin/talant/input">
                             <ButtonIcon>✍️</ButtonIcon>
                             <ButtonText>
@@ -252,19 +252,19 @@ const HeaderArrow = styled.div`
   font-size: ${typography.fontSize.sm};
   color: ${colors.neutral[400]};
   transition: transform 0.3s;
-  transform: rotate(${props => props.isOpen ? '180deg' : '0deg'});
+  transform: rotate(${props => props.$isOpen ? '180deg' : '0deg'});
 `;
 
 const AccordionContent = styled.div`
   overflow: hidden;
-  max-height: ${props => props.isOpen ? '500px' : '0'};
-  opacity: ${props => props.isOpen ? '1' : '0'};
-  transform: translateY(${props => props.isOpen ? '0' : '-10px'});
+  max-height: ${props => props.$isOpen ? '500px' : '0'};
+  opacity: ${props => props.$isOpen ? '1' : '0'};
+  transform: translateY(${props => props.$isOpen ? '0' : '-10px'});
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
   gap: ${spacing.sm};
-  padding-top: ${props => props.isOpen ? spacing.sm : '0'};
+  padding-top: ${props => props.$isOpen ? spacing.sm : '0'};
   padding-left: ${spacing.md};
 `;
 

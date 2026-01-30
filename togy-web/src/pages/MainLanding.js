@@ -24,7 +24,7 @@ const MainLanding = () => {
         {/* 1. 횃불교회 (Torch Church) */}
         <SectionGroup>
           <AccordionHeader
-            isOpen={openSection === 'church'}
+            $isOpen={openSection === 'church'}
             onClick={() => toggleSection('church')}
           >
             <HeaderIcon>⛪</HeaderIcon>
@@ -32,10 +32,10 @@ const MainLanding = () => {
               <HeaderTitle>횃불교회</HeaderTitle>
               <HeaderDesc>Torch Church</HeaderDesc>
             </HeaderText>
-            <HeaderArrow isOpen={openSection === 'church'}>▼</HeaderArrow>
+            <HeaderArrow $isOpen={openSection === 'church'}>▼</HeaderArrow>
           </AccordionHeader>
 
-          <AccordionContent isOpen={openSection === 'church'}>
+          <AccordionContent $isOpen={openSection === 'church'}>
             <SubButton to="/schedule" style={{ borderColor: colors.primary[200] }}>
               <ButtonIcon>📅</ButtonIcon>
               <ButtonText>
@@ -65,7 +65,7 @@ const MainLanding = () => {
         {/* 2. TOGY 청년부 (TOGY Youth) */}
         <SectionGroup>
           <AccordionHeader
-            isOpen={openSection === 'youth'}
+            $isOpen={openSection === 'youth'}
             onClick={() => toggleSection('youth')}
             style={{ borderColor: colors.primary[400] }}
           >
@@ -74,10 +74,10 @@ const MainLanding = () => {
               <HeaderTitle>TOGY 청년부</HeaderTitle>
               <HeaderDesc>Torch Of God Youth</HeaderDesc>
             </HeaderText>
-            <HeaderArrow isOpen={openSection === 'youth'}>▼</HeaderArrow>
+            <HeaderArrow $isOpen={openSection === 'youth'}>▼</HeaderArrow>
           </AccordionHeader>
 
-          <AccordionContent isOpen={openSection === 'youth'}>
+          <AccordionContent $isOpen={openSection === 'youth'}>
             <SubButton to="/togy" style={{ borderColor: colors.primary[400] }}>
               <ButtonIcon>🏠</ButtonIcon>
               <ButtonText>
@@ -107,7 +107,7 @@ const MainLanding = () => {
         {/* 3. 교회학교 (Church School) */}
         <SectionGroup>
           <AccordionHeader
-            isOpen={openSection === 'school'}
+            $isOpen={openSection === 'school'}
             onClick={() => toggleSection('school')}
             style={{ borderColor: colors.secondary[200] }}
           >
@@ -116,10 +116,10 @@ const MainLanding = () => {
               <HeaderTitle>교회학교</HeaderTitle>
               <HeaderDesc>Church School</HeaderDesc>
             </HeaderText>
-            <HeaderArrow isOpen={openSection === 'school'}>▼</HeaderArrow>
+            <HeaderArrow $isOpen={openSection === 'school'}>▼</HeaderArrow>
           </AccordionHeader>
 
-          <AccordionContent isOpen={openSection === 'school'}>
+          <AccordionContent $isOpen={openSection === 'school'}>
             <SubButton to="/talant-rank" style={{ borderColor: colors.secondary[200] }}>
               <ButtonIcon>🏆</ButtonIcon>
               <ButtonText>
@@ -396,19 +396,19 @@ const HeaderArrow = styled.div`
   font-size: ${typography.fontSize.sm};
   color: ${colors.neutral[400]};
   transition: transform 0.3s;
-  transform: rotate(${props => props.isOpen ? '180deg' : '0deg'});
+  transform: rotate(${props => props.$isOpen ? '180deg' : '0deg'});
 `;
 
 const AccordionContent = styled.div`
   overflow: hidden;
-  max-height: ${props => props.isOpen ? '500px' : '0'};
-  opacity: ${props => props.isOpen ? '1' : '0'};
-  transform: translateY(${props => props.isOpen ? '0' : '-10px'});
+  max-height: ${props => props.$isOpen ? '500px' : '0'};
+  opacity: ${props => props.$isOpen ? '1' : '0'};
+  transform: translateY(${props => props.$isOpen ? '0' : '-10px'});
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
   gap: ${spacing.sm};
-  padding-top: ${props => props.isOpen ? spacing.sm : '0'};
+  padding-top: ${props => props.$isOpen ? spacing.sm : '0'};
   padding-left: ${spacing.md}; // Indent content
 `;
 

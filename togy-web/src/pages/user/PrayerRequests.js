@@ -84,8 +84,8 @@ const PrayerRequests = () => {
             {prayers.map((prayer) => (
               <ListItem
                 key={prayer.id}
-                isExpanded={expandedId === prayer.id}
-                isPinned={prayer.isPinned}
+                $isExpanded={expandedId === prayer.id}
+                $isPinned={prayer.isPinned}
                 onClick={() => toggleExpand(prayer.id)}
               >
                 <ItemHeader>
@@ -251,11 +251,11 @@ const Separator = styled.span` color: ${colors.neutral[300]}; `;
 const Count = styled.span` color: ${colors.neutral[700]}; `;
 
 const ContentArea = styled.div`
-  max-height: ${props => props.isExpanded ? '2000px' : '0'};
-  opacity: ${props => props.isExpanded ? '1' : '0'};
+  max-height: ${props => props.$isExpanded ? '2000px' : '0'};
+  opacity: ${props => props.$isExpanded ? '1' : '0'};
   overflow: hidden;
   transition: all 0.3s ease-in-out;
-  padding-bottom: ${props => props.isExpanded ? spacing.lg : '0'};
+  padding-bottom: ${props => props.$isExpanded ? spacing.lg : '0'};
   padding-left: ${spacing.md};
   padding-right: ${spacing.md};
 `;

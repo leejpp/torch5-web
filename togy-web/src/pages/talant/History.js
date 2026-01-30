@@ -56,7 +56,14 @@ const TalantHistory = () => {
           name: doc.data().name || ''
         }));
 
-        const months = getAvailableMonths(historyData);
+        const monthStrings = getAvailableMonths(historyData);
+        const months = monthStrings.map(monthStr => {
+          const [year, month] = monthStr.split('-');
+          return {
+            value: monthStr,
+            label: `${year}년 ${parseInt(month)}월`
+          };
+        });
         setAvailableMonths(months);
 
         const names = [...new Set(historyData.map(item => item.name).filter(name => name))];

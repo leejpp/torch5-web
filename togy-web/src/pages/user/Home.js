@@ -5,18 +5,20 @@ import { db } from '../../firebase/config';
 import { collection, query, getDocs, orderBy } from 'firebase/firestore';
 import { colors, typography, spacing, borderRadius, media } from '../../styles/designSystem';
 
+import { parseEmphasizedText } from '../../utils/textParser';
+
 const Home = () => {
   const navigate = useNavigate();
   const [yearlyTheme, setYearlyTheme] = useState({
-    theme: '말씀이 삶이 되고, 삶이 예배가 되어\n영적 성장을 이루는 삶',
+    theme: '말씀이 **삶**이 되고, 삶이 **예배**가 되어\n영적 성장을 이루는 삶',
     year: '2025'
   });
   const [visionItems, setVisionItems] = useState([
-    { id: 1, text: '서로를 위해 기도하는 청년 공동체' },
-    { id: 2, text: '주님께서 맡겨 주신 사명을 이루어 주 영광 위해 사는 청년부' },
-    { id: 3, text: '영,혼,육,가정,경제의 균형 있는 성장으로 예수님을 닮아가는 청년부' },
-    { id: 4, text: '천하보다 소중한 한 영혼을 살리는 삶' },
-    { id: 5, text: '하나님 안에서의 친목하는 청년부' }
+    { id: 1, text: '서로를 위해 **기도**하는 청년 공동체' },
+    { id: 2, text: '주님께서 맡겨 주신 **사명**을 이루어 주 영광 위해 사는 청년부' },
+    { id: 3, text: '영,혼,육,가정,경제의 **균형 있는 성장**으로 예수님을 닮아가는 청년부' },
+    { id: 4, text: '**천하보다 소중한 한 영혼**을 살리는 삶' },
+    { id: 5, text: '하나님 안에서의 **친목**하는 청년부' }
   ]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -71,7 +73,7 @@ const Home = () => {
               <MainThemeTitle>
                 {yearlyTheme.theme.split('\n').map((line, index) => (
                   <React.Fragment key={index}>
-                    {line}
+                    {parseEmphasizedText(line)}
                     {index < yearlyTheme.theme.split('\n').length - 1 && <br />}
                   </React.Fragment>
                 ))}
@@ -80,7 +82,7 @@ const Home = () => {
               <VisionList>
                 {visionItems.map((item) => (
                   <VisionItem key={item.id}>
-                    <VisionText>{item.text}</VisionText>
+                    <VisionText>{parseEmphasizedText(item.text)}</VisionText>
                   </VisionItem>
                 ))}
               </VisionList>

@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 import { colors, typography, spacing, borderRadius, media } from '../../styles/designSystem';
 
-const Voices = () => {
+const Feedback = () => {
   const navigate = useNavigate();
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -17,7 +17,9 @@ const Voices = () => {
 
     setIsSubmitting(true);
     try {
+      // Using 'voices' collection for feedback
       await addDoc(collection(db, 'voices'), {
+        type: 'site_feedback',
         message: message.trim(),
         createdAt: Timestamp.fromDate(new Date())
       });
@@ -26,7 +28,7 @@ const Voices = () => {
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
     } catch (error) {
-      console.error("Error adding voice:", error);
+      console.error("Error adding feedback:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -35,25 +37,25 @@ const Voices = () => {
   return (
     <Container>
       <TopControls>
-        <BackButton onClick={() => navigate('/togy')}>←</BackButton>
+        <BackButton onClick={() => navigate('/')}>←</BackButton>
       </TopControls>
 
       <Header>
-        <PageTitle>Voices of Heart</PageTitle>
-        <SubTitle>마음의 소리</SubTitle>
+        <PageTitle>Site Feedback</PageTitle>
+        <SubTitle>사이트 이용 관련 의견 / 제안 / 신고</SubTitle>
       </Header>
 
       <ContentSection>
         <Description>
-          청년부 활동에 대한 의견, 제안, 또는 나누고 싶은 이야기를 자유롭게 남겨주세요.<br />
-          익명으로 전달되며 소중히 경청하겠습니다.
+          사이트를 이용하면서 느낀 불편한 점이나 오류, <br />
+          혹은 추가되었으면 하는 기능이나 개선 아이디어가 있다면 자유롭게 남겨주세요.
         </Description>
 
         <Form onSubmit={handleSubmit}>
           <TextArea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="여기에 내용을 입력해주세요..."
+            placeholder="오류 내용, 제안사항, 개선 아이디어 등을 자유롭게 입력해주세요..."
             maxLength={1000}
             required
           />
@@ -61,14 +63,14 @@ const Voices = () => {
           <CharCount>{message.length} / 1000</CharCount>
 
           <SubmitButton type="submit" disabled={isSubmitting || !message.trim()}>
-            {isSubmitting ? '전송 중...' : '마음 전달하기'}
+            {isSubmitting ? '전송 중...' : '의견 보내기'}
           </SubmitButton>
         </Form>
       </ContentSection>
 
       {showSuccess && (
         <SuccessMessage>
-          소중한 마음이 전달되었습니다. 감사합니다.
+          소중한 의견이 전달되었습니다. 감사합니다.
         </SuccessMessage>
       )}
     </Container>
@@ -221,4 +223,4 @@ const SuccessMessage = styled.div`
   }
 `;
 
-export default Voices;
+export default Feedback;

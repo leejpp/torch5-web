@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import { db } from '../../firebase/config';
 import { collection, addDoc, getDocs, Timestamp, query, orderBy, doc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { colors, typography, spacing, borderRadius, shadows, media } from '../../styles/designSystem';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 const NoticeAdmin = () => {
   const [title, setTitle] = useState('');
@@ -161,9 +163,9 @@ const NoticeAdmin = () => {
             </FormGroup>
 
             <FormGroup>
-              <Label>내용</Label>
+              <Label>내용 (Markdown 지원)</Label>
               <TextArea
-                placeholder="내용을 입력하세요"
+                placeholder="# 제목\n**굵게**\n- 리스트"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 required
@@ -218,7 +220,11 @@ const NoticeAdmin = () => {
                 </NoticeItemHeader>
 
                 <NoticeContent isOpen={openNoticeId === notice.id}>
-                  {notice.content}
+                  <MarkdownWrapper>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {notice.content}
+                    </ReactMarkdown>
+                  </MarkdownWrapper>
                 </NoticeContent>
               </NoticeItem>
             ))}
@@ -517,9 +523,72 @@ const NoticeContent = styled.div`
   border-top: ${props => props.isOpen ? `1px solid ${colors.neutral[100]}` : 'none'};
   transition: all 0.3s;
   overflow: hidden;
-  white-space: pre-wrap;
   color: ${colors.neutral[700]};
   line-height: 1.6;
+`;
+
+const MarkdownWrapper = styled.div`
+  font-size: ${typography.fontSize.base};
+  color: ${colors.neutral[700]};
+  line-height: 1.6;
+
+  /* Markdown Styles - Scaled down slightly for Admin context if needed, but keeping consistent */
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: ${typography.fontWeight.bold};
+    color: ${colors.neutral[900]};
+    margin-top: ${spacing.md};
+    margin-bottom: ${spacing.xs};
+    line-height: 1.3;
+  }
+
+  h1 { font-size: ${typography.fontSize.xl}; border-bottom: 1px solid ${colors.neutral[200]}; padding-bottom: ${spacing.xs}; }
+  h2 { font-size: ${typography.fontSize.lg}; border-bottom: 1px solid ${colors.neutral[200]}; padding-bottom: ${spacing.xs}; }
+  h3 { font-size: ${typography.fontSize.base}; }
+  
+  p {
+    margin-bottom: ${spacing.sm};
+    white-space: pre-wrap; 
+  }
+
+  ul, ol {
+    margin-bottom: ${spacing.sm};
+    padding-left: ${spacing.lg};
+  }
+
+  li {
+    margin-bottom: 2px;
+  }
+
+  blockquote {
+    border-left: 3px solid ${colors.primary[300]};
+    margin: ${spacing.sm} 0;
+    padding-left: ${spacing.sm};
+    color: ${colors.neutral[600]};
+    font-style: italic;
+    background: ${colors.neutral[50]};
+    padding: ${spacing.sm};
+    border-radius: 0 ${borderRadius.md} ${borderRadius.md} 0;
+  }
+
+  a {
+    color: ${colors.primary[600]};
+    text-decoration: underline;
+  }
+  
+  code {
+    background-color: ${colors.neutral[100]};
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    font-family: monospace;
+    color: ${colors.error[600]};
+  }
+  
+  img {
+    max-width: 100%;
+    border-radius: ${borderRadius.md};
+    margin: ${spacing.sm} 0;
+  }
 `;
 
 const ErrorMessage = styled.p`

@@ -2,7 +2,19 @@ import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import { db } from '../../../firebase/config';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, writeBatch, where } from 'firebase/firestore';
-import { colors, typography, spacing, shadows, borderRadius } from '../../../styles/designSystem';
+import { colors, typography, spacing, shadows, borderRadius, media } from '../../../styles/designSystem';
+
+const FormGrid = styled.div`
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: ${spacing.lg};
+    margin-bottom: ${spacing.xl};
+
+    ${media['max-md']} {
+        grid-template-columns: 1fr;
+        gap: ${spacing.md};
+    }
+`;
 
 const Members = () => {
     const [members, setMembers] = useState([]);
@@ -28,6 +40,10 @@ const Members = () => {
 
     // Delete Confirmation State
     const [deleteModal, setDeleteModal] = useState({ show: false, memberId: null, memberName: '' });
+
+    // New Modal States for Batch Actions
+    const [batchRegisterModal, setBatchRegisterModal] = useState(false);
+    const [deleteAllBirthdaysModal, setDeleteAllBirthdaysModal] = useState(false);
 
     // Toast Function
     const showToast = useCallback((message, type = 'success') => {
@@ -120,11 +136,12 @@ const Members = () => {
         }
     };
 
-    const handleBatchRegister = async () => {
-        if (!window.confirm(`전체 성도 ${members.length}명의 생일 일정을 캘린더에 일괄 등록하시겠습니까?\n이미 등록된 일정이 중복될 수 있으니 주의해주세요.`)) {
-            return;
-        }
+    const handleBatchRegister = () => {
+        setBatchRegisterModal(true);
+    };
 
+    const executeBatchRegister = async () => {
+        setBatchRegisterModal(false);
         setIsLoading(true);
         try {
             const batch = writeBatch(db);
@@ -175,11 +192,12 @@ const Members = () => {
         }
     };
 
-    const handleDeleteAllBirthdays = async () => {
-        if (!window.confirm('캘린더에 등록된 모든 [생일] 타입의 일정을 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.')) {
-            return;
-        }
+    const handleDeleteAllBirthdays = () => {
+        setDeleteAllBirthdaysModal(true);
+    };
 
+    const executeDeleteAllBirthdays = async () => {
+        setDeleteAllBirthdaysModal(false);
         setIsLoading(true);
         try {
             const q = query(collection(db, 'events'), where('type', '==', 'BIRTHDAY'));
@@ -430,6 +448,44 @@ const Members = () => {
                 </ModalOverlay>
             )}
 
+            {/* Batch Register Modal */}
+            {batchRegisterModal && (
+                <ModalOverlay>
+                    <ModalContent>
+                        <ModalHeader>
+                            <ModalTitle>생일 일괄 등록</ModalTitle>
+                            <CloseButton onClick={() => setBatchRegisterModal(false)}>✕</CloseButton>
+                        </ModalHeader>
+                        <p>전체 성도 <strong>{members.length}명</strong>의 생일 일정을 캘린더에 일괄 등록하시겠습니까?</p>
+                        <p style={{ color: colors.neutral[500], fontSize: '0.9rem', marginTop: '0.5rem' }}>
+                            이미 등록된 일정이 중복될 수 있으니 주의해주세요.
+                        </p>
+                        <FormActions style={{ marginTop: '2rem' }}>
+                            <CancelButton onClick={() => setBatchRegisterModal(false)}>취소</CancelButton>
+                            <BatchButton onClick={executeBatchRegister}>일괄 등록하기</BatchButton>
+                        </FormActions>
+                    </ModalContent>
+                </ModalOverlay>
+            )}
+
+            {/* Delete All Birthdays Modal */}
+            {deleteAllBirthdaysModal && (
+                <ModalOverlay>
+                    <DeleteModalContent>
+                        <DeleteIcon>📅</DeleteIcon>
+                        <ModalTitle>생일 전체 삭제</ModalTitle>
+                        <p>캘린더에 등록된 <strong>모든 [생일] 타입의 일정</strong>을 삭제하시겠습니까?</p>
+                        <p style={{ color: colors.error[600], fontWeight: 'bold', marginTop: '0.5rem' }}>
+                            이 작업은 되돌릴 수 없습니다.
+                        </p>
+                        <FormActions>
+                            <CancelButton onClick={() => setDeleteAllBirthdaysModal(false)}>취소</CancelButton>
+                            <DeleteConfirmButton onClick={executeDeleteAllBirthdays}>전체 삭제하기</DeleteConfirmButton>
+                        </FormActions>
+                    </DeleteModalContent>
+                </ModalOverlay>
+            )}
+
             {/* Toast Notification */}
             {toast.show && (
                 <Toast $type={toast.type}>
@@ -648,12 +704,7 @@ const CloseButton = styled.button`
     color: ${colors.neutral[500]};
 `;
 
-const FormGrid = styled.div`
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: ${spacing.lg};
-    margin-bottom: ${spacing.xl};
-`;
+
 
 const FormGroup = styled.div`
     display: flex;

@@ -25,9 +25,7 @@ const UserLayout = () => {
             <NavLink to="/togy/prayer" $isActive={location.pathname === '/togy/prayer'}>
               <NavText>중보기도</NavText>
             </NavLink>
-            <NavLink to="/togy/voices" $isActive={location.pathname === '/togy/voices'}>
-              <NavText>마음의소리</NavText>
-            </NavLink>
+
           </NavContainer>
         </NavBar>
       </Header>

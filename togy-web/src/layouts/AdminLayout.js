@@ -14,7 +14,7 @@ const AdminLayout = () => {
           <Title to="/admin/togy">🔥 TOGY 청년부</Title>
           <Nav>
             <NavLink to="/admin/togy/prayer" $isActive={location.pathname.includes('/prayer')}>중보기도</NavLink>
-            <NavLink to="/admin/togy/voices" $isActive={location.pathname.includes('/voices')}>마음의 소리</NavLink>
+
             <NavLink to="/admin/togy/yearlythemes" $isActive={location.pathname.includes('/yearlythemes')}>연간테마</NavLink>
             <NavLink to="/admin/togy/cells" $isActive={location.pathname.includes('/cells')}>셀 재편성</NavLink>
           </Nav>

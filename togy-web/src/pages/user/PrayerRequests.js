@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import styled, { css } from 'styled-components';
 import { collection, query, getDocs, orderBy } from 'firebase/firestore';
-import { useNavigate } from 'react-router-dom';
+
 import { db } from '../../firebase/config';
 import { colors, typography, spacing, borderRadius, media } from '../../styles/designSystem';
 
 const PrayerRequests = () => {
-  const navigate = useNavigate();
+
   const [prayers, setPrayers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState(null);
@@ -65,9 +65,7 @@ const PrayerRequests = () => {
 
   return (
     <Container>
-      <TopControls>
-        <BackButton onClick={() => navigate('/togy')}>←</BackButton>
-      </TopControls>
+
 
       <Header>
         <PageTitle>Prayer Requests</PageTitle>
@@ -102,7 +100,7 @@ const PrayerRequests = () => {
                   </HeaderMain>
                 </ItemHeader>
 
-                <ContentArea isExpanded={expandedId === prayer.id}>
+                <ContentArea $isExpanded={expandedId === prayer.id}>
                   <PrayerItems>
                     {prayer.prayerItems.map((item, index) => (
                       <PrayerItem key={index}>
@@ -139,29 +137,7 @@ const Container = styled.div`
   }
 `;
 
-const TopControls = styled.div`
-  margin-bottom: ${spacing.lg};
-`;
 
-const BackButton = styled.button`
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: white;
-  border: 1px solid ${colors.neutral[200]};
-  border-radius: ${borderRadius.full};
-  color: ${colors.neutral[600]};
-  font-size: ${typography.fontSize.lg};
-  cursor: pointer;
-  transition: all 0.2s ease;
-  
-  &:hover {
-    background: ${colors.neutral[50]};
-    color: ${colors.neutral[900]};
-  }
-`;
 
 const Header = styled.header`
   margin-bottom: ${spacing.xl};

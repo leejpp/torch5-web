@@ -18,7 +18,8 @@ const Home = React.lazy(() => import('./pages/user/Home'));
 const Notice = React.lazy(() => import('./pages/user/Notice'));
 // AllBirthdays moved up
 const PrayerRequests = React.lazy(() => import('./pages/user/PrayerRequests'));
-const Voices = React.lazy(() => import('./pages/user/Voices'));
+const Feedback = React.lazy(() => import('./pages/user/Feedback'));
+
 const Calendar = React.lazy(() => import('./pages/user/Calendar'));
 const ChurchSchedule = React.lazy(() => import('./pages/user/ChurchSchedule')); // [NEW] Global Schedule
 
@@ -26,7 +27,7 @@ const ChurchSchedule = React.lazy(() => import('./pages/user/ChurchSchedule')); 
 const AdminPortal = React.lazy(() => import('./pages/admin/AdminPortal'));
 const Dashboard = React.lazy(() => import('./pages/admin/Dashboard'));
 const PrayerAdmin = React.lazy(() => import('./pages/admin/Prayer'));
-const VoicesAdmin = React.lazy(() => import('./pages/admin/Voices'));
+const FeedbackAdmin = React.lazy(() => import('./pages/admin/Feedback'));
 const YearlyThemes = React.lazy(() => import('./pages/admin/YearlyThemes'));
 const CellReorganization = React.lazy(() => import('./pages/admin/CellReorganization'));
 
@@ -119,23 +120,25 @@ const App = () => {
             <Route path="/birthdays" element={<AllBirthdays />} />
             <Route path="/schedule" element={<ChurchSchedule />} /> {/* [NEW] Global Schedule Route */}
             <Route path="/notice" element={<Notice />} /> {/* [MOVED] Global Notice Route */}
+            <Route path="/feedback" element={<Feedback />} /> {/* [NEW] Global Feedback Route */}
             <Route path="/togy" element={<UserLayout />}>
               <Route index element={<Home />} />
               {/* Notice moved to root */}
               <Route path="prayer" element={<PrayerRequests />} />
-              <Route path="voices" element={<Voices />} />
+
               <Route path="calendar" element={<Calendar />} />
             </Route>
 
             {/* Admin Routes - Protected by AdminAuth */}
             <Route element={<AdminAuth />}>
               <Route path="/admin" element={<AdminPortal />} />
+              <Route path="/admin/feedback" element={<FeedbackAdmin />} /> {/* [NEW] Global Feedback Admin */}
 
               {/* TOGY Admin Routes (Nested under /admin/togy) */}
               <Route path="/admin/togy" element={<AdminLayout />}>
                 <Route index element={<Dashboard />} />
                 <Route path="prayer" element={<PrayerAdmin />} />
-                <Route path="voices" element={<VoicesAdmin />} />
+
                 <Route path="yearlythemes" element={<YearlyThemes />} />
                 <Route path="cells" element={<CellReorganization />} />
               </Route>

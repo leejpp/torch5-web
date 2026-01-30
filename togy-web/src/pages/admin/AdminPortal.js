@@ -81,13 +81,7 @@ const AdminPortal = () => {
                             </ButtonText>
                             <ArrowIcon>→</ArrowIcon>
                         </SubButton>
-                        <SubButton to="/admin/togy/voices">
-                            <ButtonIcon>💬</ButtonIcon>
-                            <ButtonText>
-                                <ButtonTitle>마음의 소리</ButtonTitle>
-                            </ButtonText>
-                            <ArrowIcon>→</ArrowIcon>
-                        </SubButton>
+
 
                         <SubButton to="/admin/togy/yearlythemes">
                             <ButtonIcon>📖</ButtonIcon>
@@ -147,6 +141,32 @@ const AdminPortal = () => {
                             <ButtonIcon>🎓</ButtonIcon>
                             <ButtonText>
                                 <ButtonTitle>학생 관리</ButtonTitle>
+                            </ButtonText>
+                            <ArrowIcon>→</ArrowIcon>
+                        </SubButton>
+                    </AccordionContent>
+                </SectionGroup>
+
+                {/* 4. Global Site Feedback */}
+                <SectionGroup>
+                    <AccordionHeader
+                        $isOpen={openSection === 'feedback'}
+                        onClick={() => toggleSection('feedback')}
+                        style={{ borderColor: colors.neutral[900] }}
+                    >
+                        <HeaderIcon>🔧</HeaderIcon>
+                        <HeaderText>
+                            <HeaderTitle>사이트 피드백</HeaderTitle>
+                            <HeaderDesc>Site Feedback Management</HeaderDesc>
+                        </HeaderText>
+                        <HeaderArrow $isOpen={openSection === 'feedback'}>▼</HeaderArrow>
+                    </AccordionHeader>
+
+                    <AccordionContent $isOpen={openSection === 'feedback'}>
+                        <SubButton to="/admin/feedback">
+                            <ButtonIcon>📥</ButtonIcon>
+                            <ButtonText>
+                                <ButtonTitle>접수된 피드백 관리</ButtonTitle>
                             </ButtonText>
                             <ArrowIcon>→</ArrowIcon>
                         </SubButton>

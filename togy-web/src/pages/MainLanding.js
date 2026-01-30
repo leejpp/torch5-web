@@ -52,6 +52,8 @@ const MainLanding = () => {
               <ArrowIcon>→</ArrowIcon>
             </SubButton>
 
+
+
             <SubButton to="/birthdays">
               <ButtonIcon>🎂</ButtonIcon>
               <ButtonText>
@@ -94,13 +96,7 @@ const MainLanding = () => {
               <ArrowIcon>→</ArrowIcon>
             </SubButton>
 
-            <SubButton to="/togy/voices" style={{ borderColor: colors.primary[400] }}>
-              <ButtonIcon>💬</ButtonIcon>
-              <ButtonText>
-                <ButtonTitle>마음의 소리</ButtonTitle>
-              </ButtonText>
-              <ArrowIcon>→</ArrowIcon>
-            </SubButton>
+
           </AccordionContent>
         </SectionGroup>
 
@@ -129,6 +125,11 @@ const MainLanding = () => {
             </SubButton>
           </AccordionContent>
         </SectionGroup>
+
+        {/* Feedback Section (Minimal) */}
+        <MinimalFeedbackLink to="/feedback">
+          사이트 이용 의견 / 오류 제보
+        </MinimalFeedbackLink>
 
         <SocialSection>
           <SocialTitle>Follow Us</SocialTitle>
@@ -480,6 +481,21 @@ const SocialLink = styled.a`
     transform: translateY(-2px);
     box-shadow: ${shadows.md};
     border-color: ${colors.primary[200]};
+  }
+`;
+
+const MinimalFeedbackLink = styled(Link)`
+  display: inline-block;
+  margin-top: ${spacing.xl};
+  margin-bottom: ${spacing.md};
+  font-size: ${typography.fontSize.xs};
+  color: ${colors.neutral[400]};
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  transition: color 0.2s;
+  
+  &:hover {
+    color: ${colors.neutral[600]};
   }
 `;
 

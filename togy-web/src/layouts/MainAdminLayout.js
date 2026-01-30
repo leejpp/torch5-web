@@ -16,6 +16,7 @@ const MainAdminLayout = () => {
             <NavLink to="/admin/main/members" $isActive={location.pathname.includes('/members')}>성도 관리</NavLink>
             <NavLink to="/admin/main/schedule" $isActive={location.pathname.includes('/schedule')}>일정 관리</NavLink>
             <NavLink to="/admin/main/notice" $isActive={location.pathname.includes('/notice')}>공지사항 관리</NavLink>
+            <NavLink to="/admin/main/sermons" $isActive={location.pathname.includes('/sermons')}>설교 영상 관리</NavLink>
           </Nav>
         </HeaderContent>
       </Header>

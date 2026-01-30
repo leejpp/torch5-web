@@ -55,6 +55,13 @@ const AdminPortal = () => {
                             </ButtonText>
                             <ArrowIcon>→</ArrowIcon>
                         </SubButton>
+                        <SubButton to="/admin/main/sermons">
+                            <ButtonIcon>🎥</ButtonIcon>
+                            <ButtonText>
+                                <ButtonTitle>설교 영상 관리</ButtonTitle>
+                            </ButtonText>
+                            <ArrowIcon>→</ArrowIcon>
+                        </SubButton>
                     </AccordionContent>
                 </SectionGroup>
 

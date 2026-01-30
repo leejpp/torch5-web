@@ -18,7 +18,9 @@ const Home = React.lazy(() => import('./pages/user/Home'));
 const Notice = React.lazy(() => import('./pages/user/Notice'));
 // AllBirthdays moved up
 const PrayerRequests = React.lazy(() => import('./pages/user/PrayerRequests'));
+
 const Feedback = React.lazy(() => import('./pages/user/Feedback'));
+const Sermons = React.lazy(() => import('./pages/user/Sermons')); // [NEW] User Sermons
 
 const Calendar = React.lazy(() => import('./pages/user/Calendar'));
 const ChurchSchedule = React.lazy(() => import('./pages/user/ChurchSchedule')); // [NEW] Global Schedule
@@ -43,7 +45,9 @@ const TalantStudents = React.lazy(() => import('./pages/talant/Students'));
 const MainMembers = React.lazy(() => import('./pages/admin/main/Members'));
 const MainSchedule = React.lazy(() => import('./pages/admin/main/Schedule')); // [NEW] Admin Schedule
 const MainDashboard = React.lazy(() => import('./pages/admin/main/Dashboard')); // [NEW] Admin Dashboard
+
 const NoticeAdmin = React.lazy(() => import('./pages/admin/Notice')); // [NEW] Notice Admin
+const SermonsAdmin = React.lazy(() => import('./pages/admin/Sermons')); // [NEW] Sermons Admin
 
 const GlobalStyle = createGlobalStyle`
   * {
@@ -121,6 +125,7 @@ const App = () => {
             <Route path="/schedule" element={<ChurchSchedule />} /> {/* [NEW] Global Schedule Route */}
             <Route path="/notice" element={<Notice />} /> {/* [MOVED] Global Notice Route */}
             <Route path="/feedback" element={<Feedback />} /> {/* [NEW] Global Feedback Route */}
+            <Route path="/sermons" element={<Sermons />} /> {/* [NEW] Global Sermons Route */}
             <Route path="/togy" element={<UserLayout />}>
               <Route index element={<Home />} />
               {/* Notice moved to root */}
@@ -149,6 +154,7 @@ const App = () => {
                 <Route path="members" element={<MainMembers />} />
                 <Route path="schedule" element={<MainSchedule />} /> {/* New Schedule Route */}
                 <Route path="notice" element={<NoticeAdmin />} /> {/* New Notice Admin Route */}
+                <Route path="sermons" element={<SermonsAdmin />} /> {/* New Sermons Admin Route */}
               </Route>
 
               {/* Talant Routes (Nested under /admin/talant) */}

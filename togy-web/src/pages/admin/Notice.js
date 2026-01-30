@@ -140,7 +140,6 @@ const NoticeAdmin = () => {
           <SubHeader>Notice Management</SubHeader>
           <PageTitle>공지사항 관리</PageTitle>
         </TitleSection>
-        <HomeButton to="/admin/main">← 돌아가기</HomeButton>
       </Header>
 
       <ContentGrid>
@@ -298,21 +297,6 @@ const PageTitle = styled.h1`
   color: ${colors.neutral[900]};
   font-weight: ${typography.fontWeight.bold};
   font-family: ${typography.fontFamily.heading};
-`;
-
-const HomeButton = styled(Link)`
-  color: ${colors.neutral[500]};
-  text-decoration: none;
-  font-size: ${typography.fontSize.sm};
-  padding: ${spacing.xs} ${spacing.md};
-  border-radius: ${borderRadius.full};
-  border: 1px solid ${colors.neutral[200]};
-  transition: all 0.2s;
-  
-  &:hover {
-    background: ${colors.neutral[100]};
-    color: ${colors.neutral[800]};
-  }
 `;
 
 const ContentGrid = styled.div`

@@ -51,7 +51,13 @@ const MainLanding = () => {
               </ButtonText>
               <ArrowIcon>→</ArrowIcon>
             </SubButton>
-
+            <SubButton to="/sermons" style={{ borderColor: colors.primary[200] }}>
+              <ButtonIcon>🎥</ButtonIcon>
+              <ButtonText>
+                <ButtonTitle>설교 방송 보기</ButtonTitle>
+              </ButtonText>
+              <ArrowIcon>→</ArrowIcon>
+            </SubButton>
 
 
             <SubButton to="/birthdays">

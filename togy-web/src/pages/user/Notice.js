@@ -52,11 +52,7 @@ const Notice = () => {
 
   return (
     <Container>
-      <TopControls>
-        <BackButton onClick={() => navigate('/')}>
-          <BackIcon>←</BackIcon>
-        </BackButton>
-      </TopControls>
+
 
       <MainContent>
         {loading ? (
@@ -78,7 +74,6 @@ const Notice = () => {
             {notices.map((notice) => (
               <AccordionItem
                 key={notice.id}
-                isExpanded={expandedId === notice.id}
                 onClick={() => toggleExpand(notice.id)}
               >
                 <HeaderRow>
@@ -91,7 +86,7 @@ const Notice = () => {
                   </LeftInfo>
                 </HeaderRow>
 
-                <ContentArea isExpanded={expandedId === notice.id}>
+                <ContentArea $isExpanded={expandedId === notice.id}>
                   <MarkdownWrapper>
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
                       {notice.content}
@@ -226,11 +221,11 @@ const NoticeDate = styled.span`
 `;
 
 const ContentArea = styled.div`
-  max-height: ${props => props.isExpanded ? '2000px' : '0'}; // Large max-height for text
-  opacity: ${props => props.isExpanded ? '1' : '0'};
+  max-height: ${props => props.$isExpanded ? '2000px' : '0'}; // Large max-height for text
+  opacity: ${props => props.$isExpanded ? '1' : '0'};
   overflow: hidden;
   transition: all 0.3s ease-in-out;
-  margin-top: ${props => props.isExpanded ? spacing.md : '0'};
+  margin-top: ${props => props.$isExpanded ? spacing.md : '0'};
 `;
 
 const MarkdownWrapper = styled.div`

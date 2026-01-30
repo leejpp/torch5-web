@@ -148,9 +148,7 @@ const ChurchSchedule = () => {
       <BackgroundOverlay />
 
       <TopControls>
-        <BackButton onClick={() => navigate('/')}>
-          <BackIcon>←</BackIcon>
-        </BackButton>
+
 
         <ControlBar>
           <DateControls>

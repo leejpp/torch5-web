@@ -59,5 +59,9 @@ service cloud.firestore {
     match /sermons/{document} {
       allow read, write: if true;
     }
+    // monthly_verses 컬렉션 추가
+    match /monthly_verses/{document} {
+      allow read, write: if true;
+    }
   }
 } 

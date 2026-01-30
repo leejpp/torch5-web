@@ -59,6 +59,14 @@ const MainLanding = () => {
               <ArrowIcon>→</ArrowIcon>
             </SubButton>
 
+            <SubButton to="/scripture" style={{ borderColor: colors.primary[200] }}>
+              <ButtonIcon>📖</ButtonIcon>
+              <ButtonText>
+                <ButtonTitle>이달의 암송 말씀</ButtonTitle>
+              </ButtonText>
+              <ArrowIcon>→</ArrowIcon>
+            </SubButton>
+
 
             <SubButton to="/birthdays">
               <ButtonIcon>🎂</ButtonIcon>

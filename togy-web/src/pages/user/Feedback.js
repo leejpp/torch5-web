@@ -36,9 +36,7 @@ const Feedback = () => {
 
   return (
     <Container>
-      <TopControls>
-        <BackButton onClick={() => navigate('/')}>←</BackButton>
-      </TopControls>
+
 
       <Header>
         <PageTitle>Site Feedback</PageTitle>

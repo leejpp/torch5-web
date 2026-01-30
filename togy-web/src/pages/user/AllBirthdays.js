@@ -186,7 +186,7 @@ const AllBirthdays = () => {
   return (
     <Container>
       <ControlBar>
-        <BackLink to="/">⬅</BackLink>
+
 
         <DateNavigator>
           <NavButton onClick={handlePrev}>◀</NavButton>

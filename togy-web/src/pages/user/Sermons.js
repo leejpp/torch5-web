@@ -71,7 +71,7 @@ const Sermons = () => {
     return (
         <Container>
             <Header>
-                <HomeButton to="/">⬅︎ 메인으로</HomeButton>
+
                 <PageTitle>설교 방송</PageTitle>
                 <SubTitle>말씀의 은혜가 함께하는 시간</SubTitle>
                 <SearchButton onClick={() => setIsSearchOpen(!isSearchOpen)}>

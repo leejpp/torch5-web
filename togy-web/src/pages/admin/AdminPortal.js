@@ -62,6 +62,13 @@ const AdminPortal = () => {
                             </ButtonText>
                             <ArrowIcon>→</ArrowIcon>
                         </SubButton>
+                        <SubButton to="/admin/main/scripture">
+                            <ButtonIcon>📖</ButtonIcon>
+                            <ButtonText>
+                                <ButtonTitle>암송 말씀 관리</ButtonTitle>
+                            </ButtonText>
+                            <ArrowIcon>→</ArrowIcon>
+                        </SubButton>
                     </AccordionContent>
                 </SectionGroup>
 

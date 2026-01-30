@@ -10,9 +10,11 @@ import AdminLayout from './layouts/AdminLayout';
 
 import TalantLayout from './layouts/TalantLayout';
 import MainAdminLayout from './layouts/MainAdminLayout';
+import SimpleLayout from './layouts/SimpleLayout'; // [NEW] Simple Layout
 
 // Lazy Loading으로 페이지들 최적화
 const MainLanding = React.lazy(() => import('./pages/MainLanding'));
+const ScriptureMemory = React.lazy(() => import('./pages/user/ScriptureMemory')); // [NEW] Scripture Memory Page
 const AllBirthdays = React.lazy(() => import('./pages/user/AllBirthdays')); // Root Level
 const Home = React.lazy(() => import('./pages/user/Home'));
 const Notice = React.lazy(() => import('./pages/user/Notice'));
@@ -48,6 +50,7 @@ const MainDashboard = React.lazy(() => import('./pages/admin/main/Dashboard')); 
 
 const NoticeAdmin = React.lazy(() => import('./pages/admin/Notice')); // [NEW] Notice Admin
 const SermonsAdmin = React.lazy(() => import('./pages/admin/Sermons')); // [NEW] Sermons Admin
+const ScriptureAdmin = React.lazy(() => import('./pages/admin/main/ScriptureAdmin')); // [NEW] Scripture Admin
 
 const GlobalStyle = createGlobalStyle`
   * {
@@ -117,21 +120,25 @@ const App = () => {
       >
         <Suspense fallback={<LoadingSpinner />}>
           <Routes>
-            {/* Main Landing Route */}
+            {/* 1. Global Landing Page (Standalone) */}
             <Route path="/" element={<MainLanding />} />
 
-            {/* User Routes (Moved to /togy) */}
-            <Route path="/birthdays" element={<AllBirthdays />} />
-            <Route path="/schedule" element={<ChurchSchedule />} /> {/* [NEW] Global Schedule Route */}
-            <Route path="/notice" element={<Notice />} /> {/* [MOVED] Global Notice Route */}
-            <Route path="/feedback" element={<Feedback />} /> {/* [NEW] Global Feedback Route */}
-            <Route path="/sermons" element={<Sermons />} /> {/* [NEW] Global Sermons Route */}
+            {/* 2. Global Public Pages (Simple Layout - Clean Header) */}
+            <Route element={<SimpleLayout />}>
+              <Route path="/scripture" element={<ScriptureMemory />} />
+              <Route path="/sermons" element={<Sermons />} />
+              <Route path="/notice" element={<Notice />} />
+              <Route path="/schedule" element={<ChurchSchedule />} />
+              <Route path="/birthdays" element={<AllBirthdays />} />
+              <Route path="/feedback" element={<Feedback />} />
+              <Route path="/calendar" element={<Calendar />} />
+              <Route path="/prayer" element={<PrayerRequests />} /> {/* Global Prayer Request? Check if this should be Togy specific */}
+            </Route>
+
+            {/* 3. Youth (TOGY) Pages (User Layout - Youth Header) */}
             <Route path="/togy" element={<UserLayout />}>
               <Route index element={<Home />} />
-              {/* Notice moved to root */}
-              <Route path="prayer" element={<PrayerRequests />} />
-
-              <Route path="calendar" element={<Calendar />} />
+              <Route path="prayer" element={<PrayerRequests />} /> {/* Togy Prayer */}
             </Route>
 
             {/* Admin Routes - Protected by AdminAuth */}
@@ -155,6 +162,7 @@ const App = () => {
                 <Route path="schedule" element={<MainSchedule />} /> {/* New Schedule Route */}
                 <Route path="notice" element={<NoticeAdmin />} /> {/* New Notice Admin Route */}
                 <Route path="sermons" element={<SermonsAdmin />} /> {/* New Sermons Admin Route */}
+                <Route path="scripture" element={<ScriptureAdmin />} /> {/* New Scripture Admin Route */}
               </Route>
 
               {/* Talant Routes (Nested under /admin/talant) */}

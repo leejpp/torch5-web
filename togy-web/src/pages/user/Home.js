@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { db } from '../../firebase/config';
 import { collection, query, getDocs, orderBy } from 'firebase/firestore';
-import { colors, typography, spacing, borderRadius, media } from '../../styles/designSystem';
+import { colors, typography, spacing, borderRadius, shadows, media } from '../../styles/designSystem';
 
 import { parseEmphasizedText } from '../../utils/textParser';
 
@@ -185,5 +185,48 @@ const VisionItem = styled.div`
 const VisionText = styled.span`
   line-height: 1.5;
 `;
+
+const ScriptureLink = styled(Link)`
+  display: flex;
+  align-items: center;
+  background-color: white;
+  border-radius: ${borderRadius.xl};
+  padding: ${spacing.lg};
+  text-decoration: none;
+  box-shadow: ${shadows.sm};
+  transition: transform 0.2s, box-shadow 0.2s;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: ${shadows.md};
+  }
+`;
+
+const IconWrapper = styled.div`
+  font-size: 2rem;
+  margin-right: ${spacing.md};
+`;
+
+const TextWrapper = styled.div`
+  flex: 1;
+`;
+
+const LinkTitle = styled.h3`
+  font-size: ${typography.fontSize.lg};
+  font-weight: ${typography.fontWeight.bold};
+  color: ${colors.neutral[900]};
+  margin-bottom: 4px;
+`;
+
+const LinkDesc = styled.p`
+  font-size: ${typography.fontSize.sm};
+  color: ${colors.neutral[500]};
+`;
+
+const Arrow = styled.span`
+  color: ${colors.neutral[400]};
+  font-size: ${typography.fontSize.xl};
+`;
+
 
 export default Home;

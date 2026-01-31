@@ -152,6 +152,7 @@ const Sermons = () => {
                 onClose={() => setSelectedVideo(null)}
                 youtubeId={selectedVideo?.youtubeId}
                 title={selectedVideo?.title}
+                startTime={selectedVideo?.startTime}
             />
         </Container>
     );

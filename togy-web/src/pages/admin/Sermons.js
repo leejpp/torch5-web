@@ -18,7 +18,9 @@ const SermonsAdmin = () => {
         date: '',
         serviceType: '주일대예배',
         scripture: '',
-        youtubeUrl: ''
+        youtubeUrl: '',
+        startMin: '',
+        startSec: ''
     });
 
     // Toast State
@@ -71,9 +73,17 @@ const SermonsAdmin = () => {
         if (!validateForm()) return;
 
         const youtubeId = getYoutubeId(formData.youtubeUrl);
+
+        // Calculate total seconds for start time
+        let startTime = 0;
+        if (formData.startMin || formData.startSec) {
+            startTime = (parseInt(formData.startMin || 0) * 60) + parseInt(formData.startSec || 0);
+        }
+
         const sermonData = {
             ...formData,
-            youtubeId
+            youtubeId,
+            startTime: startTime > 0 ? startTime : null
         };
 
         try {
@@ -107,14 +117,21 @@ const SermonsAdmin = () => {
     };
 
     const openEditForm = (sermon) => {
+        const startTime = sermon.startTime || 0;
+        const startMin = Math.floor(startTime / 60);
+        const startSec = startTime % 60;
+
         setEditingSermon(sermon);
+
         setFormData({
             title: sermon.title,
             preacher: sermon.preacher || '',
             date: sermon.date,
             serviceType: sermon.serviceType || '주일대예배',
             scripture: sermon.scripture || '',
-            youtubeUrl: sermon.youtubeUrl
+            youtubeUrl: sermon.youtubeUrl,
+            startMin: startMin > 0 ? startMin : '',
+            startSec: startSec > 0 ? startSec : ''
         });
         setIsFormOpen(true);
     };
@@ -128,7 +145,9 @@ const SermonsAdmin = () => {
             date: '',
             serviceType: '주일대예배',
             scripture: '',
-            youtubeUrl: ''
+            youtubeUrl: '',
+            startMin: '',
+            startSec: ''
         });
     };
 
@@ -143,30 +162,6 @@ const SermonsAdmin = () => {
 
             <ActionBar>
                 <AddButton onClick={() => setIsFormOpen(true)}>+ 새 영상 등록</AddButton>
-                {/* Temporary Migration Button - Can be removed after use */}
-                <MigrateButton onClick={async () => {
-                    if (!window.confirm('기존 데이터의 예배 이름을 최신 버전으로 변경하시겠습니까?')) return;
-                    try {
-                        const { sermons: allSermons } = await SermonService.getSermons(null, 1000); // Fetch ample amount
-                        let count = 0;
-                        for (const sermon of allSermons) {
-                            let newType = null;
-                            if (sermon.serviceType === '오후예배') newType = '주일오후예배';
-                            else if (sermon.serviceType === '수요예배' || sermon.serviceType === '수요찬양예배') newType = '수요저녁예배';
-                            else if (sermon.serviceType === '금요기도회') newType = '금요철야예배';
-
-                            if (newType) {
-                                await SermonService.updateSermon(sermon.id, { serviceType: newType });
-                                count++;
-                            }
-                        }
-                        alert(`${count}개의 영상 데이터가 성공적으로 업데이트되었습니다.`);
-                        fetchSermons();
-                    } catch (e) {
-                        console.error(e);
-                        alert('업데이트 중 오류가 발생했습니다.');
-                    }
-                }}>🔄 데이터 일괄 변경</MigrateButton>
             </ActionBar>
 
             {/* List Section */}
@@ -286,6 +281,29 @@ const SermonsAdmin = () => {
                                         </PreviewArea>
                                     )}
                                 </FormGroup>
+                                <FormGroup>
+                                    <Label>시작 시간 (분)</Label>
+                                    <Input
+                                        type="number"
+                                        name="startMin"
+                                        value={formData.startMin}
+                                        onChange={handleInputChange}
+                                        placeholder="0"
+                                        min="0"
+                                    />
+                                </FormGroup>
+                                <FormGroup>
+                                    <Label>시작 시간 (초)</Label>
+                                    <Input
+                                        type="number"
+                                        name="startSec"
+                                        value={formData.startSec}
+                                        onChange={handleInputChange}
+                                        placeholder="0"
+                                        min="0"
+                                        max="59"
+                                    />
+                                </FormGroup>
                             </FormGrid>
                             <FormActions>
                                 <CancelButton type="button" onClick={closeForm}>취소</CancelButton>
@@ -349,13 +367,6 @@ const AddButton = styled.button`
     background-color: ${colors.primary[600]}; color: white; border: none; padding: ${spacing.md} ${spacing.xl};
     border-radius: ${borderRadius.lg}; font-weight: bold; cursor: pointer; transition: 0.2s;
     &:hover { background-color: ${colors.primary[700]}; }
-`;
-
-const MigrateButton = styled.button`
-    margin-left: 10px;
-    background-color: ${colors.secondary[500]}; color: white; border: none; padding: ${spacing.md} ${spacing.lg};
-    border-radius: ${borderRadius.lg}; font-weight: bold; cursor: pointer; transition: 0.2s;
-    &:hover { background-color: ${colors.secondary[600]}; }
 `;
 
 const ListContainer = styled.div` background: white; border-radius: ${borderRadius.xl}; box-shadow: ${shadows.sm}; overflow: hidden; `;

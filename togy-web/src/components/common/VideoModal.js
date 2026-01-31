@@ -2,8 +2,10 @@ import React from 'react';
 import styled from 'styled-components';
 import { colors, borderRadius, shadows } from '../../styles/designSystem';
 
-const VideoModal = ({ isOpen, onClose, youtubeId, title }) => {
+const VideoModal = ({ isOpen, onClose, youtubeId, title, startTime }) => {
     if (!isOpen) return null;
+
+    const embedUrl = `https://www.youtube.com/embed/${youtubeId}?autoplay=1${startTime ? `&start=${startTime}` : ''}`;
 
     return (
         <Overlay onClick={onClose}>
@@ -14,7 +16,7 @@ const VideoModal = ({ isOpen, onClose, youtubeId, title }) => {
                 </Header>
                 <VideoContainer>
                     <iframe
-                        src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1`}
+                        src={embedUrl}
                         title={title}
                         frameBorder="0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

@@ -10,6 +10,12 @@ const SERVICE_TYPES = ['주일대예배', '주일오후예배', '수요저녁예
 const SermonsAdmin = () => {
     const [sermons, setSermons] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [lastDoc, setLastDoc] = useState(null);
+    const [hasMore, setHasMore] = useState(false);
+
+    // Filtering States
+    const [filterType, setFilterType] = useState('전체');
+    const [filterDate, setFilterDate] = useState('');
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingSermon, setEditingSermon] = useState(null);
     const [formData, setFormData] = useState({
@@ -31,19 +37,41 @@ const SermonsAdmin = () => {
 
     useEffect(() => {
         fetchSermons();
-    }, []);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filterType, filterDate]); // Re-fetch when filters change
 
-    const fetchSermons = async () => {
+    const fetchSermons = async (isLoadMore = false) => {
         setIsLoading(true);
         try {
-            const { sermons: data } = await SermonService.getSermons(null, 20); // Fetch last 20 by default for admin
-            setSermons(data);
+            const currentLastDoc = isLoadMore ? lastDoc : null;
+            const { sermons: newData, lastDoc: newLastDoc, hasMore: moreAvailable } =
+                await SermonService.getSermons(currentLastDoc, 20, filterType, filterDate);
+
+            if (isLoadMore) {
+                setSermons(prev => [...prev, ...newData]);
+            } else {
+                setSermons(newData);
+            }
+
+            setLastDoc(newLastDoc);
+            setHasMore(moreAvailable);
         } catch (error) {
             console.error(error);
             showToast('데이터를 불러오는데 실패했습니다.', 'error');
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleLoadMore = () => {
+        if (!isLoading && hasMore) {
+            fetchSermons(true);
+        }
+    };
+
+    const handleResetFilter = () => {
+        setFilterType('전체');
+        setFilterDate('');
     };
 
     const showToast = (message, type = 'success') => {
@@ -95,6 +123,8 @@ const SermonsAdmin = () => {
                 showToast('새 설교 영상이 등록되었습니다.');
             }
             closeForm();
+            closeForm();
+            // Refresh list keeping current filters
             fetchSermons();
         } catch (error) {
             console.error(error);
@@ -161,6 +191,25 @@ const SermonsAdmin = () => {
             </Header>
 
             <ActionBar>
+                <FilterGroup>
+                    <FilterSelect
+                        value={filterType}
+                        onChange={(e) => setFilterType(e.target.value)}
+                    >
+                        <option value="전체">전체 예배</option>
+                        {SERVICE_TYPES.map(type => (
+                            <option key={type} value={type}>{type}</option>
+                        ))}
+                    </FilterSelect>
+                    <FilterInput
+                        type="date"
+                        value={filterDate}
+                        onChange={(e) => setFilterDate(e.target.value)}
+                    />
+                    {(filterType !== '전체' || filterDate) && (
+                        <ResetButton onClick={handleResetFilter}>필터 초기화 ↺</ResetButton>
+                    )}
+                </FilterGroup>
                 <AddButton onClick={() => setIsFormOpen(true)}>+ 새 영상 등록</AddButton>
             </ActionBar>
 
@@ -169,171 +218,188 @@ const SermonsAdmin = () => {
                 {isLoading ? (
                     <EmptyState>로딩 중...</EmptyState>
                 ) : sermons.length > 0 ? (
-                    <SermonTable>
-                        <thead>
-                            <tr>
-                                <th>썸네일</th>
-                                <th>날짜/구분</th>
-                                <th>제목/설교자</th>
-                                <th>조회수</th>
-                                <th>관리</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {sermons.map(sermon => (
-                                <tr key={sermon.id}>
-                                    <td width="120px">
-                                        <Thumbnail src={getThumbnailUrl(sermon.youtubeId)} />
-                                    </td>
-                                    <td>
-                                        <DateText>{sermon.date}</DateText>
-                                        <Badge>{sermon.serviceType}</Badge>
-                                    </td>
-                                    <td>
-                                        <SermonTitle>{sermon.title}</SermonTitle>
-                                        <Preacher>{sermon.preacher} {sermon.scripture && `| ${sermon.scripture}`}</Preacher>
-                                    </td>
-                                    <td>{sermon.viewCount || 0}</td>
-                                    <td>
-                                        <ActionGroup>
-                                            <ActionButton onClick={() => openEditForm(sermon)}>✏️</ActionButton>
-                                            <ActionButton $danger onClick={() => setDeleteModal({ show: true, sermonId: sermon.id, sermonTitle: sermon.title })}>🗑️</ActionButton>
-                                        </ActionGroup>
-                                    </td>
+                    <>
+                        <SermonTable>
+                            <thead>
+                                <tr>
+                                    <th>썸네일</th>
+                                    <th>날짜/구분</th>
+                                    <th>제목/설교자</th>
+                                    <th>조회수</th>
+                                    <th>관리</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </SermonTable>
+                            </thead>
+                            <tbody>
+                                {sermons.map(sermon => (
+                                    <tr key={sermon.id}>
+                                        <td width="120px">
+                                            <Thumbnail src={getThumbnailUrl(sermon.youtubeId)} />
+                                        </td>
+                                        <td>
+                                            <DateText>{sermon.date}</DateText>
+                                            <Badge>{sermon.serviceType}</Badge>
+                                        </td>
+                                        <td>
+                                            <SermonTitle>{sermon.title}</SermonTitle>
+                                            <Preacher>{sermon.preacher} {sermon.scripture && `| ${sermon.scripture}`}</Preacher>
+                                        </td>
+                                        <td>{sermon.viewCount || 0}</td>
+                                        <td>
+                                            <ActionGroup>
+                                                <ActionButton onClick={() => openEditForm(sermon)}>✏️</ActionButton>
+                                                <ActionButton $danger onClick={() => setDeleteModal({ show: true, sermonId: sermon.id, sermonTitle: sermon.title })}>🗑️</ActionButton>
+                                            </ActionGroup>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </SermonTable>
+                        {hasMore && (
+                            <LoadMoreArea>
+                                <LoadMoreButton onClick={handleLoadMore} disabled={isLoading}>
+                                    {isLoading ? '로딩 중...' : '더 보기'}
+                                </LoadMoreButton>
+                            </LoadMoreArea>
+                        )}
+                    </>
                 ) : (
-                    <EmptyState>등록된 설교 영상이 없습니다.</EmptyState>
+                    <EmptyState>
+                        {filterType !== '전체' || filterDate ? '검색 결과가 없습니다.' : '등록된 설교 영상이 없습니다.'}
+                    </EmptyState>
                 )}
             </ListContainer>
 
             {/* Create/Edit Modal */}
-            {isFormOpen && (
-                <ModalOverlay onClick={closeForm}>
-                    <ModalContent onClick={e => e.stopPropagation()}>
-                        <ModalHeader>
-                            <ModalTitle>{editingSermon ? '설교 영상 수정' : '새 영상 등록'}</ModalTitle>
-                            <CloseButton onClick={closeForm}>✕</CloseButton>
-                        </ModalHeader>
-                        <Form onSubmit={handleSubmit}>
-                            <FormGrid>
-                                <FormGroup>
-                                    <Label>예배 날짜 *</Label>
-                                    <Input
-                                        type="date"
-                                        name="date"
-                                        value={formData.date}
-                                        onChange={handleInputChange}
-                                        required
-                                    />
-                                </FormGroup>
-                                <FormGroup>
-                                    <Label>예배 구분 *</Label>
-                                    <Select name="serviceType" value={formData.serviceType} onChange={handleInputChange}>
-                                        {SERVICE_TYPES.map(type => (
-                                            <option key={type} value={type}>{type}</option>
-                                        ))}
-                                    </Select>
-                                </FormGroup>
-                                <FormGroup style={{ gridColumn: '1 / -1' }}>
-                                    <Label>설교 제목 *</Label>
-                                    <Input
-                                        name="title"
-                                        value={formData.title}
-                                        onChange={handleInputChange}
-                                        placeholder="설교 제목을 입력하세요"
-                                        required
-                                    />
-                                </FormGroup>
-                                <FormGroup>
-                                    <Label>설교자</Label>
-                                    <Input
-                                        name="preacher"
-                                        value={formData.preacher}
-                                        onChange={handleInputChange}
-                                        placeholder="설교자 이름 (예: 홍길동 목사)"
-                                    />
-                                </FormGroup>
-                                <FormGroup>
-                                    <Label>본문 말씀</Label>
-                                    <Input
-                                        name="scripture"
-                                        value={formData.scripture}
-                                        onChange={handleInputChange}
-                                        placeholder="예: 요한복음 3:16"
-                                    />
-                                </FormGroup>
-                                <FormGroup style={{ gridColumn: '1 / -1' }}>
-                                    <Label>유튜브 링크 *</Label>
-                                    <Input
-                                        name="youtubeUrl"
-                                        value={formData.youtubeUrl}
-                                        onChange={handleInputChange}
-                                        placeholder="https://youtu.be/..."
-                                        required
-                                    />
-                                    {getYoutubeId(formData.youtubeUrl) && (
-                                        <PreviewArea>
-                                            <p>썸네일 미리보기:</p>
-                                            <img src={getThumbnailUrl(getYoutubeId(formData.youtubeUrl))} alt="Preview" />
-                                        </PreviewArea>
-                                    )}
-                                </FormGroup>
-                                <FormGroup>
-                                    <Label>시작 시간 (분)</Label>
-                                    <Input
-                                        type="number"
-                                        name="startMin"
-                                        value={formData.startMin}
-                                        onChange={handleInputChange}
-                                        placeholder="0"
-                                        min="0"
-                                    />
-                                </FormGroup>
-                                <FormGroup>
-                                    <Label>시작 시간 (초)</Label>
-                                    <Input
-                                        type="number"
-                                        name="startSec"
-                                        value={formData.startSec}
-                                        onChange={handleInputChange}
-                                        placeholder="0"
-                                        min="0"
-                                        max="59"
-                                    />
-                                </FormGroup>
-                            </FormGrid>
-                            <FormActions>
-                                <CancelButton type="button" onClick={closeForm}>취소</CancelButton>
-                                <SubmitButton type="submit">{editingSermon ? '수정 완료' : '등록하기'}</SubmitButton>
-                            </FormActions>
-                        </Form>
-                    </ModalContent>
-                </ModalOverlay>
-            )}
+            {
+                isFormOpen && (
+                    <ModalOverlay onClick={closeForm}>
+                        <ModalContent onClick={e => e.stopPropagation()}>
+                            <ModalHeader>
+                                <ModalTitle>{editingSermon ? '설교 영상 수정' : '새 영상 등록'}</ModalTitle>
+                                <CloseButton onClick={closeForm}>✕</CloseButton>
+                            </ModalHeader>
+                            <Form onSubmit={handleSubmit}>
+                                <FormGrid>
+                                    <FormGroup>
+                                        <Label>예배 날짜 *</Label>
+                                        <Input
+                                            type="date"
+                                            name="date"
+                                            value={formData.date}
+                                            onChange={handleInputChange}
+                                            required
+                                        />
+                                    </FormGroup>
+                                    <FormGroup>
+                                        <Label>예배 구분 *</Label>
+                                        <Select name="serviceType" value={formData.serviceType} onChange={handleInputChange}>
+                                            {SERVICE_TYPES.map(type => (
+                                                <option key={type} value={type}>{type}</option>
+                                            ))}
+                                        </Select>
+                                    </FormGroup>
+                                    <FormGroup style={{ gridColumn: '1 / -1' }}>
+                                        <Label>설교 제목 *</Label>
+                                        <Input
+                                            name="title"
+                                            value={formData.title}
+                                            onChange={handleInputChange}
+                                            placeholder="설교 제목을 입력하세요"
+                                            required
+                                        />
+                                    </FormGroup>
+                                    <FormGroup>
+                                        <Label>설교자</Label>
+                                        <Input
+                                            name="preacher"
+                                            value={formData.preacher}
+                                            onChange={handleInputChange}
+                                            placeholder="설교자 이름 (예: 홍길동 목사)"
+                                        />
+                                    </FormGroup>
+                                    <FormGroup>
+                                        <Label>본문 말씀</Label>
+                                        <Input
+                                            name="scripture"
+                                            value={formData.scripture}
+                                            onChange={handleInputChange}
+                                            placeholder="예: 요한복음 3:16"
+                                        />
+                                    </FormGroup>
+                                    <FormGroup style={{ gridColumn: '1 / -1' }}>
+                                        <Label>유튜브 링크 *</Label>
+                                        <Input
+                                            name="youtubeUrl"
+                                            value={formData.youtubeUrl}
+                                            onChange={handleInputChange}
+                                            placeholder="https://youtu.be/..."
+                                            required
+                                        />
+                                        {getYoutubeId(formData.youtubeUrl) && (
+                                            <PreviewArea>
+                                                <p>썸네일 미리보기:</p>
+                                                <img src={getThumbnailUrl(getYoutubeId(formData.youtubeUrl))} alt="Preview" />
+                                            </PreviewArea>
+                                        )}
+                                    </FormGroup>
+                                    <FormGroup>
+                                        <Label>시작 시간 (분)</Label>
+                                        <Input
+                                            type="number"
+                                            name="startMin"
+                                            value={formData.startMin}
+                                            onChange={handleInputChange}
+                                            placeholder="0"
+                                            min="0"
+                                        />
+                                    </FormGroup>
+                                    <FormGroup>
+                                        <Label>시작 시간 (초)</Label>
+                                        <Input
+                                            type="number"
+                                            name="startSec"
+                                            value={formData.startSec}
+                                            onChange={handleInputChange}
+                                            placeholder="0"
+                                            min="0"
+                                            max="59"
+                                        />
+                                    </FormGroup>
+                                </FormGrid>
+                                <FormActions>
+                                    <CancelButton type="button" onClick={closeForm}>취소</CancelButton>
+                                    <SubmitButton type="submit">{editingSermon ? '수정 완료' : '등록하기'}</SubmitButton>
+                                </FormActions>
+                            </Form>
+                        </ModalContent>
+                    </ModalOverlay>
+                )
+            }
 
             {/* Delete Modal */}
-            {deleteModal.show && (
-                <ModalOverlay>
-                    <DeleteModalContent>
-                        <DeleteIcon>🗑️</DeleteIcon>
-                        <ModalTitle>영상 삭제</ModalTitle>
-                        <p>정말 <strong>{deleteModal.sermonTitle}</strong> 영상을 삭제하시겠습니까?<br />이 작업은 되돌릴 수 없습니다.</p>
-                        <FormActions>
-                            <CancelButton onClick={() => setDeleteModal({ show: false, sermonId: null, sermonTitle: '' })}>취소</CancelButton>
-                            <DeleteConfirmButton onClick={handleDelete}>삭제하기</DeleteConfirmButton>
-                        </FormActions>
-                    </DeleteModalContent>
-                </ModalOverlay>
-            )}
+            {
+                deleteModal.show && (
+                    <ModalOverlay>
+                        <DeleteModalContent>
+                            <DeleteIcon>🗑️</DeleteIcon>
+                            <ModalTitle>영상 삭제</ModalTitle>
+                            <p>정말 <strong>{deleteModal.sermonTitle}</strong> 영상을 삭제하시겠습니까?<br />이 작업은 되돌릴 수 없습니다.</p>
+                            <FormActions>
+                                <CancelButton onClick={() => setDeleteModal({ show: false, sermonId: null, sermonTitle: '' })}>취소</CancelButton>
+                                <DeleteConfirmButton onClick={handleDelete}>삭제하기</DeleteConfirmButton>
+                            </FormActions>
+                        </DeleteModalContent>
+                    </ModalOverlay>
+                )
+            }
 
             {/* Toast */}
-            {toast.show && (
-                <Toast $type={toast.type}>{toast.message}</Toast>
-            )}
-        </Container>
+            {
+                toast.show && (
+                    <Toast $type={toast.type}>{toast.message}</Toast>
+                )
+            }
+        </Container >
     );
 };
 
@@ -361,7 +427,21 @@ const TitleSection = styled.div` display: flex; flex-direction: column; `;
 const SubHeader = styled.span` font-size: 0.9rem; color: ${colors.neutral[500]}; text-transform: uppercase; font-weight: 600; `;
 const PageTitle = styled.h1` font-size: 2rem; color: ${colors.neutral[900]}; font-weight: bold; `;
 
-const ActionBar = styled.div` display: flex; justify-content: flex-end; margin-bottom: ${spacing.lg}; `;
+const ActionBar = styled.div` 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-bottom: ${spacing.lg}; 
+    ${media['max-md']} { flex-direction: column; gap: ${spacing.md}; align-items: stretch; }
+`;
+
+const FilterGroup = styled.div` display: flex; gap: ${spacing.sm}; flex-wrap: wrap; `;
+const FilterSelect = styled.select` padding: 8px 12px; border: 1px solid ${colors.neutral[300]}; border-radius: ${borderRadius.md}; background: white; `;
+const FilterInput = styled.input` padding: 8px 12px; border: 1px solid ${colors.neutral[300]}; border-radius: ${borderRadius.md}; background: white; `;
+const ResetButton = styled.button` 
+    padding: 8px 12px; background: ${colors.neutral[200]}; border: none; border-radius: ${borderRadius.md}; cursor: pointer; font-size: 0.9rem;
+    &:hover { background: ${colors.neutral[300]}; }
+`;
 
 const AddButton = styled.button`
     background-color: ${colors.primary[600]}; color: white; border: none; padding: ${spacing.md} ${spacing.xl};
@@ -392,6 +472,14 @@ const ActionButton = styled.button`
 `;
 
 const EmptyState = styled.div` padding: ${spacing['4xl']}; text-align: center; color: ${colors.neutral[500]}; `;
+
+const LoadMoreArea = styled.div` padding: ${spacing.lg}; display: flex; justify-content: center; background: ${colors.neutral[50]}; border-top: 1px solid ${colors.neutral[100]}; `;
+const LoadMoreButton = styled.button`
+    padding: 10px 30px; background: white; border: 1px solid ${colors.neutral[300]}; border-radius: ${borderRadius.full}; 
+    color: ${colors.neutral[700]}; font-weight: 600; cursor: pointer; transition: 0.2s;
+    &:hover { background: ${colors.neutral[100]}; border-color: ${colors.neutral[400]}; }
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+`;
 
 // Form & Modal
 const ModalOverlay = styled.div`

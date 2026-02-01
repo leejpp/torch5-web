@@ -5,7 +5,7 @@ import { colors, borderRadius, shadows } from '../../styles/designSystem';
 const VideoModal = ({ isOpen, onClose, youtubeId, title, startTime }) => {
     if (!isOpen) return null;
 
-    const embedUrl = `https://www.youtube.com/embed/${youtubeId}?autoplay=1${startTime ? `&start=${startTime}` : ''}`;
+    const embedUrl = `https://www.youtube.com/embed/${youtubeId}?autoplay=1&mute=1&playsinline=1${startTime ? `&start=${startTime}` : ''}`;
 
     return (
         <Overlay onClick={onClose}>

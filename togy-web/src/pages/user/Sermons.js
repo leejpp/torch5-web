@@ -1,17 +1,37 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import styled from 'styled-components';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { SermonService } from '../../services/SermonService';
 import { getThumbnailUrl } from '../../utils/youtube';
 import VideoModal from '../../components/common/VideoModal';
 import { colors, typography, spacing, borderRadius, shadows, media } from '../../styles/designSystem';
 
-const SERVICE_TYPES = ['전체', '주일대예배', '주일오후예배', '수요저녁예배', '금요철야예배', '청년부예배', '주일학교예배', '기타'];
+const SERVICE_GROUPS = {
+    main: ['전체', '주일대예배', '주일오후예배', '수요저녁예배', '금요철야예배', '기타'],
+    youth: ['청년부예배'],
+    school: ['주일학교예배'],
+    all: ['전체', '주일대예배', '주일오후예배', '수요저녁예배', '금요철야예배', '청년부예배', '주일학교예배', '기타']
+};
 
 const Sermons = () => {
+    const location = useLocation();
     const [sermons, setSermons] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [filterType, setFilterType] = useState('전체');
+
+    // URL 파라미터에서 group 확인
+    const queryParams = new URLSearchParams(location.search);
+    const group = queryParams.get('group') || 'all';
+
+    // 현재 그룹에 맞는 카테고리 목록
+    const availableTypes = useMemo(() => SERVICE_GROUPS[group] || SERVICE_GROUPS.all, [group]);
+
+    // 초기 필터 설정 (그룹 진입 시 해당 그룹의 첫 번째 항목, 전체는 '전체')
+    const [filterType, setFilterType] = useState(() => {
+        if (group === 'youth') return '청년부예배';
+        if (group === 'school') return '주일학교예배';
+        return '전체';
+    });
+
     const [selectedVideo, setSelectedVideo] = useState(null);
     const [lastDoc, setLastDoc] = useState(null);
     const [hasMore, setHasMore] = useState(true);
@@ -20,14 +40,37 @@ const Sermons = () => {
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [selectedDate, setSelectedDate] = useState('');
 
+    // 그룹이 변경되면 필터 초기화
+    useEffect(() => {
+        if (group === 'youth') setFilterType('청년부예배');
+        else if (group === 'school') setFilterType('주일학교예배');
+        else setFilterType('전체');
+    }, [group]);
+
     const loadSermons = useCallback(async (isInitial = false) => {
         if (loading) return;
         setLoading(true);
         try {
+            // Determine the filter value to send to the service
+            let queryFilter = null;
+
+            if (filterType === '전체') {
+                // If 'All' is selected, check the group
+                if (group !== 'all') {
+                    // For specific groups, exclude '전체' from the list and use the rest as a filter array
+                    const groupCategories = availableTypes.filter(t => t !== '전체');
+                    queryFilter = groupCategories;
+                }
+                // If group is 'all', queryFilter remains null (fetch everything)
+            } else {
+                // Specific specific category selected
+                queryFilter = filterType;
+            }
+
             const result = await SermonService.getSermons(
                 isInitial ? null : lastDoc,
                 12,
-                filterType === '전체' ? null : filterType,
+                queryFilter,
                 selectedDate || null // Pass date filter
             );
 
@@ -39,14 +82,12 @@ const Sermons = () => {
         } finally {
             setLoading(false);
         }
-    }, [filterType, lastDoc, loading, selectedDate]); // Add selectedDate to deps
+    }, [filterType, lastDoc, loading, selectedDate, group, availableTypes]); // Add group and availableTypes to deps
 
     // Initial Load or Filter Change
     useEffect(() => {
         setHasMore(true);
         setLastDoc(null);
-        loadSermons(true);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
         loadSermons(true);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [filterType, selectedDate]); // Trigger on date change too
@@ -102,7 +143,7 @@ const Sermons = () => {
             {/* Filter Tabs */}
             <FilterScroll>
                 <Tabs>
-                    {SERVICE_TYPES.map(type => (
+                    {availableTypes.map(type => (
                         <Tab
                             key={type}
                             $active={filterType === type}

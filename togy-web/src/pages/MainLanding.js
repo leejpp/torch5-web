@@ -51,7 +51,7 @@ const MainLanding = () => {
               </ButtonText>
               <ArrowIcon>→</ArrowIcon>
             </SubButton>
-            <SubButton to="/sermons" style={{ borderColor: colors.primary[200] }}>
+            <SubButton to="/sermons?group=main" style={{ borderColor: colors.primary[200] }}>
               <ButtonIcon>🎥</ButtonIcon>
               <ButtonText>
                 <ButtonTitle>설교 방송 보기</ButtonTitle>
@@ -102,6 +102,14 @@ const MainLanding = () => {
               <ArrowIcon>→</ArrowIcon>
             </SubButton>
 
+            <SubButton to="/sermons?group=youth" style={{ borderColor: colors.primary[400] }}>
+              <ButtonIcon>🎥</ButtonIcon>
+              <ButtonText>
+                <ButtonTitle>설교 방송 보기</ButtonTitle>
+              </ButtonText>
+              <ArrowIcon>→</ArrowIcon>
+            </SubButton>
+
             <SubButton to="/togy/prayer" style={{ borderColor: colors.primary[400] }}>
               <ButtonIcon>🙏</ButtonIcon>
               <ButtonText>
@@ -130,6 +138,14 @@ const MainLanding = () => {
           </AccordionHeader>
 
           <AccordionContent $isOpen={openSection === 'school'}>
+            <SubButton to="/sermons?group=school" style={{ borderColor: colors.secondary[200] }}>
+              <ButtonIcon>🎥</ButtonIcon>
+              <ButtonText>
+                <ButtonTitle>설교 방송 보기</ButtonTitle>
+              </ButtonText>
+              <ArrowIcon>→</ArrowIcon>
+            </SubButton>
+
             <SubButton to="/talant-rank" style={{ borderColor: colors.secondary[200] }}>
               <ButtonIcon>🏆</ButtonIcon>
               <ButtonText>

@@ -40,8 +40,17 @@ export const SermonService = {
             let constraints = [];
 
             // 1. Basic Filters
-            if (filterType && filterType !== '전체') {
-                constraints.push(where('serviceType', '==', filterType));
+            if (filterType) {
+                if (Array.isArray(filterType)) {
+                    // If filterType is an array, use 'in' operator
+                    // Note: 'in' operator supports up to 10 values
+                    if (filterType.length > 0) {
+                        constraints.push(where('serviceType', 'in', filterType));
+                    }
+                } else if (filterType !== '전체') {
+                    // Single value filter
+                    constraints.push(where('serviceType', '==', filterType));
+                }
             }
 
             if (dateFilter) {
